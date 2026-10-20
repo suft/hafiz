@@ -13,32 +13,34 @@ class ProgressTest {
 
     @Test
     fun dayStreaks() {
-        var p = Progress().withAnswer(guess, 0, true, day = 10)
-        assertEquals(1, p.dayStreak)
-        assertEquals(1, p.answersToday(10))
+        var p = Progress()
+        val expected = listOf(10L to 1, 10L to 1, 11L to 2, 14L to 1, 13L to 1)
+        for ((day, streak) in expected) {
+            p = p.withCompletedRound(RoundRecord("ayah:1-114", 5, 10, day = day))
+            assertEquals("after day $day", streak, p.dayStreak)
+        }
+        assertEquals(2, p.bestDayStreak)
+        assertEquals(14L, p.lastStreakDay)
+    }
 
-        p = p.withAnswer(guess, 0, true, day = 10)
-        assertEquals(1, p.dayStreak)
+    @Test
+    fun answersDoNotMoveStreak() {
+        var p = Progress().withAnswer(guess, 0, true, day = 10).withAnswer(guess, 0, true, day = 10)
         assertEquals(2, p.answersToday(10))
+        assertEquals(0, p.dayStreak)
 
         p = p.withAnswer(guess, 0, true, day = 11)
-        assertEquals(2, p.dayStreak)
-        assertEquals(2, p.bestDayStreak)
         assertEquals(1, p.answersToday(11))
+        assertEquals(0, p.answersToday(10))
 
-        p = p.withAnswer(guess, 0, true, day = 14)
-        assertEquals(1, p.dayStreak)
-        assertEquals(2, p.bestDayStreak)
-
-        p = p.withAnswer(guess, 0, true, day = 13)
-        assertEquals(1, p.dayStreak)
-        assertEquals(14L, p.lastActiveDay)
-        assertEquals(2, p.answersToday(14))
+        p = p.withAnswer(guess, 0, true, day = 9)
+        assertEquals(11L, p.lastActiveDay)
+        assertEquals(2, p.answersToday(11))
     }
 
     @Test
     fun currentDayStreakExpires() {
-        val p = Progress(lastActiveDay = 11, dayStreak = 2)
+        val p = Progress(lastStreakDay = 11, dayStreak = 2)
         assertEquals(2, p.currentDayStreak(12))
         assertEquals(0, p.currentDayStreak(13))
         assertEquals(0, Progress().currentDayStreak(5))
@@ -82,7 +84,11 @@ class ProgressTest {
 
     @Test
     fun localEpochDayUsesTimeZone() {
-        assertEquals(0L, localEpochDay(0L, TimeZone.getTimeZone("UTC")))
+        val utc = TimeZone.getTimeZone("UTC")
+        assertEquals(0L, localEpochDay(0L, utc))
         assertEquals(1L, localEpochDay(86_399_999L, TimeZone.getTimeZone("GMT+03:00")))
+        assertEquals(86_400_000L, millisUntilNextLocalDay(0L, utc))
+        assertEquals(1_000L, millisUntilNextLocalDay(86_399_000L, utc))
+        assertEquals(75_600_000L, millisUntilNextLocalDay(0L, TimeZone.getTimeZone("GMT+03:00")))
     }
 }

@@ -26,6 +26,10 @@ data class RoundRecord(val levelId: String, val score: Int, val total: Int, val 
 fun localEpochDay(nowMillis: Long = System.currentTimeMillis(), zone: TimeZone = TimeZone.getDefault()): Long =
     Math.floorDiv(nowMillis + zone.getOffset(nowMillis), 86_400_000L)
 
+/** Milliseconds until the next local midnight, in 1..86_400_000. */
+fun millisUntilNextLocalDay(nowMillis: Long = System.currentTimeMillis(), zone: TimeZone = TimeZone.getDefault()): Long =
+    86_400_000L - Math.floorMod(nowMillis + zone.getOffset(nowMillis), 86_400_000L)
+
 /** Everything the app remembers between launches. Stored as JSON via DataStore. */
 @Serializable
 data class Progress(
@@ -41,7 +45,9 @@ data class Progress(
     val modeWrong: Map<String, Int> = emptyMap(),
     /** Local epoch day of the latest answer, or [NO_DAY]. */
     val lastActiveDay: Long = NO_DAY,
-    /** Consecutive active days ending at [lastActiveDay]. */
+    /** Local epoch day of the latest finished round, or [NO_DAY]. */
+    val lastStreakDay: Long = NO_DAY,
+    /** Consecutive days with a finished round, ending at [lastStreakDay]. */
     val dayStreak: Int = 0,
     val bestDayStreak: Int = 0,
     /** Answers given on [lastActiveDay]. */
@@ -67,29 +73,22 @@ data class Progress(
 
     fun modeScore(mode: GameMode): Score = Score(modeCorrect[mode.key] ?: 0, modeWrong[mode.key] ?: 0)
 
-    fun mastered(levels: List<Level>): Int = levels.count { best(it.id) >= it.mode.masteryScore }
+    fun mastered(levels: List<Level>): Int = levels.count { best(it.id) >= it.masteryScore }
 
     fun points(levels: List<Level>): Int = levels.sumOf { best(it.id) }
 
     /** The streak still counts if the user played today or yesterday. */
     fun currentDayStreak(today: Long): Int =
-        if (lastActiveDay != NO_DAY && today - lastActiveDay <= 1) dayStreak else 0
+        if (lastStreakDay != NO_DAY && today - lastStreakDay <= 1) dayStreak else 0
 
     fun answersToday(today: Long): Int = if (lastActiveDay == today) answersOnLastActiveDay else 0
 
     fun withAnswer(mode: GameMode, surahIndex: Int, correct: Boolean, day: Long): Progress {
         // A clock moved backwards (day < lastActiveDay) counts as the same day.
         val sameDay = lastActiveDay != NO_DAY && day <= lastActiveDay
-        val streak = when {
-            sameDay -> dayStreak
-            lastActiveDay != NO_DAY && day == lastActiveDay + 1 -> dayStreak + 1
-            else -> 1
-        }
         val run = if (correct) correctRun + 1 else 0
         val base = copy(
             lastActiveDay = if (sameDay) lastActiveDay else day,
-            dayStreak = streak,
-            bestDayStreak = maxOf(bestDayStreak, streak),
             answersOnLastActiveDay = if (sameDay) answersOnLastActiveDay + 1 else 1,
             correctRun = run,
             bestCorrectRun = maxOf(bestCorrectRun, run),
@@ -109,10 +108,22 @@ data class Progress(
         }
     }
 
-    fun withCompletedRound(record: RoundRecord): Progress = copy(
-        roundsCompleted = roundsCompleted + 1,
-        recentRounds = (listOf(record) + recentRounds).take(MAX_RECENT_ROUNDS),
-    )
+    fun withCompletedRound(record: RoundRecord): Progress {
+        // A clock moved backwards (day < lastStreakDay) counts as the same day.
+        val sameDay = lastStreakDay != NO_DAY && record.day <= lastStreakDay
+        val streak = when {
+            sameDay -> dayStreak
+            lastStreakDay != NO_DAY && record.day == lastStreakDay + 1 -> dayStreak + 1
+            else -> 1
+        }
+        return copy(
+            lastStreakDay = if (sameDay) lastStreakDay else record.day,
+            dayStreak = streak,
+            bestDayStreak = maxOf(bestDayStreak, streak),
+            roundsCompleted = roundsCompleted + 1,
+            recentRounds = (listOf(record) + recentRounds).take(MAX_RECENT_ROUNDS),
+        )
+    }
 
     companion object {
         const val NO_DAY = -1L
