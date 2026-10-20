@@ -68,6 +68,17 @@ internal fun OverviewTab(progress: Progress, quran: Quran, bottomPadding: Dp) {
             val levels = remember(mode) { Levels.forMode(mode, quran) }
             ModeCard(mode, progress, levels)
         }
+
+        val modeAnswers = GameMode.entries.sumOf { progress.modeScore(it).total }
+        if (progress.overall.total > modeAnswers) {
+            item {
+                Text(
+                    strings.modeAccuracySinceUpdate,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 

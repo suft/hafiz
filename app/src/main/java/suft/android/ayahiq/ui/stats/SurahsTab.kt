@@ -25,11 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +44,14 @@ import suft.android.ayahiq.ui.i18n.LocalStrings
 import suft.android.ayahiq.ui.theme.LocalQuizColors
 
 @Composable
-internal fun SurahsTab(progress: Progress, quran: Quran, onPractice: (Int) -> Unit, bottomPadding: Dp) {
+internal fun SurahsTab(
+    progress: Progress,
+    quran: Quran,
+    selected: Int?,
+    onSelect: (Int) -> Unit,
+    onPractice: (Int) -> Unit,
+    bottomPadding: Dp,
+) {
     val strings = LocalStrings.current
     val scores = remember(progress) { progress.surahScores() }
     val practisedCount = scores.count { it.value.total > 0 }
@@ -67,7 +70,7 @@ internal fun SurahsTab(progress: Progress, quran: Quran, onPractice: (Int) -> Un
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        item { SurahMap(scores, quran, onPractice) }
+        item { SurahMap(scores, quran, selected, onSelect, onPractice) }
 
         if (progress.overall.total == 0) {
             item {
@@ -127,17 +130,22 @@ private val CellShape = RoundedCornerShape(6.dp)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SurahMap(scores: Map<Int, Score>, quran: Quran, onPractice: (Int) -> Unit) {
+private fun SurahMap(
+    scores: Map<Int, Score>,
+    quran: Quran,
+    selected: Int?,
+    onSelect: (Int) -> Unit,
+    onPractice: (Int) -> Unit,
+) {
     val strings = LocalStrings.current
     val quizColors = LocalQuizColors.current
     val scheme = MaterialTheme.colorScheme
-    var selected by rememberSaveable { mutableStateOf<Int?>(null) }
 
     fun tierColor(tier: SurahTier): Color = when (tier) {
-        SurahTier.NotPractised -> scheme.surfaceVariant.copy(alpha = 0.6f)
-        SurahTier.Weak -> quizColors.wrongContainer
-        SurahTier.Fair -> scheme.secondaryContainer
-        SurahTier.Strong -> quizColors.correctContainer
+        SurahTier.NotPractised -> scheme.surfaceContainerLowest.copy(alpha = 0.55f)
+        SurahTier.Weak -> quizColors.wrong.copy(alpha = 0.30f)
+        SurahTier.Fair -> quizColors.gold.copy(alpha = 0.40f)
+        SurahTier.Strong -> quizColors.correct.copy(alpha = 0.35f)
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -146,18 +154,28 @@ private fun SurahMap(scores: Map<Int, Score>, quran: Quran, onPractice: (Int) ->
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     for (i in row) {
                         val name = quran.surahs[i].displayName(strings.language)
+                        val tier = Stats.tier(scores[i])
+                        val border = when {
+                            selected == i -> Modifier.border(2.dp, scheme.primary, CellShape)
+                            tier == SurahTier.NotPractised -> Modifier.border(1.dp, scheme.outlineVariant, CellShape)
+                            else -> Modifier
+                        }
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
                                 .clip(CellShape)
-                                .background(tierColor(Stats.tier(scores[i])))
-                                .then(if (selected == i) Modifier.border(2.dp, scheme.primary, CellShape) else Modifier)
-                                .clickable { selected = i }
+                                .background(tierColor(tier))
+                                .then(border)
+                                .clickable { onSelect(i) }
                                 .semantics { contentDescription = name },
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text(strings.number(i + 1), style = MaterialTheme.typography.labelSmall)
+                            Text(
+                                strings.number(i + 1),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = scheme.onSurface,
+                            )
                         }
                     }
                     // Keep the last row's cells the same size as the full rows.
@@ -170,7 +188,7 @@ private fun SurahMap(scores: Map<Int, Score>, quran: Quran, onPractice: (Int) ->
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            LegendEntry(tierColor(SurahTier.NotPractised), strings.tierNotPractised)
+            LegendEntry(tierColor(SurahTier.NotPractised), strings.tierNotPractised, outlined = true)
             LegendEntry(tierColor(SurahTier.Weak), strings.tierWeak)
             LegendEntry(tierColor(SurahTier.Fair), strings.tierFair)
             LegendEntry(tierColor(SurahTier.Strong), strings.tierStrong)
@@ -182,6 +200,7 @@ private fun SurahMap(scores: Map<Int, Score>, quran: Quran, onPractice: (Int) ->
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = scheme.surfaceContainerLowest.copy(alpha = 0.92f),
+                    contentColor = scheme.onSurface,
                 ),
             ) {
                 Row(
@@ -211,10 +230,18 @@ private fun SurahMap(scores: Map<Int, Score>, quran: Quran, onPractice: (Int) ->
 }
 
 @Composable
-private fun LegendEntry(color: Color, label: String) {
+private fun LegendEntry(color: Color, label: String, outlined: Boolean = false) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(Modifier.size(12.dp).clip(CellShape).background(color))
-        Text(label, style = MaterialTheme.typography.labelSmall)
+        Box(
+            Modifier
+                .size(12.dp)
+                .clip(CellShape)
+                .background(color)
+                .then(
+                    if (outlined) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, CellShape) else Modifier,
+                ),
+        )
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 

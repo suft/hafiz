@@ -15,8 +15,10 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -25,11 +27,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import suft.android.ayahiq.AppContainer
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.data.localEpochDay
+import suft.android.ayahiq.data.millisUntilNextLocalDay
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.components.AppTopBar
 import suft.android.ayahiq.ui.i18n.LocalStrings
@@ -41,8 +46,9 @@ fun StatsScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, onPra
     var confirmReset by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
-    val today = remember { localEpochDay() }
+    val today = rememberToday()
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    var selectedSurah by rememberSaveable { mutableStateOf<Int?>(null) }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -69,7 +75,7 @@ fun StatsScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, onPra
             }
             when (tab) {
                 0 -> OverviewTab(progress, quran, bottomPadding)
-                1 -> SurahsTab(progress, quran, onPractice, bottomPadding)
+                1 -> SurahsTab(progress, quran, selectedSurah, { selectedSurah = it }, onPractice, bottomPadding)
                 else -> ActivityTab(progress, quran, today, bottomPadding)
             }
         }
@@ -89,6 +95,23 @@ fun StatsScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, onPra
             dismissButton = { TextButton(onClick = { confirmReset = false }) { Text(strings.cancel) } },
         )
     }
+}
+
+/** Local epoch day that updates at midnight and whenever the screen resumes. */
+@Composable
+private fun rememberToday(): Long {
+    var today by remember { mutableLongStateOf(localEpochDay()) }
+    LifecycleResumeEffect(Unit) {
+        today = localEpochDay()
+        onPauseOrDispose { }
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(millisUntilNextLocalDay() + 1_000)
+            today = localEpochDay()
+        }
+    }
+    return today
 }
 
 @Composable
