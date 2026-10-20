@@ -105,7 +105,7 @@ object ArabicStrings : Strings {
 
     override fun percent(value: Int) = "${number(value)}٪"
 
-    override val appName = "AyahIQ"
+    override val appName = "آية آي كيو"
     override val back = "رجوع"
     override val loadingQuran = "جارٍ تحميل المصحف…"
     override val homeTagline = "مسابقة لاختبار حفظك للقرآن الكريم"
@@ -157,7 +157,7 @@ object ArabicStrings : Strings {
     override val goBack = "عودة"
     override val mainMenu = "القائمة الرئيسية"
     override fun shareScoreText(score: Int, total: Int, levelName: String, modeTitle: String) =
-        "حصلت على ${number(score)} من ${number(total)} في مرحلة «$levelName» في مسابقة القرآن الكريم «AyahIQ – $modeTitle»"
+        "حصلت على ${number(score)} من ${number(total)} في مرحلة «$levelName» في مسابقة القرآن الكريم «$appName – $modeTitle»"
 
     override val playbackFailed = "تعذّر تحميل التلاوة. تأكد من الاتصال بالإنترنت."
     override val clearStatistics = "مسح الإحصائيات"

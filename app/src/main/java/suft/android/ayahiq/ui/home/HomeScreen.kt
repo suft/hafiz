@@ -66,6 +66,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import suft.android.ayahiq.AppContainer
@@ -76,6 +77,7 @@ import suft.android.ayahiq.domain.GameMode
 import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.i18n.LocalStrings
+import suft.android.ayahiq.ui.theme.RuqaaFont
 import suft.android.ayahiq.ui.components.OrnamentDivider
 
 @Composable
@@ -112,7 +114,11 @@ fun HomeScreen(
                 )
                 Text(
                     text = strings.appName,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = if (strings.language == AppLanguage.Arabic) {
+                        MaterialTheme.typography.displaySmall.copy(fontFamily = RuqaaFont, fontSize = 44.sp)
+                    } else {
+                        MaterialTheme.typography.displaySmall
+                    },
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(

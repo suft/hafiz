@@ -10,6 +10,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -39,6 +40,16 @@ val NaskhFont = FontFamily(
 
 /** Decorative face used on the shareable ayah card (from the original app). */
 val CordobaFont = FontFamily(Font(R.font.cordoba))
+
+/** Ruqaa calligraphy (Aref Ruqaa, SIL OFL) for the Arabic app title. */
+val RuqaaFont = FontFamily(Font(R.font.aref_ruqaa_bold, FontWeight.Bold))
+
+/** Latin UI face for the English language (Inter, SIL OFL). */
+val InterFont = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_bold, FontWeight.Bold),
+)
 
 // ---------------------------------------------------------------- colours
 
@@ -130,9 +141,29 @@ val LocalQuizColors = staticCompositionLocalOf { LightQuiz }
 
 // ---------------------------------------------------------------- typography
 
-private fun typography(): Typography {
+private fun typography(language: AppLanguage): Typography {
     val base = Typography()
     val tightLines = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
+    if (language == AppLanguage.English) {
+        fun TextStyle.inter(weight: FontWeight? = null) = copy(fontFamily = InterFont, fontWeight = weight ?: fontWeight)
+        return base.copy(
+            displayLarge = base.displayLarge.inter(),
+            displayMedium = base.displayMedium.inter(),
+            displaySmall = base.displaySmall.inter(FontWeight.Bold),
+            headlineLarge = base.headlineLarge.inter(FontWeight.Bold),
+            headlineMedium = base.headlineMedium.inter(FontWeight.Bold),
+            headlineSmall = base.headlineSmall.inter(FontWeight.Bold),
+            titleLarge = base.titleLarge.inter(FontWeight.Bold).copy(lineHeightStyle = tightLines),
+            titleMedium = base.titleMedium.inter(),
+            titleSmall = base.titleSmall.inter(),
+            bodyLarge = base.bodyLarge.inter(),
+            bodyMedium = base.bodyMedium.inter(),
+            bodySmall = base.bodySmall.inter(),
+            labelLarge = base.labelLarge.inter(),
+            labelMedium = base.labelMedium.inter(),
+            labelSmall = base.labelSmall.inter(),
+        )
+    }
     return base.copy(
         displaySmall = base.displaySmall.copy(fontFamily = NaskhFont, fontWeight = FontWeight.Bold),
         headlineLarge = base.headlineLarge.copy(fontFamily = NaskhFont, fontWeight = FontWeight.Bold),
@@ -166,7 +197,7 @@ fun AyahIqTheme(
         LocalStrings provides stringsFor(language),
         LocalQuizColors provides if (darkTheme) DarkQuiz else LightQuiz,
     ) {
-        MaterialTheme(colorScheme = scheme, typography = typography()) {
+        MaterialTheme(colorScheme = scheme, typography = remember(language) { typography(language) }) {
             // The paper background is not a Surface, so without this text defaults to black, unreadable in dark mode.
             CompositionLocalProvider(LocalContentColor provides scheme.onBackground, content = content)
         }
