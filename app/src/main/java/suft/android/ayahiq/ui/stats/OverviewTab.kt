@@ -71,7 +71,7 @@ internal fun OverviewTab(progress: Progress, quran: Quran, bottomPadding: Dp) {
             StyleCard(style, progress, levels)
         }
 
-        items(listOf(GameMode.Survival, GameMode.ThreeLives)) { RunModeCard(it, progress.runStats(it)) }
+        items(GameMode.entries.filter { it.endless }) { RunModeCard(it, progress.runStats(it)) }
 
         val styleAnswers = GameStyle.entries.sumOf { progress.styleScore(it).total }
         if (progress.overall.total > styleAnswers) {
@@ -147,8 +147,7 @@ private fun RunModeCard(mode: GameMode, stats: RunStats) {
                 Text(strings.bestScore(stats.best), style = MaterialTheme.typography.labelLarge)
                 Text(strings.gamesPlayed(stats.played), style = MaterialTheme.typography.labelLarge)
                 Text(strings.averageScore(stats.average), style = MaterialTheme.typography.labelLarge)
-                // In Survival the longest streak is the score itself.
-                if (mode == GameMode.ThreeLives) {
+                if (mode.showsLongestStreak) {
                     Text(strings.longestStreak(stats.bestStreak), style = MaterialTheme.typography.labelLarge)
                 }
             }

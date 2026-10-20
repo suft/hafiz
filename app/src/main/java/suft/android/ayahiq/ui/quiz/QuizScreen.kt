@@ -508,7 +508,7 @@ private fun ResultDialog(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-                if (state.mode == GameMode.ThreeLives) {
+                if (state.mode.showsLongestStreak) {
                     Text(strings.longestStreak(state.bestStreak), style = MaterialTheme.typography.bodyMedium)
                 }
                 if (state.isNewRecord && state.previousBest > 0) {

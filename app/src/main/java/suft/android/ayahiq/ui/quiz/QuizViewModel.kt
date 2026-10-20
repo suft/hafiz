@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -59,7 +60,7 @@ class QuizViewModel(
 ) : ViewModel() {
 
     private val repo = container.progress
-    private val generator = QuestionGenerator(quran, level, language)
+    private lateinit var generator: QuestionGenerator
 
     private val player = RecitationPlayer(
         context = container.appContext,
@@ -90,6 +91,8 @@ class QuizViewModel(
                     previousBest = if (mode.endless) saved.runBest(mode, level.id) else saved.best(level.id),
                 )
             }
+            val similar = if (mode.trapOptions) container.mutashabihat.filterNotNull().first() else null
+            generator = QuestionGenerator(quran, level, language, mutashabihat = similar)
             upcoming = generator.next()
             showNextQuestion()
         }

@@ -120,6 +120,10 @@ description = "Run JVM unit tests (question generator, levels, stats)"
 alias = "t"
 run = "./gradlew :app:testDebugUnitTest"
 
+[tasks.mutashabihat]
+description = "Re-download Aswaatul Qurraa's mutashabihat and regenerate app/src/main/assets/mutashabihat.txt (needs python3)"
+run = "python3 tools/mutashabihat.py"
+
 [tasks.lint]
 description = "Run Android lint"
 run = "./gradlew :app:lintDebug"

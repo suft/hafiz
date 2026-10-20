@@ -32,12 +32,17 @@ data class Question(
  * * Levels with very few surahs/ayahs fall back to a wider pool instead of looping forever.
  * * The same prompt is not repeated within a round; practice rounds deal prompts from a shuffled deck, so a
  *   round of `questionsPerRound` never repeats one.
+ *
+ * In Hafiz mode ([mutashabihat] given) prompts are limited to ayahs that have a trap, and the wrong options are
+ * mutashabihat: surahs/next ayahs that resemble the right answer.
  */
 class QuestionGenerator(
     private val quran: Quran,
     private val level: Level,
     private val language: AppLanguage,
     private val random: Random = Random.Default,
+    /** Hafiz mode: wrong options come from these similar ayahs first; null in the other modes. */
+    private val mutashabihat: Mutashabihat? = null,
 ) {
     private val recent = ArrayDeque<Int>()
     private val practiceDeck = ArrayDeque<Int>()
@@ -47,6 +52,14 @@ class QuestionGenerator(
     }
     private val practiceWindow: Int
         get() = if (practicePrompts.size > level.questionsPerRound) level.questionsPerRound - 1 else 1
+
+    /**
+     * Hafiz: the level's prompts that have at least one trap. Null outside Hafiz, or when fewer than
+     * [RECENT_MEMORY] exist (then any prompt is used, with traps where it has some).
+     */
+    private val trapPrompts: List<IntRange>? by lazy {
+        if (mutashabihat == null) null else allPrompts().filter(::hasTrap).takeIf { it.size >= RECENT_MEMORY }
+    }
 
     fun next(): Question {
         val shown = if (level.practice) nextPracticePrompt() else pickFreshPrompt()
@@ -85,6 +98,7 @@ class QuestionGenerator(
     }
 
     private fun pickPrompt(): IntRange {
+        trapPrompts?.let { return it[random.nextInt(it.size)] }
         if (level.openings) {
             val surah = quran.surahs[level.surahRange.random(random)]
             return surah.firstAyah..surah.firstAyah + 1
@@ -104,20 +118,66 @@ class QuestionGenerator(
         }
     }
 
+    /** Every prompt [pickPrompt] can return for this level. */
+    private fun allPrompts(): List<IntRange> {
+        if (level.openings) return level.surahRange.map { quran.surahs[it].firstAyah.let { f -> f..f + 1 } }
+        val first = quran.surahs[level.firstSurah].firstAyah
+        val last = quran.surahs[level.lastSurah].lastAyah
+        return (first..last).filter { level.style == GameStyle.GuessSurah || !quran.isLastOfSurah(it) }.map { it..it }
+    }
+
+    private fun hasTrap(shown: IntRange): Boolean = when (level.style) {
+        GameStyle.GuessSurah -> trapSurahs(shown, quran.surahsContaining(shown)).isNotEmpty()
+        GameStyle.NextAyah -> trapAyahs(shown, wrongNextAyahFilter(shown)).isNotEmpty()
+    }
+
+    /** Hafiz: surahs holding an ayah that resembles one of [shown], most similar first, minus [exclude]. */
+    private fun trapSurahs(shown: IntRange, exclude: Set<Int>): List<Int> {
+        val similar = mutashabihat ?: return emptyList()
+        return shown.flatMap(similar::of).sortedByDescending { it.strength }
+            .map { quran.surahOf(it.ayah).index }.filter { it !in exclude }.distinct()
+    }
+
+    /**
+     * Hafiz: tempting wrong next ayahs, most similar first — ayahs that resemble the answer, and ayahs that
+     * follow an ayah resembling the prompt (where a reciter slips into the other passage).
+     */
+    private fun trapAyahs(shown: IntRange, acceptable: (Int) -> Boolean): List<Int> {
+        val similar = mutashabihat ?: return emptyList()
+        val lookAlikes = similar.of(shown.last + 1)
+        val slips = similar.of(shown.last).filter { !quran.isLastOfSurah(it.ayah) }.map { it.copy(ayah = it.ayah + 1) }
+        return (lookAlikes + slips).sortedByDescending { it.strength }.map { it.ayah }
+            .filter(acceptable).distinctBy(quran::text)
+    }
+
+    /** A wrong next-ayah option may not lie between the prompt and the answer, nor repeat the text of any valid answer. */
+    private fun wrongNextAyahFilter(shown: IntRange): (Int) -> Boolean {
+        val answer = shown.last + 1
+        // Any ayah that follows an identical copy of the prompt anywhere in the Quran would be
+        // a correct answer too (e.g. the refrains of سورة الرحمن / القمر / المرسلات).
+        val forbiddenTexts = quran.occurrencesOf(quran.text(shown.last))
+            .filter { !quran.isLastOfSurah(it) }
+            .mapTo(mutableSetOf()) { quran.text(it + 1) }
+            .apply { add(quran.text(answer)) }
+        return { g -> g !in shown.first..answer && quran.text(g) !in forbiddenTexts }
+    }
+
     // ---------------------------------------------------------------- guess the surah
 
     private fun guessSurahQuestion(shown: IntRange): Question {
         val surah = quran.surahOf(shown.first)
         val alsoCorrect = quran.surahsContaining(shown)
+        val traps = trapSurahs(shown, alsoCorrect).take(WRONG_OPTIONS)
+        val need = WRONG_OPTIONS - traps.size
 
         fun pool(range: IntRange) = range
-            .filter { it != surah.index && it !in alsoCorrect }
+            .filter { it != surah.index && it !in alsoCorrect && it !in traps }
             .sortedBy { abs(it - surah.index) }
             .take(SURAH_NEIGHBOURHOOD)
 
-        val candidates = pool(level.surahRange).takeIf { it.size >= WRONG_OPTIONS }
+        val candidates = pool(level.surahRange).takeIf { it.size >= need }
             ?: pool(0 until Quran.SURAH_COUNT)
-        val wrong = candidates.shuffled(random).take(WRONG_OPTIONS).map { quran.surahs[it].displayName(language) }
+        val wrong = (traps + candidates.shuffled(random).take(need)).map { quran.surahs[it].displayName(language) }
 
         val (options, correct) = shuffleWithCorrect(surah.displayName(language), wrong)
         return Question(
@@ -137,25 +197,21 @@ class QuestionGenerator(
     private fun nextAyahQuestion(shown: IntRange): Question {
         val surah = quran.surahOf(shown.first)
         val answer = shown.last + 1
-        // Any ayah that follows an identical copy of the prompt anywhere in the Quran would be
-        // a correct answer too (e.g. the refrains of سورة الرحمن / القمر / المرسلات).
-        val forbiddenTexts = quran.occurrencesOf(quran.text(shown.last))
-            .filter { !quran.isLastOfSurah(it) }
-            .mapTo(mutableSetOf()) { quran.text(it + 1) }
-            .apply { add(quran.text(answer)) }
-
-        fun acceptable(g: Int): Boolean = g !in shown.first..answer && quran.text(g) !in forbiddenTexts
+        val acceptable = wrongNextAyahFilter(shown)
+        val traps = trapAyahs(shown, acceptable).take(WRONG_OPTIONS)
+        val trapTexts = traps.mapTo(HashSet(), quran::text)
 
         // Nearby ayahs of the same surah first (as in the original), then neighbouring surahs.
         val ordered = (maxOf(0, answer - AYAH_SEARCH_RADIUS)..minOf(quran.ayahCount - 1, answer + AYAH_SEARCH_RADIUS))
             .asSequence()
             .sortedWith(compareBy<Int>({ quran.surahOf(it) != surah }, { abs(it - answer) }))
-            .filter(::acceptable)
+            .filter(acceptable)
+            .filter { quran.text(it) !in trapTexts }
             .distinctBy(quran::text)
             .take(AYAH_NEIGHBOURHOOD)
             .toList()
 
-        val wrongIdx = ordered.shuffled(random).take(WRONG_OPTIONS)
+        val wrongIdx = traps + ordered.shuffled(random).take(WRONG_OPTIONS - traps.size)
         val texts = (listOf(answer) + wrongIdx).map(quran::text)
         val labels = ArabicText.distinctPrefixes(texts, OPTION_MIN_WORDS)
 

@@ -15,8 +15,9 @@ Pick a **game mode** first, then a question style and a level:
 | **عادي** (Regular) | After a fixed-length round | Correct answers out of the round |
 | **البقاء** (Survival) | First wrong answer | Correct answers in a row |
 | **ثلاث فرص** (3 Lives) | Third wrong answer | Correct answers |
+| **حافظ** (Hafiz) | Third wrong answer | Correct answers; the wrong options are *mutashabihat* traps: surahs and next ayahs that resemble the right answer |
 
-Survival and 3 Lives keep a best score per level, and their games show up in **إحصائيات** (stats: overall accuracy, the surahs you most often get wrong, per-mode games played and averages) and its activity history.
+Survival, 3 Lives and Hafiz keep a best score per level, and their games show up in **إحصائيات** (stats: overall accuracy, the surahs you most often get wrong, per-mode games played and averages) and its activity history.
 
 Recitations stream from [everyayah.com](https://everyayah.com) (27 reciters). Quran text: [Tanzil](https://tanzil.net) (Simple, v1.0.2).
 
@@ -93,6 +94,7 @@ mise.toml                        tools (JDK), env (ANDROID_HOME), tasks
 gradle/libs.versions.toml        all dependency versions
 app/src/main/
   assets/quran_simple.xml        Tanzil Quran text (verbatim, keep the licence header)
+  assets/mutashabihat.txt        similar-ayah pairs for Hafiz mode (generated: mise run mutashabihat)
   java/suft/android/ayahiq/
     domain/                      pure Kotlin: Quran index, XML parser, levels, question generator, stats
     data/ProgressRepository.kt   DataStore: best scores, per-surah stats, settings
@@ -100,6 +102,7 @@ app/src/main/
     ui/                          Compose: home, levels, quiz (+ViewModel), stats, share card, theme
   res/font/                      Amiri (OFL), Cordoba (from the original app)
   res/drawable-nodpi/            paper texture, frames, logo (from the original app)
+tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3)
 app/src/test/                    QuizLogicTest — runs against the real Quran text
 ```
 
@@ -113,5 +116,6 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 ## Licences & credits
 - **Quran text:** Tanzil Project, CC BY 3.0. The text must not be modified and the source must be credited with a link; the home screen does this.
 - **Recitations:** streamed from everyayah.com.
+- **Mutashabihat (Hafiz mode):** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the home screen credits the source. No licence is stated on the site, so get their permission before publishing.
 - **Amiri / Amiri Quran fonts:** SIL Open Font License 1.1 (`assets/licenses/Amiri-OFL.txt`).
 - **Cordoba font, paper texture, frames and logo** are reused from the original APK. Check that you have the rights to them before publishing.

@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Language
@@ -147,6 +148,7 @@ fun HomeScreen(
                             GameMode.Regular -> Icons.Filled.Flag
                             GameMode.Survival -> Icons.Filled.LocalFireDepartment
                             GameMode.ThreeLives -> Icons.Filled.Favorite
+                            GameMode.Hafiz -> Icons.Filled.Psychology
                         },
                         title = strings.gameModeTitle(mode),
                         subtitle = strings.gameModeSubtitle(mode),
@@ -191,7 +193,7 @@ fun HomeScreen(
     }
 }
 
-/** Tanzil's licence asks apps to credit the source with a link. */
+/** Credits the data sources: Tanzil's licence asks for a link; the mutashabihat come from Aswaatul Qurraa. */
 @Composable
 private fun Attribution() {
     val strings = LocalStrings.current
@@ -203,6 +205,10 @@ private fun Attribution() {
         withLink(LinkAnnotation.Url("https://tanzil.net", linkStyle)) { append(strings.attributionTanzil) }
         append(strings.attributionRecitationsFrom)
         withLink(LinkAnnotation.Url("https://everyayah.com", linkStyle)) { append("everyayah.com") }
+        append(strings.attributionMutashabihatFrom)
+        withLink(LinkAnnotation.Url("https://www.aswaatulqurraa.com/mutashabihat/", linkStyle)) {
+            append(strings.attributionAswaatulQurraa)
+        }
     }
     Text(
         text = text,

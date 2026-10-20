@@ -42,6 +42,8 @@ interface Strings {
     val attributionQuranFrom: String
     val attributionTanzil: String
     val attributionRecitationsFrom: String
+    val attributionMutashabihatFrom: String
+    val attributionAswaatulQurraa: String
     fun totalPoints(points: Int): String
     fun masteredCount(mastered: Int, total: Int): String
     val start: String
@@ -139,12 +141,14 @@ object ArabicStrings : Strings {
         GameMode.Regular -> "عادي"
         GameMode.Survival -> "البقاء"
         GameMode.ThreeLives -> "ثلاث فرص"
+        GameMode.Hafiz -> "حافظ"
     }
 
     override fun gameModeSubtitle(mode: GameMode) = when (mode) {
         GameMode.Regular -> "جولات محددة الأسئلة، أتقن كل مرحلة"
         GameMode.Survival -> "أسئلة بلا نهاية، وأول خطأ ينهي اللعبة"
         GameMode.ThreeLives -> "أسئلة بلا نهاية، وثلاثة أخطاء تنهي اللعبة"
+        GameMode.Hafiz -> "خيارات من الآيات المتشابهة، وثلاثة أخطاء تنهي اللعبة"
     }
 
     override val chooseStyle = "اختر نوع الأسئلة"
@@ -172,6 +176,8 @@ object ArabicStrings : Strings {
     override val attributionQuranFrom = "نص القرآن الكريم من "
     override val attributionTanzil = "مشروع تنزيل"
     override val attributionRecitationsFrom = " · التلاوات من "
+    override val attributionMutashabihatFrom = " · المتشابهات من "
+    override val attributionAswaatulQurraa = "أصوات القرّاء"
     override fun totalPoints(points: Int) = "مجموع النقاط: ${number(points)}"
     override fun masteredCount(mastered: Int, total: Int) = "${number(mastered)} من ${number(total)} مُتقَنة"
     override val start = "ابدأ"
@@ -278,12 +284,14 @@ object EnglishStrings : Strings {
         GameMode.Regular -> "Regular"
         GameMode.Survival -> "Survival"
         GameMode.ThreeLives -> "3 Lives"
+        GameMode.Hafiz -> "Hafiz"
     }
 
     override fun gameModeSubtitle(mode: GameMode) = when (mode) {
         GameMode.Regular -> "Fixed-length rounds; master every level"
         GameMode.Survival -> "Endless questions; one mistake ends the game"
         GameMode.ThreeLives -> "Endless questions; three mistakes end the game"
+        GameMode.Hafiz -> "Similar-ayah traps (mutashabihat); three mistakes end the game"
     }
 
     override val chooseStyle = "Choose a question style"
@@ -311,6 +319,8 @@ object EnglishStrings : Strings {
     override val attributionQuranFrom = "Quran text from "
     override val attributionTanzil = "the Tanzil Project"
     override val attributionRecitationsFrom = " · Recitations from "
+    override val attributionMutashabihatFrom = " · Mutashabihat from "
+    override val attributionAswaatulQurraa = "Aswaatul Qurraa"
     override fun totalPoints(points: Int) = "Total points: $points"
     override fun masteredCount(mastered: Int, total: Int) = "$mastered of $total mastered"
     override val start = "Start"
