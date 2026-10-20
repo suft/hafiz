@@ -20,7 +20,6 @@ import suft.android.ayahiq.audio.Reciters
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
 import suft.android.ayahiq.domain.Level
-import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Question
 import suft.android.ayahiq.domain.QuestionGenerator
 import suft.android.ayahiq.domain.Quran
@@ -47,12 +46,10 @@ data class QuizUiState(
 class QuizViewModel(
     private val container: AppContainer,
     quran: Quran,
-    mode: GameMode,
-    levelIndex: Int,
+    private val level: Level,
     language: AppLanguage,
 ) : ViewModel() {
 
-    private val level = Levels.forMode(mode, quran)[levelIndex]
     private val repo = container.progress
     private val generator = QuestionGenerator(quran, level, language)
 
@@ -60,7 +57,7 @@ class QuizViewModel(
         context = container.appContext,
         audioCache = container.audioCache,
         scope = viewModelScope,
-        trimEndMs = if (mode == GameMode.NextAyah) 300 else 0,
+        trimEndMs = if (level.mode == GameMode.NextAyah) 300 else 0,
     )
 
     private val _state = MutableStateFlow(QuizUiState(level = level))
@@ -102,7 +99,7 @@ class QuizViewModel(
 
         val correct = option == q.correctOption
         _state.update { it.copy(selected = option, score = it.score + if (correct) 1 else 0) }
-        viewModelScope.launch { repo.recordAnswer(q.surahIndex, correct) }
+        viewModelScope.launch { repo.recordAnswer(q.mode, q.surahIndex, correct) }
 
         advanceJob = viewModelScope.launch {
             delay(if (correct) CORRECT_DELAY_MS else WRONG_DELAY_MS)
@@ -140,6 +137,8 @@ class QuizViewModel(
         player.stop()
         _state.update { it.copy(finished = true) }
         recordRound()
+        val s = _state.value
+        container.appScope.launch { repo.recordCompletedRound(level.id, s.score, s.total) }
     }
 
     fun restart() {
@@ -157,7 +156,9 @@ class QuizViewModel(
         roundRecorded = true
         val score = _state.value.score
         // appScope: must complete even if the screen is being closed.
-        container.appScope.launch { repo.recordLevelScore(level.id, score) }
+        if (!level.practice) {
+            container.appScope.launch { repo.recordLevelScore(level.id, score) }
+        }
     }
 
     // ---------------------------------------------------------------- audio

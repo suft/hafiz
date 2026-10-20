@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,7 @@ import kotlinx.serialization.Serializable
 import suft.android.ayahiq.AppContainer
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.components.PaperBackground
 import suft.android.ayahiq.ui.home.HomeScreen
@@ -45,6 +47,10 @@ data class LevelsRoute(val mode: String)
 
 @Serializable
 data class QuizRoute(val mode: String, val level: Int)
+
+/** Next-ayah review round for one 0-based surah, opened from Statistics. */
+@Serializable
+data class PracticeRoute(val surah: Int)
 
 @Serializable
 object StatsRoute
@@ -101,18 +107,35 @@ private fun AppNavHost(container: AppContainer, quran: Quran) {
         }
         composable<QuizRoute> { entry ->
             val route = entry.toRoute<QuizRoute>()
+            val level = remember(route) { Levels.forMode(GameMode.fromKey(route.mode), quran)[route.level] }
             QuizScreen(
                 container = container,
                 quran = quran,
-                mode = GameMode.fromKey(route.mode),
-                levelIndex = route.level,
+                level = level,
+                onBack = { nav.popBackStack() },
+                onMainMenu = { nav.popBackStack<HomeRoute>(inclusive = false) },
+                onShareAyah = { range -> nav.navigate(ShareRoute(range.first, range.last)) },
+            )
+        }
+        composable<PracticeRoute> { entry ->
+            val route = entry.toRoute<PracticeRoute>()
+            val level = remember(route.surah) { Levels.surahPractice(route.surah, quran) }
+            QuizScreen(
+                container = container,
+                quran = quran,
+                level = level,
                 onBack = { nav.popBackStack() },
                 onMainMenu = { nav.popBackStack<HomeRoute>(inclusive = false) },
                 onShareAyah = { range -> nav.navigate(ShareRoute(range.first, range.last)) },
             )
         }
         composable<StatsRoute> {
-            StatsScreen(container = container, quran = quran, onBack = { nav.popBackStack() })
+            StatsScreen(
+                container = container,
+                quran = quran,
+                onBack = { nav.popBackStack() },
+                onPractice = { surah -> nav.navigate(PracticeRoute(surah)) },
+            )
         }
         composable<ShareRoute> { entry ->
             val route = entry.toRoute<ShareRoute>()

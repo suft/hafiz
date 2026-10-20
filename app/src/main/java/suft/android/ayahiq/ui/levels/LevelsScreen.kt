@@ -53,8 +53,8 @@ fun LevelsScreen(
     val progress by container.progress.progress.collectAsStateWithLifecycle(initialValue = Progress())
     val strings = LocalStrings.current
     val levels = remember(mode) { Levels.forMode(mode, quran) }
-    val total = levels.sumOf { progress.best(it.id) }
-    val mastered = levels.count { progress.best(it.id) >= mode.masteryScore }
+    val total = progress.points(levels)
+    val mastered = progress.mastered(levels)
 
     Scaffold(
         containerColor = Color.Transparent,

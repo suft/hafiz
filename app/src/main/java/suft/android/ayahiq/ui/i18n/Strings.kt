@@ -66,6 +66,29 @@ interface Strings {
     fun wrongAnswers(n: Int): String
     fun rankedSurah(rank: Int, name: String): String
     fun surahCounts(correct: Int, wrong: Int): String
+    val tabOverview: String
+    val tabSurahs: String
+    val tabActivity: String
+    val noAnswersYet: String
+    val surahMap: String
+    fun surahsPractised(n: Int, total: Int): String
+    val tierNotPractised: String
+    val tierWeak: String
+    val tierFair: String
+    val tierStrong: String
+    val strongestSurahs: String
+    val practice: String
+    val notPractisedYet: String
+    val currentStreak: String
+    val bestStreak: String
+    val questionsToday: String
+    val roundsCompleted: String
+    val currentRun: String
+    val bestRun: String
+    val scoreTrend: String
+    val recentRounds: String
+    val noRoundsYet: String
+    fun daysAgo(days: Int): String
     val frame: String
     fun frameNumber(n: Int): String
     val font: String
@@ -134,7 +157,8 @@ object ArabicStrings : Strings {
     override val playbackFailed = "تعذّر تحميل التلاوة. تأكد من الاتصال بالإنترنت."
     override val clearStatistics = "مسح الإحصائيات"
     override val clearStatisticsQuestion = "مسح الإحصائيات؟"
-    override val clearStatisticsBody = "سيتم حذف سجل الإجابات لكل السور. نقاط المراحل لن تتأثر."
+    override val clearStatisticsBody =
+        "سيتم حذف سجل الإجابات لكل السور وسجل النشاط والجولات. نقاط المراحل لن تتأثر."
     override val clear = "مسح"
     override val cancel = "إلغاء"
     override val statisticsEmpty = "أجب عن بعض الأسئلة لتظهر هنا السور التي تحتاج إلى مراجعة."
@@ -145,6 +169,35 @@ object ArabicStrings : Strings {
     override fun wrongAnswers(n: Int) = "إجابات خاطئة: ${number(n)}"
     override fun rankedSurah(rank: Int, name: String) = "${number(rank)}. سورة $name"
     override fun surahCounts(correct: Int, wrong: Int) = "${number(correct)} صحيحة · ${number(wrong)} خاطئة"
+    override val tabOverview = "نظرة عامة"
+    override val tabSurahs = "السور"
+    override val tabActivity = "النشاط"
+    override val noAnswersYet = "لا إجابات بعد"
+    override val surahMap = "خريطة السور"
+    override fun surahsPractised(n: Int, total: Int) = "تدرّبت على ${number(n)} من ${number(total)} سورة"
+    override val tierNotPractised = "لم تُختبر"
+    override val tierWeak = "تحتاج مراجعة"
+    override val tierFair = "جيد"
+    override val tierStrong = "متقنة"
+    override val strongestSurahs = "السور الأقوى"
+    override val practice = "تدرّب"
+    override val notPractisedYet = "لم تتدرّب على هذه السورة بعد"
+    override val currentStreak = "أيام متتالية حالياً"
+    override val bestStreak = "أطول سلسلة أيام"
+    override val questionsToday = "أسئلة اليوم"
+    override val roundsCompleted = "جولات مكتملة"
+    override val currentRun = "إجابات صحيحة متتالية"
+    override val bestRun = "أطول سلسلة إجابات صحيحة"
+    override val scoreTrend = "تطور النتائج"
+    override val recentRounds = "الجولات الأخيرة"
+    override val noRoundsYet = "أكمل جولة لتظهر نتائجك هنا."
+    override fun daysAgo(days: Int) = when (days) {
+        0 -> "اليوم"
+        1 -> "أمس"
+        2 -> "منذ يومين"
+        in 3..10 -> "منذ ${number(days)} أيام"
+        else -> "منذ ${number(days)} يوماً"
+    }
     override val frame = "الإطار"
     override fun frameNumber(n: Int) = "إطار ${number(n)}"
     override val font = "الخط"
@@ -213,7 +266,8 @@ object EnglishStrings : Strings {
     override val playbackFailed = "Couldn't load the recitation. Check your internet connection."
     override val clearStatistics = "Clear statistics"
     override val clearStatisticsQuestion = "Clear statistics?"
-    override val clearStatisticsBody = "The answer history for every surah will be deleted. Level scores are not affected."
+    override val clearStatisticsBody =
+        "The answer history for every surah, your activity and round history will be deleted. Level scores are not affected."
     override val clear = "Clear"
     override val cancel = "Cancel"
     override val statisticsEmpty = "Answer some questions to see the surahs that need review here."
@@ -224,6 +278,33 @@ object EnglishStrings : Strings {
     override fun wrongAnswers(n: Int) = "Wrong answers: $n"
     override fun rankedSurah(rank: Int, name: String) = "$rank. Surah $name"
     override fun surahCounts(correct: Int, wrong: Int) = "$correct correct · $wrong wrong"
+    override val tabOverview = "Overview"
+    override val tabSurahs = "Surahs"
+    override val tabActivity = "Activity"
+    override val noAnswersYet = "No answers yet"
+    override val surahMap = "Surah map"
+    override fun surahsPractised(n: Int, total: Int) = "$n of $total surahs practised"
+    override val tierNotPractised = "Not practised"
+    override val tierWeak = "Needs review"
+    override val tierFair = "Good"
+    override val tierStrong = "Strong"
+    override val strongestSurahs = "Strongest surahs"
+    override val practice = "Practise"
+    override val notPractisedYet = "Not practised yet"
+    override val currentStreak = "Current day streak"
+    override val bestStreak = "Best day streak"
+    override val questionsToday = "Questions today"
+    override val roundsCompleted = "Rounds completed"
+    override val currentRun = "Correct in a row"
+    override val bestRun = "Best correct run"
+    override val scoreTrend = "Score trend"
+    override val recentRounds = "Recent rounds"
+    override val noRoundsYet = "Finish a round to see your history here."
+    override fun daysAgo(days: Int) = when (days) {
+        0 -> "Today"
+        1 -> "Yesterday"
+        else -> "$days days ago"
+    }
     override val frame = "Frame"
     override fun frameNumber(n: Int) = "Frame $n"
     override val font = "Font"

@@ -8,12 +8,23 @@ import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStore
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.TimeZone
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import suft.android.ayahiq.domain.AppLanguage
+import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Score
+
+/** One completed round, for the statistics history. [day] is a local epoch day ([localEpochDay]). */
+@Serializable
+data class RoundRecord(val levelId: String, val score: Int, val total: Int, val day: Long)
+
+/** Days since 1970-01-01 in the device's time zone (java.time needs API 26; minSdk is 24). */
+fun localEpochDay(nowMillis: Long = System.currentTimeMillis(), zone: TimeZone = TimeZone.getDefault()): Long =
+    Math.floorDiv(nowMillis + zone.getOffset(nowMillis), 86_400_000L)
 
 /** Everything the app remembers between launches. Stored as JSON via DataStore. */
 @Serializable
@@ -25,6 +36,22 @@ data class Progress(
     /** Per-surah answer counts, keyed by 0-based surah index. */
     val surahCorrect: Map<Int, Int> = emptyMap(),
     val surahWrong: Map<Int, Int> = emptyMap(),
+    /** Answer counts per [GameMode.key]; only counted since this field was added. */
+    val modeCorrect: Map<String, Int> = emptyMap(),
+    val modeWrong: Map<String, Int> = emptyMap(),
+    /** Local epoch day of the latest answer, or [NO_DAY]. */
+    val lastActiveDay: Long = NO_DAY,
+    /** Consecutive active days ending at [lastActiveDay]. */
+    val dayStreak: Int = 0,
+    val bestDayStreak: Int = 0,
+    /** Answers given on [lastActiveDay]. */
+    val answersOnLastActiveDay: Int = 0,
+    /** Consecutive correct answers (across rounds) and the best such run. */
+    val correctRun: Int = 0,
+    val bestCorrectRun: Int = 0,
+    val roundsCompleted: Int = 0,
+    /** Newest first, at most [MAX_RECENT_ROUNDS]. */
+    val recentRounds: List<RoundRecord> = emptyList(),
     val reciter: Int = 0,
     val autoPlay: Boolean = true,
     val language: AppLanguage = AppLanguage.Arabic,
@@ -37,6 +64,60 @@ data class Progress(
         }
 
     fun best(levelId: String): Int = bestScores[levelId] ?: 0
+
+    fun modeScore(mode: GameMode): Score = Score(modeCorrect[mode.key] ?: 0, modeWrong[mode.key] ?: 0)
+
+    fun mastered(levels: List<Level>): Int = levels.count { best(it.id) >= it.mode.masteryScore }
+
+    fun points(levels: List<Level>): Int = levels.sumOf { best(it.id) }
+
+    /** The streak still counts if the user played today or yesterday. */
+    fun currentDayStreak(today: Long): Int =
+        if (lastActiveDay != NO_DAY && today - lastActiveDay <= 1) dayStreak else 0
+
+    fun answersToday(today: Long): Int = if (lastActiveDay == today) answersOnLastActiveDay else 0
+
+    fun withAnswer(mode: GameMode, surahIndex: Int, correct: Boolean, day: Long): Progress {
+        // A clock moved backwards (day < lastActiveDay) counts as the same day.
+        val sameDay = lastActiveDay != NO_DAY && day <= lastActiveDay
+        val streak = when {
+            sameDay -> dayStreak
+            lastActiveDay != NO_DAY && day == lastActiveDay + 1 -> dayStreak + 1
+            else -> 1
+        }
+        val run = if (correct) correctRun + 1 else 0
+        val base = copy(
+            lastActiveDay = if (sameDay) lastActiveDay else day,
+            dayStreak = streak,
+            bestDayStreak = maxOf(bestDayStreak, streak),
+            answersOnLastActiveDay = if (sameDay) answersOnLastActiveDay + 1 else 1,
+            correctRun = run,
+            bestCorrectRun = maxOf(bestCorrectRun, run),
+        )
+        return if (correct) {
+            base.copy(
+                totalCorrect = totalCorrect + 1,
+                surahCorrect = surahCorrect + (surahIndex to (surahCorrect[surahIndex] ?: 0) + 1),
+                modeCorrect = modeCorrect + (mode.key to (modeCorrect[mode.key] ?: 0) + 1),
+            )
+        } else {
+            base.copy(
+                totalWrong = totalWrong + 1,
+                surahWrong = surahWrong + (surahIndex to (surahWrong[surahIndex] ?: 0) + 1),
+                modeWrong = modeWrong + (mode.key to (modeWrong[mode.key] ?: 0) + 1),
+            )
+        }
+    }
+
+    fun withCompletedRound(record: RoundRecord): Progress = copy(
+        roundsCompleted = roundsCompleted + 1,
+        recentRounds = (listOf(record) + recentRounds).take(MAX_RECENT_ROUNDS),
+    )
+
+    companion object {
+        const val NO_DAY = -1L
+        const val MAX_RECENT_ROUNDS = 20
+    }
 }
 
 private object ProgressSerializer : Serializer<Progress> {
@@ -67,20 +148,12 @@ class ProgressRepository(context: Context) {
 
     val progress: Flow<Progress> = store.data
 
-    suspend fun recordAnswer(surahIndex: Int, correct: Boolean) {
-        store.updateData { p ->
-            if (correct) {
-                p.copy(
-                    totalCorrect = p.totalCorrect + 1,
-                    surahCorrect = p.surahCorrect + (surahIndex to (p.surahCorrect[surahIndex] ?: 0) + 1),
-                )
-            } else {
-                p.copy(
-                    totalWrong = p.totalWrong + 1,
-                    surahWrong = p.surahWrong + (surahIndex to (p.surahWrong[surahIndex] ?: 0) + 1),
-                )
-            }
-        }
+    suspend fun recordAnswer(mode: GameMode, surahIndex: Int, correct: Boolean) {
+        store.updateData { it.withAnswer(mode, surahIndex, correct, localEpochDay()) }
+    }
+
+    suspend fun recordCompletedRound(levelId: String, score: Int, total: Int) {
+        store.updateData { it.withCompletedRound(RoundRecord(levelId, score, total, localEpochDay())) }
     }
 
     /** Keeps the higher of the stored and the new score. */
@@ -104,7 +177,7 @@ class ProgressRepository(context: Context) {
 
     suspend fun resetStatistics() {
         store.updateData {
-            it.copy(totalCorrect = 0, totalWrong = 0, surahCorrect = emptyMap(), surahWrong = emptyMap())
+            Progress(bestScores = it.bestScores, reciter = it.reciter, autoPlay = it.autoPlay, language = it.language)
         }
     }
 

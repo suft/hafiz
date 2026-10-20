@@ -30,6 +30,7 @@ enum class GameMode(
  * A playable level: a contiguous range of surahs (0-based, inclusive).
  *
  * @property openings "فواتح السور" — questions use the first two ayahs of a random surah.
+ * @property practice single-surah review round started from Statistics; never stores a best score.
  */
 data class Level(
     val mode: GameMode,
@@ -39,12 +40,15 @@ data class Level(
     val firstSurah: Int,
     val lastSurah: Int,
     val openings: Boolean = false,
+    val practice: Boolean = false,
 ) {
     fun name(language: AppLanguage): String = if (language == AppLanguage.English) englishName else arabicName
 
     /** Stable key used to persist the best score (independent of list order). */
     val id: String
-        get() = "${mode.key}:${firstSurah + 1}-${lastSurah + 1}" + if (openings) ":openings" else ""
+        get() = "${mode.key}:${firstSurah + 1}-${lastSurah + 1}" +
+            (if (openings) ":openings" else "") +
+            (if (practice) ":practice" else "")
 
     val surahRange: IntRange get() = firstSurah..lastSurah
 }
@@ -107,6 +111,29 @@ object Levels {
                 openings = s.openings,
             )
         }
+    }
+
+    /** Next-ayah round limited to one surah, started from the statistics screen. */
+    fun surahPractice(surahIndex: Int, quran: Quran): Level {
+        val surah = quran.surahs[surahIndex]
+        return Level(
+            mode = GameMode.NextAyah,
+            index = -1, // not part of a level table
+            arabicName = "مراجعة سورة ${surah.displayName(AppLanguage.Arabic)}",
+            englishName = "Review: Surah ${surah.displayName(AppLanguage.English)}",
+            firstSurah = surahIndex,
+            lastSurah = surahIndex,
+            practice = true,
+        )
+    }
+
+    /** Resolves a stored [Level.id]; null for ids that no longer exist. */
+    fun byId(id: String, quran: Quran): Level? {
+        if (id.endsWith(":practice")) {
+            val surah = id.substringAfter(':').substringBefore('-').toIntOrNull()?.minus(1)
+            return surah?.takeIf { it in 0 until Quran.SURAH_COUNT }?.let { surahPractice(it, quran) }
+        }
+        return GameMode.entries.firstNotNullOfOrNull { mode -> forMode(mode, quran).firstOrNull { it.id == id } }
     }
 
     /** Same naming rules as the original "complete the ayah" levels. */

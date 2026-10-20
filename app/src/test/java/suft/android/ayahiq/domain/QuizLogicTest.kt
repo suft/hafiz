@@ -176,4 +176,54 @@ class QuizLogicTest {
         assertEquals(listOf(3, 2, 1), ranked.map { it.surahIndex })
         assertEquals(50, ranked[1].score.percent)
     }
+
+    @Test
+    fun surahTiers() {
+        assertEquals(SurahTier.Weak, Stats.tier(Score(59, 41)))
+        assertEquals(SurahTier.Fair, Stats.tier(Score(60, 40)))
+        assertEquals(SurahTier.Fair, Stats.tier(Score(89, 11)))
+        assertEquals(SurahTier.Strong, Stats.tier(Score(9, 1)))
+        assertEquals(SurahTier.NotPractised, Stats.tier(null))
+        assertEquals(SurahTier.NotPractised, Stats.tier(Score()))
+    }
+
+    @Test
+    fun strongestSurahsOrdering() {
+        val scores = mapOf(0 to Score(5, 0), 1 to Score(9, 1), 2 to Score(4, 0), 3 to Score(10, 0))
+        assertEquals(listOf(3, 0, 1), Stats.strongestFirst(scores).map { it.surahIndex })
+    }
+
+    @Test
+    fun levelIdsResolveAndStayStable() {
+        for (mode in GameMode.entries) {
+            for (level in Levels.forMode(mode, quran)) {
+                assertEquals(level, Levels.byId(level.id, quran))
+            }
+        }
+        val practice = Levels.surahPractice(1, quran)
+        assertEquals("ayah:2-2:practice", practice.id)
+        val resolved = Levels.byId(practice.id, quran)!!
+        assertTrue(resolved.practice)
+        assertEquals(1, resolved.firstSurah)
+        assertEquals(null, Levels.byId("surah:999-999", quran))
+        assertEquals("ayah:1-114:openings", Levels.forMode(GameMode.NextAyah, quran)[23].id)
+    }
+
+    @Test
+    fun practiceRoundsStayInTheSurah() {
+        val gen = QuestionGenerator(quran, Levels.surahPractice(35, quran), AppLanguage.Arabic)
+        repeat(30) { assertEquals(35, gen.next().surahIndex) }
+    }
+
+    @Test
+    fun practiceRoundsWorkForEverySurah() {
+        for (surah in 0 until Quran.SURAH_COUNT) {
+            val gen = QuestionGenerator(quran, Levels.surahPractice(surah, quran), AppLanguage.English, Random(surah))
+            repeat(10) {
+                val q = gen.next()
+                assertEquals(surah, q.surahIndex)
+                assertEquals(4, q.options.toSet().size)
+            }
+        }
+    }
 }

@@ -77,6 +77,7 @@ import suft.android.ayahiq.audio.PlaybackStatus
 import suft.android.ayahiq.audio.Reciters
 import suft.android.ayahiq.domain.ArabicText
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Question
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.components.AppTopBar
@@ -90,14 +91,13 @@ import suft.android.ayahiq.ui.theme.quranTextStyle
 fun QuizScreen(
     container: AppContainer,
     quran: Quran,
-    mode: GameMode,
-    levelIndex: Int,
+    level: Level,
     onBack: () -> Unit,
     onMainMenu: () -> Unit,
     onShareAyah: (IntRange) -> Unit,
 ) {
     val strings = LocalStrings.current
-    val vm: QuizViewModel = viewModel { QuizViewModel(container, quran, mode, levelIndex, strings.language) }
+    val vm: QuizViewModel = viewModel { QuizViewModel(container, quran, level, strings.language) }
     val state by vm.state.collectAsStateWithLifecycle()
     val playback by vm.playback.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }

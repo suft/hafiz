@@ -110,7 +110,7 @@ fun HomeScreen(
 
             GameMode.entries.forEach { mode ->
                 val levels = remember(mode) { Levels.forMode(mode, quran) }
-                val mastered = levels.count { progress.best(it.id) >= mode.masteryScore }
+                val mastered = progress.mastered(levels)
                 MenuCard(
                     icon = if (mode == GameMode.GuessSurah) Icons.Filled.Quiz else Icons.AutoMirrored.Filled.MenuBook,
                     title = strings.modeTitle(mode),
