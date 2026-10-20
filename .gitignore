@@ -4,6 +4,11 @@
 build/
 /dist/
 /captures/
+*.apk
+*.aab
+.cxx/
+.externalNativeBuild/
+*.hprof
 
 # Local machine config
 local.properties
@@ -11,8 +16,24 @@ local.properties
 .idea/
 *.iml
 .DS_Store
+.vscode/
+.fleet/
+.claude/
+__pycache__/
+*.pyc
 
 # Signing secrets (create with `mise run keystore`)
 keystore.properties
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.pem
+.env
+.env.*
+!.env.example
+google-services.json
+
+# Local audit report (AUDIT.md + audit/)
+/AUDIT.md
+/audit/
