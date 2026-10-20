@@ -14,6 +14,7 @@ class Mutashabihat private constructor(private val similar: Array<List<SimilarAy
     fun of(ayah: Int): List<SimilarAyah> = similar[ayah]
 
     companion object {
+        private val WHITESPACE = Regex("\\s+")
         /** Lines `surah:ayah surah:ayah strength`; `#` comments and blank lines are skipped. */
         fun parse(input: InputStream, quran: Quran): Mutashabihat {
             val lists = Array(quran.ayahCount) { ArrayList<SimilarAyah>() }
@@ -33,10 +34,11 @@ class Mutashabihat private constructor(private val similar: Array<List<SimilarAy
                     val line = raw.trim()
                     if (line.isEmpty() || line.startsWith('#')) return@forEachIndexed
                     val n = i + 1
-                    val parts = line.split(' ')
+                    val parts = line.split(WHITESPACE)
                     require(parts.size == 3) { "mutashabihat line $n: $line" }
                     val a = ayahAt(parts[0], n)
                     val b = ayahAt(parts[1], n)
+                    require(a != b) { "mutashabihat line $n: self-pair $line" }
                     val strength = parts[2].toIntOrNull()
                     require(strength != null && strength in 0..100) { "mutashabihat line $n: $line" }
                     lists[a] += SimilarAyah(b, strength)
