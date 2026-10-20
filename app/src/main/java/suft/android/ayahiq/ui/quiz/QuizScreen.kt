@@ -2,6 +2,8 @@ package suft.android.ayahiq.ui.quiz
 
 import android.content.Context
 import android.content.Intent
+import android.provider.Settings
+import android.view.accessibility.AccessibilityManager
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -11,10 +13,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,6 +43,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -56,7 +62,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,22 +72,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import suft.android.ayahiq.AppContainer
 import suft.android.ayahiq.audio.PlaybackStatus
+import suft.android.ayahiq.audio.Reciter
 import suft.android.ayahiq.audio.Reciters
 import suft.android.ayahiq.domain.ArabicText
 import suft.android.ayahiq.domain.GameMode
@@ -113,9 +127,76 @@ fun QuizScreen(
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
 
-    LaunchedEffect(vm) { vm.playbackErrors.collect { snackbar.showSnackbar(strings.playbackFailed) } }
-    // Stop the recitation when the app goes to the background.
-    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.pausePlayback() }
+    // Audio and the feedback timer run only while the screen is resumed: not in the background, not behind
+    // another screen (share card), not while the activity is paused.
+    LifecycleResumeEffect(vm) {
+        vm.setForeground(true)
+        onPauseOrDispose { vm.setForeground(false) }
+    }
+    val touchExploration = rememberTouchExplorationEnabled()
+    LaunchedEffect(touchExploration) { vm.setAutoAdvance(!touchExploration) }
+    LaunchedEffect(state.playbackError) {
+        val error = state.playbackError ?: return@LaunchedEffect
+        snackbar.showSnackbar(
+            if (error == PlaybackError.LoadFailedAutoPlayOff) strings.playbackFailedAutoPlayOff else strings.playbackFailed,
+        )
+        vm.playbackErrorShown()
+    }
+
+    QuizContent(
+        state = state,
+        playback = playback,
+        snackbar = snackbar,
+        onBack = onBack,
+        onMainMenu = onMainMenu,
+        onShareAyah = onShareAyah,
+        onSelect = vm::select,
+        onNext = vm::advanceNow,
+        onTogglePlayback = vm::togglePlayback,
+        onReciter = vm::setReciter,
+        onAutoPlay = vm::setAutoPlay,
+        onRestart = vm::restart,
+        onShareResult = { shareScore(context, state, strings) },
+    )
+}
+
+/** True while a screen reader with touch exploration (TalkBack) is on. */
+@Composable
+private fun rememberTouchExplorationEnabled(): Boolean {
+    val context = LocalContext.current
+    val manager = remember(context) { context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager }
+    var enabled by remember(manager) { mutableStateOf(manager.isTouchExplorationEnabled) }
+    DisposableEffect(manager) {
+        val listener = AccessibilityManager.TouchExplorationStateChangeListener { enabled = it }
+        manager.addTouchExplorationStateChangeListener(listener)
+        onDispose { manager.removeTouchExplorationStateChangeListener(listener) }
+    }
+    return enabled
+}
+
+/** Test tags for the quiz body. */
+internal object QuizTestTags {
+    const val PROMPT = "quiz.prompt"
+    fun option(i: Int) = "quiz.option.$i"
+}
+
+@Composable
+internal fun QuizContent(
+    state: QuizUiState,
+    playback: PlaybackStatus,
+    snackbar: SnackbarHostState,
+    onBack: () -> Unit,
+    onMainMenu: () -> Unit,
+    onShareAyah: (IntRange) -> Unit,
+    onSelect: (Int) -> Unit,
+    onNext: () -> Unit,
+    onTogglePlayback: () -> Unit,
+    onReciter: (Reciter) -> Unit,
+    onAutoPlay: (Boolean) -> Unit,
+    onRestart: () -> Unit,
+    onShareResult: () -> Unit,
+) {
+    val strings = LocalStrings.current
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -126,14 +207,18 @@ fun QuizScreen(
                 onBack = onBack,
                 actions = {
                     val q = state.question
-                    IconButton(onClick = { q?.let { onShareAyah(it.shownAyahs) } }, enabled = q != null) {
+                    // Sharing the ayah of a guess-the-surah question before answering would reveal the surah.
+                    IconButton(
+                        onClick = { q?.let { onShareAyah(it.shownAyahs) } },
+                        enabled = q != null && (q.style == GameStyle.NextAyah || state.answered),
+                    ) {
                         Icon(Icons.Filled.Share, contentDescription = strings.shareAyah)
                     }
                 },
             )
         },
     ) { padding ->
-        Box(
+        BoxWithConstraints(
             Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -141,35 +226,79 @@ fun QuizScreen(
         ) {
             val q = state.question
             if (q != null) {
-                Column(
-                    Modifier
-                        .widthIn(max = 640.dp)
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                ) {
-                    ProgressHeader(state, onNext = vm::advanceNow)
-                    Spacer(Modifier.height(10.dp))
-                    PromptCard(q, Modifier.weight(1f))
-                    Spacer(Modifier.height(8.dp))
+                // Room for the snackbar, so the last option can be scrolled above it.
+                val snackbarSpace = if (snackbar.currentSnackbarData != null) 80.dp else 0.dp
+                val audio: @Composable () -> Unit = {
                     AudioBar(
                         status = playback,
                         reciter = state.reciter,
                         autoPlay = state.autoPlay,
-                        onToggle = vm::togglePlayback,
-                        onReciter = vm::setReciter,
-                        onAutoPlay = vm::setAutoPlay,
+                        onToggle = onTogglePlayback,
+                        onReciter = onReciter,
+                        onAutoPlay = onAutoPlay,
                     )
-                    Spacer(Modifier.height(8.dp))
+                }
+                val options: @Composable () -> Unit = {
                     q.options.forEachIndexed { i, text ->
                         OptionButton(
                             text = text,
                             style = q.style,
                             state = optionState(i, q, state.selected),
-                            onClick = { vm.select(i) },
+                            onClick = { onSelect(i) },
+                            modifier = Modifier.testTag(QuizTestTags.option(i)),
                         )
                         Spacer(Modifier.height(8.dp))
                     }
-                    Spacer(Modifier.height(4.dp))
+                }
+                if (maxWidth >= 560.dp && maxWidth > maxHeight) {
+                    // Landscape: the prompt on one side, the controls on the other, so neither is squeezed.
+                    Row(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        Column(Modifier.weight(1f).fillMaxHeight()) {
+                            ProgressHeader(state, onNext = onNext)
+                            Spacer(Modifier.height(10.dp))
+                            PromptCard(q, Modifier.weight(1f).padding(bottom = 8.dp).testTag(QuizTestTags.PROMPT))
+                        }
+                        Column(
+                            Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            audio()
+                            Spacer(Modifier.height(8.dp))
+                            options()
+                            Spacer(Modifier.height(4.dp + snackbarSpace))
+                        }
+                    }
+                } else {
+                    // The whole page scrolls (large fonts, small screens); the prompt keeps at least 120 dp and
+                    // at most half the height, scrolling inside itself beyond that.
+                    Column(
+                        Modifier
+                            .widthIn(max = 640.dp)
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        ProgressHeader(state, onNext = onNext)
+                        Spacer(Modifier.height(10.dp))
+                        PromptCard(
+                            q,
+                            Modifier
+                                .heightIn(min = 120.dp, max = (this@BoxWithConstraints.maxHeight * 0.5f).coerceAtLeast(120.dp))
+                                .testTag(QuizTestTags.PROMPT),
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        audio()
+                        Spacer(Modifier.height(8.dp))
+                        options()
+                        Spacer(Modifier.height(4.dp + snackbarSpace))
+                    }
                 }
             }
         }
@@ -178,8 +307,8 @@ fun QuizScreen(
     if (state.finished) {
         ResultDialog(
             state = state,
-            onRestart = vm::restart,
-            onShare = { shareScore(context, state, strings) },
+            onRestart = onRestart,
+            onShare = onShareResult,
             onBack = onBack,
             onMainMenu = onMainMenu,
         )
@@ -193,10 +322,21 @@ private fun ProgressHeader(state: QuizUiState, onNext: () -> Unit) {
     val strings = LocalStrings.current
     // The "next" TextButton's 48dp touch target must not grow the row when it appears.
     Row(modifier = Modifier.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+        // Announced politely when the answer is given: the question, then whether it was right.
+        val progressLabel =
+            if (state.mode.endless) strings.questionNumber(state.number) else strings.questionProgress(state.number, state.total)
+        val correct = state.selected != null && state.selected == state.question?.correctOption
         Text(
-            if (state.mode.endless) strings.questionNumber(state.number) else strings.questionProgress(state.number, state.total),
+            progressLabel,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .semantics {
+                    liveRegion = LiveRegionMode.Polite
+                    if (state.answered) {
+                        contentDescription = "$progressLabel, ${if (correct) strings.correctAnswer else strings.wrongAnswer}"
+                    }
+                },
         )
         if (state.answered && !state.finished) {
             TextButton(onClick = onNext) {
@@ -275,36 +415,39 @@ private fun PromptCard(q: Question, modifier: Modifier = Modifier) {
         border = BorderStroke(1.5.dp, quizColors.gold.copy(alpha = 0.7f)),
         shadowElevation = 1.dp,
     ) {
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 18.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = when (q.style) {
-                    GameStyle.GuessSurah -> strings.whichSurah
-                    GameStyle.NextAyah -> strings.whatIsNextAyah
-                },
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = prompt,
-                style = quranTextStyle(size),
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            q.reference?.let {
+        Box(contentAlignment = Alignment.Center) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 18.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = when (q.style) {
+                        GameStyle.GuessSurah -> strings.whichSurah
+                        GameStyle.NextAyah -> strings.whatIsNextAyah
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    it,
-                    style = MaterialTheme.typography.titleSmall.copy(fontFamily = NaskhFont),
-                    color = MaterialTheme.colorScheme.primary,
+                    text = prompt,
+                    style = quranTextStyle(size),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth(),
                 )
+                q.reference?.let {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.titleSmall.copy(fontFamily = NaskhFont),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }
@@ -323,10 +466,10 @@ private fun formatPrompt(q: Question): String = when (q.style) {
 @Composable
 private fun AudioBar(
     status: PlaybackStatus,
-    reciter: Int,
+    reciter: Reciter,
     autoPlay: Boolean,
     onToggle: () -> Unit,
-    onReciter: (Int) -> Unit,
+    onReciter: (Reciter) -> Unit,
     onAutoPlay: (Boolean) -> Unit,
 ) {
     val strings = LocalStrings.current
@@ -347,38 +490,46 @@ private fun AudioBar(
         var menuOpen by remember { mutableStateOf(false) }
         Box(Modifier.weight(1f)) {
             TextButton(onClick = { menuOpen = true }) {
+                // A long name shortens; the arrow that shows this is a menu always stays.
                 Text(
-                    Reciters.get(reciter).name(strings.language),
+                    reciter.name(strings.language),
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f, fill = false),
                 )
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = strings.chooseReciter)
             }
             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                Reciters.all.forEachIndexed { i, r ->
+                Reciters.all.forEach { r ->
                     DropdownMenuItem(
                         text = {
                             Text(
                                 r.name(strings.language),
-                                fontWeight = if (i == reciter) FontWeight.Bold else FontWeight.Normal,
-                                color = if (i == reciter) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                                fontWeight = if (r == reciter) FontWeight.Bold else FontWeight.Normal,
+                                color = if (r == reciter) MaterialTheme.colorScheme.primary else Color.Unspecified,
                             )
                         },
                         onClick = {
                             menuOpen = false
-                            onReciter(i)
+                            onReciter(r)
                         },
                     )
                 }
             }
         }
 
-        Text(strings.autoPlay, style = MaterialTheme.typography.labelLarge)
-        Switch(
-            checked = autoPlay,
-            onCheckedChange = onAutoPlay,
-            modifier = Modifier.scale(0.8f),
-        )
+        // The label is part of the switch, so a screen reader announces "Auto, switch, on".
+        Row(
+            Modifier
+                .heightIn(min = 48.dp)
+                .toggleable(value = autoPlay, role = Role.Switch, onValueChange = onAutoPlay),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(strings.autoPlay, style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.width(4.dp))
+            Switch(checked = autoPlay, onCheckedChange = null)
+        }
     }
 }
 
@@ -394,7 +545,13 @@ private fun optionState(index: Int, q: Question, selected: Int?): OptionState = 
 }
 
 @Composable
-private fun OptionButton(text: String, style: GameStyle, state: OptionState, onClick: () -> Unit) {
+private fun OptionButton(
+    text: String,
+    style: GameStyle,
+    state: OptionState,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val quizColors = LocalQuizColors.current
     val strings = LocalStrings.current
     val container by animateColorAsState(
@@ -410,16 +567,20 @@ private fun OptionButton(text: String, style: GameStyle, state: OptionState, onC
         OptionState.Wrong -> quizColors.wrong
         else -> MaterialTheme.colorScheme.outline
     }
-    // The original blinked the correct answer; a gentle pulse does the same job.
-    val pulse = if (state == OptionState.Correct) {
+    // The original blinked the correct answer; a gentle pulse does the same job, unless animations are off.
+    val context = LocalContext.current
+    val reduceMotion = remember {
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
+    val pulse: State<Float>? = if (state == OptionState.Correct && !reduceMotion) {
         rememberInfiniteTransition(label = "pulse").animateFloat(
             initialValue = 1f,
             targetValue = 0.45f,
             animationSpec = infiniteRepeatable(tween(260), RepeatMode.Reverse),
             label = "pulseAlpha",
-        ).value
+        )
     } else {
-        1f
+        null
     }
 
     // Every next-ayah option reserves two lines so 1- or 2-line options don't resize the options column.
@@ -431,7 +592,7 @@ private fun OptionButton(text: String, style: GameStyle, state: OptionState, onC
     OutlinedButton(
         onClick = onClick,
         enabled = state == OptionState.Open,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .heightIn(min = minHeight)
             .alpha(if (state == OptionState.Dimmed) 0.5f else 1f),
@@ -455,7 +616,7 @@ private fun OptionButton(text: String, style: GameStyle, state: OptionState, onC
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
-                .alpha(pulse),
+                .graphicsLayer { alpha = pulse?.value ?: 1f },
         )
         when (state) {
             OptionState.Correct -> Icon(Icons.Filled.CheckCircle, contentDescription = strings.correctAnswer, tint = quizColors.correct)
@@ -488,16 +649,29 @@ private fun ResultDialog(
         else -> if (practice) strings.surahNeedsReview else strings.needsReview
     }
     AlertDialog(
-        onDismissRequest = {},
+        // Back and the system gesture close the dialog like the title-bar back arrow; a tap outside must not.
+        onDismissRequest = onBack,
+        properties = DialogProperties(dismissOnClickOutside = false),
         icon = { Icon(Icons.Filled.EmojiEvents, contentDescription = null, tint = LocalQuizColors.current.gold) },
-        title = { Text(if (endless) strings.gameOver else strings.resultTitle) },
+        title = {
+            Text(
+                if (endless) strings.gameOver else strings.resultTitle,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
         text = {
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(state.level.name(strings.language), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    state.level.name(strings.language),
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                )
                 if (endless) {
                     Text(
                         "${strings.gameModeTitle(state.mode)} · ${strings.styleTitle(state.level.style)}",
                         style = MaterialTheme.typography.labelMedium,
+                        textAlign = TextAlign.Center,
                     )
                 }
                 Spacer(Modifier.height(8.dp))
@@ -521,16 +695,15 @@ private fun ResultDialog(
                 }
             }
         },
+        // One column of full-width buttons: four buttons in two cramped rows wrapped badly at large font sizes.
         confirmButton = {
-            Row {
-                TextButton(onClick = onShare) { Text(strings.shareResult) }
-                TextButton(onClick = onRestart) { Text(strings.retry) }
-            }
-        },
-        dismissButton = {
-            Row {
-                TextButton(onClick = onMainMenu) { Text(strings.mainMenu) }
-                TextButton(onClick = onBack) { Text(strings.goBack) }
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) { Text(strings.retry) }
+                OutlinedButton(onClick = onShare, modifier = Modifier.fillMaxWidth()) { Text(strings.shareResult) }
+                TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                    Text(if (practice) strings.statistics else strings.levelsList)
+                }
+                TextButton(onClick = onMainMenu, modifier = Modifier.fillMaxWidth()) { Text(strings.mainMenu) }
             }
         },
     )

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,6 +24,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -46,8 +50,8 @@ internal fun ActivityTab(progress: Progress, quran: Quran, today: Long, bottomPa
             Levels.byId(r.levelId, quran)?.let { ResolvedRound(r, it, mode) }
         }
     }
-    // The percentage chart is meaningless for endless games.
-    val regular = remember(rounds) { rounds.filter { it.mode == GameMode.Regular } }
+    // The percentage chart is meaningless for endless games, and practice rounds have their own length.
+    val regular = remember(rounds) { rounds.filter { it.mode == GameMode.Regular && !it.level.practice } }
 
     LazyColumn(
         contentPadding = tabContentPadding(bottomPadding),
@@ -124,12 +128,19 @@ private fun StatTile(value: Int, label: String, modifier: Modifier) {
 }
 
 /** [rounds] oldest first. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ScoreTrendChart(rounds: List<ResolvedRound>) {
     val strings = LocalStrings.current
     val quizColors = LocalQuizColors.current
     val scheme = MaterialTheme.colorScheme
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val measurer = rememberTextMeasurer()
+    val labelStyle = MaterialTheme.typography.labelSmall.copy(color = scheme.onSurfaceVariant)
+    val guides = intArrayOf(0, 50, 100)
+    val labels = guides.map { measurer.measure(strings.percent(it), labelStyle) }
+    fun percentOf(r: RoundRecord) = r.score * 100 / r.total.coerceAtLeast(1)
+    val description = strings.scoreTrendDescription(percentOf(rounds.first().record), percentOf(rounds.last().record))
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -140,21 +151,28 @@ private fun ScoreTrendChart(rounds: List<ResolvedRound>) {
             Modifier
                 .fillMaxWidth()
                 .height(140.dp)
-                .semantics { contentDescription = strings.scoreTrend },
+                .semantics { contentDescription = description },
         ) {
             val inset = 8.dp.toPx()
             val plotHeight = size.height - 2 * inset
             val guide = 1.dp.toPx()
-            for (percent in intArrayOf(0, 50, 100)) {
+            // x positions are measured from the start edge (left in LTR, right in RTL) and mirrored by [at].
+            fun at(fromStart: Float) = if (rtl) size.width - fromStart else fromStart
+            val labelWidth = labels.maxOf { it.size.width }
+            val plotStart = inset + labelWidth + 6.dp.toPx()
+            val plotEnd = size.width - inset
+            guides.forEachIndexed { g, percent ->
                 val y = inset + plotHeight * (1f - percent / 100f)
-                drawLine(scheme.outlineVariant, Offset(0f, y), Offset(size.width, y), strokeWidth = guide)
+                drawLine(scheme.outlineVariant, Offset(at(plotStart), y), Offset(at(plotEnd), y), strokeWidth = guide)
+                val label = labels[g]
+                val left = if (rtl) size.width - inset - label.size.width else inset
+                drawText(label, topLeft = Offset(left, y - label.size.height / 2f))
             }
 
-            val step = (size.width - 2 * inset) / (rounds.size - 1)
+            val step = (plotEnd - plotStart) / (rounds.size - 1)
             val points = rounds.mapIndexed { i, round ->
-                val x = inset + step * i
                 val y = inset + plotHeight * (1f - round.record.score * 1f / round.record.total.coerceAtLeast(1))
-                Offset(if (rtl) size.width - x else x, y)
+                Offset(at(plotStart + step * i), y)
             }
             for (i in 1 until points.size) {
                 drawLine(
@@ -167,6 +185,14 @@ private fun ScoreTrendChart(rounds: List<ResolvedRound>) {
                 val mastered = round.record.score >= round.level.style.masteryFor(round.record.total)
                 drawCircle(if (mastered) quizColors.correct else scheme.secondary, radius = 4.dp.toPx(), center = p)
             }
+        }
+        FlowRow(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            LegendEntry(quizColors.correct, strings.mastered)
+            LegendEntry(scheme.secondary, strings.notMastered)
         }
     }
 }

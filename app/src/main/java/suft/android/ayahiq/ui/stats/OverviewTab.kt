@@ -63,7 +63,6 @@ internal fun OverviewTab(progress: Progress, quran: Quran, bottomPadding: Dp) {
                         .padding(24.dp),
                 )
             }
-            return@LazyColumn
         }
 
         items(GameStyle.entries) { style ->
@@ -137,18 +136,21 @@ private fun RunModeCard(mode: GameMode, stats: RunStats) {
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(strings.gameModeTitle(mode), style = MaterialTheme.typography.titleLarge)
-            if (stats.played == 0) {
+            if (stats.played == 0 && stats.best == 0) {
                 Text(
                     strings.noGamesYet,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                Text(strings.bestScore(stats.best), style = MaterialTheme.typography.labelLarge)
-                Text(strings.gamesPlayed(stats.played), style = MaterialTheme.typography.labelLarge)
-                Text(strings.averageScore(stats.average), style = MaterialTheme.typography.labelLarge)
-                if (mode.showsLongestStreak) {
-                    Text(strings.longestStreak(stats.bestStreak), style = MaterialTheme.typography.labelLarge)
+                // A game left midway records the best score without counting as a finished game.
+                if (stats.best > 0) Text(strings.bestScore(stats.best), style = MaterialTheme.typography.labelLarge)
+                if (stats.played > 0) {
+                    Text(strings.gamesPlayed(stats.played), style = MaterialTheme.typography.labelLarge)
+                    Text(strings.averageScore(stats.average), style = MaterialTheme.typography.labelLarge)
+                    if (mode.showsLongestStreak) {
+                        Text(strings.longestStreak(stats.bestStreak), style = MaterialTheme.typography.labelLarge)
+                    }
                 }
             }
         }

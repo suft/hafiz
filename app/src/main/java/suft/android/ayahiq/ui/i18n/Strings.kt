@@ -72,10 +72,10 @@ interface Strings {
     fun newRecord(previous: Int): String
     val shareResult: String
     val retry: String
-    val goBack: String
     val mainMenu: String
     fun shareScoreText(score: Int, total: Int, levelName: String, styleTitle: String): String
     val playbackFailed: String
+    val playbackFailedAutoPlayOff: String
     val clearStatistics: String
     val clearStatisticsQuestion: String
     val clearStatisticsBody: String
@@ -117,8 +117,14 @@ interface Strings {
     fun frameNumber(n: Int): String
     val font: String
     val fontMushaf: String
-    val fontCordoba: String
+    val fontScheherazade: String
     val shareImage: String
+    val shareFailed: String
+    fun questionsCount(n: Int): String
+    fun surahCell(name: String, tier: String, percent: Int?): String
+    fun scoreTrendDescription(first: Int, last: Int): String
+    val notMastered: String
+    val levelsList: String
 }
 
 object ArabicStrings : Strings {
@@ -160,7 +166,7 @@ object ArabicStrings : Strings {
     override fun livesLeft(n: Int) = "الفرص المتبقية: ${number(n)}"
     override val gameOver = "انتهت اللعبة"
     override fun survivalResult(score: Int) = "إجابات صحيحة متتالية: ${number(score)}"
-    override fun livesResult(score: Int, answered: Int) = "${number(score)} صحيحة من ${number(answered)} سؤالاً"
+    override fun livesResult(score: Int, answered: Int) = "${number(score)} صحيحة من ${questionsCount(answered)}"
     override fun longestStreak(n: Int) = "أطول سلسلة صحيحة: ${number(n)}"
     override fun bestScore(n: Int) = "أفضل نتيجة: ${number(n)}"
     override fun gamesPlayed(n: Int) = "ألعاب مكتملة: ${number(n)}"
@@ -173,7 +179,7 @@ object ArabicStrings : Strings {
     override val statistics = "إحصائيات"
     override val statisticsHint = "تعرّف على السور التي تحتاج إلى مراجعة"
     override fun statisticsSummary(percent: Int, total: Int) =
-        "دقة إجاباتك ${number(percent)}٪ في ${number(total)} سؤالاً"
+        "دقة إجاباتك ${percent(percent)} في ${questionsCount(total)}"
     override val leaderboards = "لوحات الصدارة"
     override val leaderboardsHint = "قارن نتائجك مع اللاعبين على Google Play Games"
     override val leaderboardsUnavailable = "تعذّر فتح لوحات الصدارة. سجّل الدخول إلى Google Play Games وحاول مرة أخرى."
@@ -209,16 +215,17 @@ object ArabicStrings : Strings {
     override fun newRecord(previous: Int) = "رقم قياسي جديد! (السابق ${number(previous)})"
     override val shareResult = "انشر النتيجة"
     override val retry = "إعادة"
-    override val goBack = "عودة"
     override val mainMenu = "القائمة الرئيسية"
     override fun shareScoreText(score: Int, total: Int, levelName: String, styleTitle: String) =
         "حصلت على ${number(score)} من ${number(total)} في مرحلة «$levelName» في مسابقة القرآن الكريم «$appName – $styleTitle»"
 
     override val playbackFailed = "تعذّر تحميل التلاوة. تأكد من الاتصال بالإنترنت."
+    override val playbackFailedAutoPlayOff = "تعذّر تحميل التلاوة، فأُوقف التشغيل التلقائي. تأكد من الاتصال بالإنترنت."
     override val clearStatistics = "مسح الإحصائيات"
     override val clearStatisticsQuestion = "مسح الإحصائيات؟"
     override val clearStatisticsBody =
-        "سيتم حذف سجل الإجابات لكل السور وسجل النشاط والجولات. نقاط المراحل لن تتأثر."
+        "سيتم حذف سجل الإجابات لكل السور، ودقة كل نوع من الأسئلة، وسلاسل الأيام والإجابات الصحيحة، وسجل الجولات، " +
+            "وعدد ألعاب البقاء والفرص الثلاث والحافظ ومتوسطاتها وأطول سلاسلها. أفضل نتيجة في كل مرحلة لن تتأثر."
     override val clear = "مسح"
     override val cancel = "إلغاء"
     override val statisticsEmpty = "أجب عن بعض الأسئلة لتظهر هنا السور التي تحتاج إلى مراجعة."
@@ -263,8 +270,22 @@ object ArabicStrings : Strings {
     override fun frameNumber(n: Int) = "إطار ${number(n)}"
     override val font = "الخط"
     override val fontMushaf = "مصحف"
-    override val fontCordoba = "قرطبة"
+    override val fontScheherazade = "شهرزاد"
     override val shareImage = "انشر الصورة"
+    override val shareFailed = "تعذّر إنشاء صورة المشاركة."
+    override fun questionsCount(n: Int) = when {
+        n == 1 -> "سؤال واحد"
+        n == 2 -> "سؤالين"
+        n % 100 in 3..10 -> "${number(n)} أسئلة"
+        n % 100 in 11..99 -> "${number(n)} سؤالاً"
+        else -> "${number(n)} سؤال"
+    }
+    override fun surahCell(name: String, tier: String, percent: Int?) =
+        "سورة $name، $tier" + (percent?.let { "، ${percent(it)}" } ?: "")
+    override fun scoreTrendDescription(first: Int, last: Int) =
+        "تطور النتائج: من ${percent(first)} في أقدم جولة إلى ${percent(last)} في أحدثها"
+    override val notMastered = "غير متقنة"
+    override val levelsList = "المراحل"
 }
 
 object EnglishStrings : Strings {
@@ -306,7 +327,7 @@ object EnglishStrings : Strings {
     override fun livesLeft(n: Int) = "Lives left: $n"
     override val gameOver = "Game over"
     override fun survivalResult(score: Int) = "Correct in a row: $score"
-    override fun livesResult(score: Int, answered: Int) = "$score correct out of $answered questions"
+    override fun livesResult(score: Int, answered: Int) = "$score correct out of ${questionsCount(answered)}"
     override fun longestStreak(n: Int) = "Longest streak: $n"
     override fun bestScore(n: Int) = "Best score: $n"
     override fun gamesPlayed(n: Int) = "Games played: $n"
@@ -319,7 +340,7 @@ object EnglishStrings : Strings {
     override val statistics = "Statistics"
     override val statisticsHint = "See which surahs need more review"
     override fun statisticsSummary(percent: Int, total: Int) =
-        "Accuracy $percent% across $total ${if (total == 1) "question" else "questions"}"
+        "Accuracy ${percent(percent)} across ${questionsCount(total)}"
     override val leaderboards = "Leaderboards"
     override val leaderboardsHint = "Compare your scores with other players on Google Play Games"
     override val leaderboardsUnavailable = "Couldn't open the leaderboards. Sign in to Google Play Games and try again."
@@ -355,16 +376,19 @@ object EnglishStrings : Strings {
     override fun newRecord(previous: Int) = "New record! (previous: $previous)"
     override val shareResult = "Share result"
     override val retry = "Retry"
-    override val goBack = "Back"
     override val mainMenu = "Main menu"
     override fun shareScoreText(score: Int, total: Int, levelName: String, styleTitle: String) =
         "I scored $score out of $total on the level “$levelName” in the Quran quiz “AyahIQ – $styleTitle”"
 
     override val playbackFailed = "Couldn't load the recitation. Check your internet connection."
+    override val playbackFailedAutoPlayOff =
+        "Couldn't load the recitation, so auto-play was turned off. Check your internet connection."
     override val clearStatistics = "Clear statistics"
     override val clearStatisticsQuestion = "Clear statistics?"
     override val clearStatisticsBody =
-        "The answer history for every surah, your activity and round history will be deleted. Level scores are not affected."
+        "This deletes the answer history for every surah, the accuracy per question style, day streaks and correct-answer runs, " +
+            "the round history, and the games played, averages and longest streaks of Survival, 3 Lives and Hafiz. " +
+            "Your best score on each level is kept."
     override val clear = "Clear"
     override val cancel = "Cancel"
     override val statisticsEmpty = "Answer some questions to see the surahs that need review here."
@@ -407,8 +431,16 @@ object EnglishStrings : Strings {
     override fun frameNumber(n: Int) = "Frame $n"
     override val font = "Font"
     override val fontMushaf = "Mushaf"
-    override val fontCordoba = "Cordoba"
+    override val fontScheherazade = "Scheherazade"
     override val shareImage = "Share image"
+    override val shareFailed = "Couldn't create the image to share."
+    override fun questionsCount(n: Int) = if (n == 1) "1 question" else "$n questions"
+    override fun surahCell(name: String, tier: String, percent: Int?) =
+        "Surah $name, $tier" + (percent?.let { ", ${percent(it)}" } ?: "")
+    override fun scoreTrendDescription(first: Int, last: Int) =
+        "Score trend: from ${percent(first)} in the oldest round to ${percent(last)} in the latest"
+    override val notMastered = "not mastered"
+    override val levelsList = "Levels"
 }
 
 fun stringsFor(language: AppLanguage): Strings = when (language) {

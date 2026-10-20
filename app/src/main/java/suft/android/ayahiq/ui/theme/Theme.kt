@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextDirection
@@ -38,8 +39,8 @@ val NaskhFont = FontFamily(
     Font(R.font.amiri_bold, FontWeight.Bold),
 )
 
-/** Decorative face used on the shareable ayah card (from the original app). */
-val CordobaFont = FontFamily(Font(R.font.cordoba))
+/** Second face of the shareable ayah card (Scheherazade New, SIL OFL); covers the Quran text and the ornate ﴿﴾ marks. */
+val ScheherazadeFont = FontFamily(Font(R.font.scheherazade_new_regular))
 
 /** Bold brush-calligraphy face (Rakkas, SIL OFL) for the app title, in Arabic and Latin. */
 val TitleFont = FontFamily(Font(R.font.rakkas_regular, FontWeight.Normal))
@@ -70,7 +71,7 @@ private val LightScheme = lightColorScheme(
     onPrimary = Color.White,
     primaryContainer = Color(0xFFCDE8D6),
     onPrimaryContainer = Color(0xFF00210F),
-    secondary = Color(0xFF8A6A1D),
+    secondary = Color(0xFF7A5C14),
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFF3E1B0),
     onSecondaryContainer = Color(0xFF2B1F00),
@@ -86,7 +87,7 @@ private val LightScheme = lightColorScheme(
     surfaceContainer = Color(0xFFF6EDD8),
     surfaceContainerHigh = Color(0xFFF0E5CB),
     surfaceContainerHighest = Color(0xFFEADDBE),
-    outline = Color(0xFFB59C6A),
+    outline = Color(0xFF8A7440),
     outlineVariant = Color(0xFFDCCBA4),
     error = Color(0xFFB3261E),
 )
@@ -107,7 +108,7 @@ private val DarkScheme = darkColorScheme(
     onSurface = Color(0xFFE6E1D6),
     surfaceVariant = Color(0xFF2B352E),
     onSurfaceVariant = Color(0xFFC4C9BF),
-    surfaceContainerLowest = Color(0xFF0C130F),
+    surfaceContainerLowest = Color(0xFF1E2A23),
     surfaceContainerLow = Color(0xFF18221C),
     surfaceContainer = Color(0xFF1C2620),
     surfaceContainerHigh = Color(0xFF26312A),
@@ -180,6 +181,7 @@ fun quranTextStyle(size: Int): TextStyle = TextStyle(
     lineHeight = (size * 2.0).sp,
     // Ayah text stays right-to-left inside an LTR layout.
     textDirection = TextDirection.Rtl,
+    localeList = LocaleList("ar"),
 )
 
 // ---------------------------------------------------------------- theme

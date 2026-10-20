@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -87,7 +88,7 @@ fun AppTopBar(
     )
 }
 
-/** A big tappable card used for menu entries; [badge] (with [badgeLabel] under it) is shown on the trailing side. */
+/** A big tappable card used for menu entries; [badge] (with [badgeLabel] beside or under it) shows the progress. */
 @Composable
 fun MenuCard(
     icon: ImageVector,
@@ -97,6 +98,8 @@ fun MenuCard(
     badgeLabel: String?,
     onClick: () -> Unit,
 ) {
+    // With a large system font the trailing badge squeezes the title into one-word lines; put it under the text.
+    val largeText = LocalDensity.current.fontScale >= 1.5f
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -121,8 +124,15 @@ fun MenuCard(
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (largeText && badge != null) {
+                    Text(
+                        if (badgeLabel != null) "$badge $badgeLabel" else badge,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
             }
-            if (badge != null) {
+            if (!largeText && badge != null) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(badge, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
                     if (badgeLabel != null) {

@@ -17,13 +17,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import suft.android.ayahiq.AppContainer
+import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
 import suft.android.ayahiq.domain.GameStyle
@@ -69,23 +73,42 @@ data class ShareRoute(val firstAyah: Int, val lastAyah: Int)
 
 @Composable
 fun AyahIqRoot(container: AppContainer, onOpenLeaderboards: (suspend () -> Boolean)?) {
-    val current by container.language.collectAsStateWithLifecycle()
-    AyahIqTheme(language = current ?: AppLanguage.Arabic) {
+    val progress by container.progressState.collectAsStateWithLifecycle()
+    val loaded = progress
+    AyahIqTheme(language = loaded?.language ?: AppLanguage.Arabic) {
         PaperBackground {
             val quran by container.quran.collectAsStateWithLifecycle()
-            val loaded = quran
+            val loadedQuran = quran
             when {
                 // The settings read takes milliseconds; render nothing to avoid flashing the wrong language.
-                current == null -> Unit
-                loaded == null -> LoadingScreen()
-                else -> AppNavHost(container, loaded, onOpenLeaderboards)
+                loaded == null -> Unit
+                loadedQuran == null -> LoadingScreen()
+                else -> AppNavHost(container, loaded, loadedQuran, onOpenLeaderboards)
             }
         }
     }
 }
 
+// A tap that lands while a screen is animating out (or a second tap on the same control) would navigate again
+// from a screen that is already leaving: two pops empty the stack, two pushes stack a duplicate. Only the entry
+// that is fully resumed may navigate.
+private fun NavBackStackEntry.isResumed() = lifecycle.currentState == Lifecycle.State.RESUMED
+
+private fun NavController.navigateFrom(entry: NavBackStackEntry, route: Any) {
+    if (entry.isResumed()) navigate(route) { launchSingleTop = true }
+}
+
+private fun NavController.popFrom(entry: NavBackStackEntry) {
+    if (entry.isResumed()) popBackStack()
+}
+
 @Composable
-private fun AppNavHost(container: AppContainer, quran: Quran, onOpenLeaderboards: (suspend () -> Boolean)?) {
+private fun AppNavHost(
+    container: AppContainer,
+    progress: Progress,
+    quran: Quran,
+    onOpenLeaderboards: (suspend () -> Boolean)?,
+) {
     val nav = rememberNavController()
     NavHost(
         navController = nav,
@@ -93,23 +116,24 @@ private fun AppNavHost(container: AppContainer, quran: Quran, onOpenLeaderboards
         enterTransition = { fadeIn() },
         exitTransition = { fadeOut() },
     ) {
-        composable<HomeRoute> {
+        composable<HomeRoute> { entry ->
             HomeScreen(
                 container = container,
+                progress = progress,
                 quran = quran,
-                onOpenMode = { mode -> nav.navigate(StylesRoute(mode.key)) },
-                onOpenStats = { nav.navigate(StatsRoute) },
+                onOpenMode = { mode -> nav.navigateFrom(entry, StylesRoute(mode.key)) },
+                onOpenStats = { nav.navigateFrom(entry, StatsRoute) },
                 onOpenLeaderboards = onOpenLeaderboards,
             )
         }
         composable<StylesRoute> { entry ->
             val mode = GameMode.fromKey(entry.toRoute<StylesRoute>().mode)
             StylesScreen(
-                container = container,
+                progress = progress,
                 quran = quran,
                 mode = mode,
-                onBack = { nav.popBackStack() },
-                onPick = { style -> nav.navigate(LevelsRoute(mode.key, style.key)) },
+                onBack = { nav.popFrom(entry) },
+                onPick = { style -> nav.navigateFrom(entry, LevelsRoute(mode.key, style.key)) },
             )
         }
         composable<LevelsRoute> { entry ->
@@ -117,12 +141,12 @@ private fun AppNavHost(container: AppContainer, quran: Quran, onOpenLeaderboards
             val mode = GameMode.fromKey(route.mode)
             val style = GameStyle.fromKey(route.style)
             LevelsScreen(
-                container = container,
+                progress = progress,
                 quran = quran,
                 mode = mode,
                 style = style,
-                onBack = { nav.popBackStack() },
-                onPlay = { level -> nav.navigate(QuizRoute(mode.key, style.key, level.index)) },
+                onBack = { nav.popFrom(entry) },
+                onPlay = { level -> nav.navigateFrom(entry, QuizRoute(mode.key, style.key, level.index)) },
             )
         }
         composable<QuizRoute> { entry ->
@@ -133,9 +157,9 @@ private fun AppNavHost(container: AppContainer, quran: Quran, onOpenLeaderboards
                 quran = quran,
                 level = level,
                 mode = GameMode.fromKey(route.mode),
-                onBack = { nav.popBackStack() },
-                onMainMenu = { nav.popBackStack<HomeRoute>(inclusive = false) },
-                onShareAyah = { range -> nav.navigate(ShareRoute(range.first, range.last)) },
+                onBack = { nav.popFrom(entry) },
+                onMainMenu = { if (entry.isResumed()) nav.popBackStack<HomeRoute>(inclusive = false) },
+                onShareAyah = { range -> nav.navigateFrom(entry, ShareRoute(range.first, range.last)) },
             )
         }
         composable<PracticeRoute> { entry ->
@@ -146,17 +170,18 @@ private fun AppNavHost(container: AppContainer, quran: Quran, onOpenLeaderboards
                 quran = quran,
                 level = level,
                 mode = GameMode.Regular,
-                onBack = { nav.popBackStack() },
-                onMainMenu = { nav.popBackStack<HomeRoute>(inclusive = false) },
-                onShareAyah = { range -> nav.navigate(ShareRoute(range.first, range.last)) },
+                onBack = { nav.popFrom(entry) },
+                onMainMenu = { if (entry.isResumed()) nav.popBackStack<HomeRoute>(inclusive = false) },
+                onShareAyah = { range -> nav.navigateFrom(entry, ShareRoute(range.first, range.last)) },
             )
         }
-        composable<StatsRoute> {
+        composable<StatsRoute> { entry ->
             StatsScreen(
                 container = container,
+                progress = progress,
                 quran = quran,
-                onBack = { nav.popBackStack() },
-                onPractice = { surah -> nav.navigate(PracticeRoute(surah)) },
+                onBack = { nav.popFrom(entry) },
+                onPractice = { surah -> nav.navigateFrom(entry, PracticeRoute(surah)) },
             )
         }
         composable<ShareRoute> { entry ->
@@ -164,7 +189,7 @@ private fun AppNavHost(container: AppContainer, quran: Quran, onOpenLeaderboards
             ShareCardScreen(
                 quran = quran,
                 ayahs = route.firstAyah..route.lastAyah,
-                onBack = { nav.popBackStack() },
+                onBack = { nav.popFrom(entry) },
             )
         }
     }

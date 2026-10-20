@@ -104,7 +104,7 @@ internal fun SurahsTab(
                     rank = i + 1,
                     name = quran.surahs[item.surahIndex].displayName(strings.language),
                     score = item.score,
-                    highlight = i < 3,
+                    highlight = Stats.tier(item.score) == SurahTier.Weak,
                     onPractice = { onPractice(item.surahIndex) },
                 )
             }
@@ -155,6 +155,12 @@ private fun SurahMap(
                     for (i in row) {
                         val name = quran.surahs[i].displayName(strings.language)
                         val tier = Stats.tier(scores[i])
+                        val tierLabel = when (tier) {
+                            SurahTier.NotPractised -> strings.tierNotPractised
+                            SurahTier.Weak -> strings.tierWeak
+                            SurahTier.Fair -> strings.tierFair
+                            SurahTier.Strong -> strings.tierStrong
+                        }
                         val border = when {
                             selected == i -> Modifier.border(2.dp, scheme.primary, CellShape)
                             tier == SurahTier.NotPractised -> Modifier.border(1.dp, scheme.outlineVariant, CellShape)
@@ -168,7 +174,9 @@ private fun SurahMap(
                                 .background(tierColor(tier))
                                 .then(border)
                                 .clickable { onSelect(i) }
-                                .semantics { contentDescription = name },
+                                .semantics {
+                                    contentDescription = strings.surahCell(name, tierLabel, scores[i]?.takeIf { it.total > 0 }?.percent)
+                                },
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
@@ -230,7 +238,7 @@ private fun SurahMap(
 }
 
 @Composable
-private fun LegendEntry(color: Color, label: String, outlined: Boolean = false) {
+internal fun LegendEntry(color: Color, label: String, outlined: Boolean = false) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(
             Modifier
@@ -269,7 +277,7 @@ private fun SurahRow(rank: Int, name: String, score: Score, highlight: Boolean, 
                 Text(
                     strings.percent(score.percent),
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (score.percent >= 50) quizColors.correct else quizColors.wrong,
+                    color = if (score.percent >= Stats.FAIR_PERCENT) quizColors.correct else quizColors.wrong,
                 )
             }
             Spacer(Modifier.height(6.dp))

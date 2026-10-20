@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,14 +29,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import suft.android.ayahiq.AppContainer
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.domain.GameMode
 import suft.android.ayahiq.domain.GameStyle
@@ -45,14 +47,13 @@ import suft.android.ayahiq.ui.theme.LocalQuizColors
 
 @Composable
 fun LevelsScreen(
-    container: AppContainer,
+    progress: Progress,
     quran: Quran,
     mode: GameMode,
     style: GameStyle,
     onBack: () -> Unit,
     onPlay: (Level) -> Unit,
 ) {
-    val progress by container.progress.progress.collectAsStateWithLifecycle(initialValue = Progress())
     val strings = LocalStrings.current
     val levels = remember(style) { Levels.forStyle(style, quran) }
     val total = progress.points(levels)
@@ -71,38 +72,43 @@ fun LevelsScreen(
             )
         },
     ) { padding ->
-        LazyColumn(
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = padding.calculateTopPadding() + 4.dp,
-                bottom = padding.calculateBottomPadding() + 16.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            item {
-                if (mode.endless) {
-                    EndlessSummary(
-                        subtitle = strings.gameModeSubtitle(mode),
-                        best = levels.maxOf { progress.runBest(mode, it.id) },
-                    )
-                } else {
-                    Summary(
-                        subtitle = strings.styleSubtitle(style),
-                        points = total,
-                        maxPoints = levels.size * style.questionsPerRound,
-                        mastered = mastered,
-                        levelCount = levels.size,
+        val direction = LocalLayoutDirection.current
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            LazyColumn(
+                modifier = Modifier.widthIn(max = 640.dp),
+                contentPadding = PaddingValues(
+                    // Side insets matter in landscape (cutouts, rounded corners).
+                    start = padding.calculateStartPadding(direction) + 16.dp,
+                    end = padding.calculateEndPadding(direction) + 16.dp,
+                    top = padding.calculateTopPadding() + 4.dp,
+                    bottom = padding.calculateBottomPadding() + 16.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                item {
+                    if (mode.endless) {
+                        EndlessSummary(
+                            subtitle = strings.gameModeSubtitle(mode),
+                            best = levels.maxOf { progress.runBest(mode, it.id) },
+                        )
+                    } else {
+                        Summary(
+                            subtitle = strings.styleSubtitle(style),
+                            points = total,
+                            maxPoints = levels.size * style.questionsPerRound,
+                            mastered = mastered,
+                            levelCount = levels.size,
+                        )
+                    }
+                }
+                items(levels, key = { it.id }) { level ->
+                    LevelRow(
+                        level = level,
+                        best = if (mode.endless) progress.runBest(mode, level.id) else progress.best(level.id),
+                        endless = mode.endless,
+                        onClick = { onPlay(level) },
                     )
                 }
-            }
-            items(levels, key = { it.id }) { level ->
-                LevelRow(
-                    level = level,
-                    best = if (mode.endless) progress.runBest(mode, level.id) else progress.best(level.id),
-                    endless = mode.endless,
-                    onClick = { onPlay(level) },
-                )
             }
         }
     }

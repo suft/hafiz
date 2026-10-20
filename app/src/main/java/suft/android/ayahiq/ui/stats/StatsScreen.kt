@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import suft.android.ayahiq.AppContainer
@@ -41,8 +40,7 @@ import suft.android.ayahiq.ui.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatsScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, onPractice: (Int) -> Unit) {
-    val progress by container.progress.progress.collectAsStateWithLifecycle(initialValue = Progress())
+fun StatsScreen(container: AppContainer, progress: Progress, quran: Quran, onBack: () -> Unit, onPractice: (Int) -> Unit) {
     var confirmReset by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
@@ -57,7 +55,7 @@ fun StatsScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, onPra
                 title = strings.statistics,
                 onBack = onBack,
                 actions = {
-                    if (progress.overall.total > 0) {
+                    if (progress.afterStatisticsReset() != progress) {
                         IconButton(onClick = { confirmReset = true }) {
                             Icon(Icons.Filled.DeleteSweep, contentDescription = strings.clearStatistics)
                         }
