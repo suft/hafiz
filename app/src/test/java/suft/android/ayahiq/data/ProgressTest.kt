@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import suft.android.ayahiq.domain.GameMode
 import suft.android.ayahiq.domain.GameStyle
+import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Score
 
 class ProgressTest {
@@ -112,6 +113,20 @@ class ProgressTest {
         assertEquals(5, p.runBest(GameMode.Survival, id))
         assertEquals(5, p.runStats(GameMode.Survival).bestStreak)
         assertEquals(0, p.runBest(GameMode.ThreeLives, id))
+    }
+
+    @Test
+    fun leaderboardScoreSumsLevelBestsPerMode() {
+        val l0 = Level(guess, 0, "a", "a", 99, 113)
+        val l1 = Level(guess, 1, "b", "b", 89, 113)
+        val levels = listOf(l0, l1)
+        val p = Progress(bestScores = mapOf(l0.id to 18, l1.id to 12, "ayah:1-114" to 9))
+            .withRunBest(GameMode.Survival, l0.id, 7, 7)
+            .withRunBest(GameMode.Hafiz, l1.id, 4, 3)
+        assertEquals(30, p.leaderboardScore(GameMode.Regular, levels))
+        assertEquals(7, p.leaderboardScore(GameMode.Survival, levels))
+        assertEquals(4, p.leaderboardScore(GameMode.Hafiz, levels))
+        assertEquals(0, p.leaderboardScore(GameMode.ThreeLives, levels))
     }
 
     @Test

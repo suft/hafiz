@@ -68,7 +68,7 @@ data class ShareRoute(val firstAyah: Int, val lastAyah: Int)
 // ---------------------------------------------------------------- root
 
 @Composable
-fun AyahIqRoot(container: AppContainer) {
+fun AyahIqRoot(container: AppContainer, onOpenLeaderboards: (suspend () -> Boolean)?) {
     val current by container.language.collectAsStateWithLifecycle()
     AyahIqTheme(language = current ?: AppLanguage.Arabic) {
         PaperBackground {
@@ -78,14 +78,14 @@ fun AyahIqRoot(container: AppContainer) {
                 // The settings read takes milliseconds; render nothing to avoid flashing the wrong language.
                 current == null -> Unit
                 loaded == null -> LoadingScreen()
-                else -> AppNavHost(container, loaded)
+                else -> AppNavHost(container, loaded, onOpenLeaderboards)
             }
         }
     }
 }
 
 @Composable
-private fun AppNavHost(container: AppContainer, quran: Quran) {
+private fun AppNavHost(container: AppContainer, quran: Quran, onOpenLeaderboards: (suspend () -> Boolean)?) {
     val nav = rememberNavController()
     NavHost(
         navController = nav,
@@ -99,6 +99,7 @@ private fun AppNavHost(container: AppContainer, quran: Quran) {
                 quran = quran,
                 onOpenMode = { mode -> nav.navigate(StylesRoute(mode.key)) },
                 onOpenStats = { nav.navigate(StatsRoute) },
+                onOpenLeaderboards = onOpenLeaderboards,
             )
         }
         composable<StylesRoute> { entry ->

@@ -104,6 +104,10 @@ data class Progress(
 
     fun points(levels: List<Level>): Int = levels.sumOf { best(it.id) }
 
+    /** Leaderboard score for [mode] over one style's [levels]: the sum of the best score on each level. */
+    fun leaderboardScore(mode: GameMode, levels: List<Level>): Int =
+        if (mode.endless) levels.sumOf { runBest(mode, it.id) } else points(levels)
+
     /** The streak still counts if the user played today or yesterday. */
     fun currentDayStreak(today: Long): Int =
         if (lastStreakDay != NO_DAY && today - lastStreakDay <= 1) dayStreak else 0

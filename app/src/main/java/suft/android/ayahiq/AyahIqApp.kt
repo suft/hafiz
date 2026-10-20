@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
+import com.google.android.gms.games.PlayGamesSdk
 import kotlinx.coroutines.flow.map
 import suft.android.ayahiq.audio.AudioCache
 import suft.android.ayahiq.data.Progress
@@ -19,6 +20,7 @@ import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.Mutashabihat
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.domain.QuranXmlParser
+import suft.android.ayahiq.games.PlayGames
 
 class AyahIqApp : Application() {
     lateinit var container: AppContainer
@@ -26,6 +28,8 @@ class AyahIqApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // The SDK's init provider is removed in the manifest; initialize manually once configured.
+        if (PlayGames.isEnabled(this)) PlayGamesSdk.initialize(this)
         container = AppContainer(this)
     }
 }

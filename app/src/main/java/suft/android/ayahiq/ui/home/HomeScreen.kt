@@ -1,5 +1,6 @@
 package suft.android.ayahiq.ui.home
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,9 +86,11 @@ fun HomeScreen(
     quran: Quran,
     onOpenMode: (GameMode) -> Unit,
     onOpenStats: () -> Unit,
+    onOpenLeaderboards: (suspend () -> Boolean)?,
 ) {
     val progress by container.progress.progress.collectAsStateWithLifecycle(initialValue = Progress())
     val strings = LocalStrings.current
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showLanguage by rememberSaveable { mutableStateOf(false) }
 
@@ -160,6 +165,23 @@ fun HomeScreen(
                     badgeLabel = null,
                     onClick = onOpenStats,
                 )
+                if (onOpenLeaderboards != null) {
+                    Spacer(Modifier.height(12.dp))
+                    MenuCard(
+                        icon = Icons.Filled.Leaderboard,
+                        title = strings.leaderboards,
+                        subtitle = strings.leaderboardsHint,
+                        badge = null,
+                        badgeLabel = null,
+                        onClick = {
+                            scope.launch {
+                                if (!onOpenLeaderboards()) {
+                                    Toast.makeText(context, strings.leaderboardsUnavailable, Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        },
+                    )
+                }
 
                 Spacer(Modifier.height(28.dp))
                 Attribution()
