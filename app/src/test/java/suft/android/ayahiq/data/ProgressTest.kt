@@ -1,6 +1,7 @@
 package suft.android.ayahiq.data
 
 import java.util.TimeZone
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -23,7 +24,7 @@ class ProgressTest {
             assertEquals("after day $day", streak, p.dayStreak)
         }
         assertEquals(2, p.bestDayStreak)
-        assertEquals(14L, p.lastStreakDay)
+        assertEquals(13L, p.lastStreakDay)
     }
 
     @Test
@@ -37,8 +38,9 @@ class ProgressTest {
         assertEquals(0, p.answersToday(10))
 
         p = p.withAnswer(guess, 0, true, day = 9)
-        assertEquals(11L, p.lastActiveDay)
-        assertEquals(2, p.answersToday(11))
+        assertEquals(9L, p.lastActiveDay)
+        assertEquals(1, p.answersToday(9))
+        assertEquals(0, p.answersToday(11))
     }
 
     @Test
@@ -151,5 +153,28 @@ class ProgressTest {
         assertEquals(86_400_000L, millisUntilNextLocalDay(0L, utc))
         assertEquals(1_000L, millisUntilNextLocalDay(86_399_000L, utc))
         assertEquals(75_600_000L, millisUntilNextLocalDay(0L, TimeZone.getTimeZone("GMT+03:00")))
+    }
+
+    @Test
+    fun forwardSkewedClockRecovers() {
+        // A clock that was wrong (far in the future) once must not freeze today's counters and streak.
+        var p = Progress()
+            .withCompletedRound(RoundRecord("ayah:1-114", 5, 10, day = 1000))
+            .withAnswer(guess, 0, true, day = 1000)
+        p = p.withAnswer(guess, 0, true, day = 10)
+        assertEquals(1, p.answersToday(10))
+
+        p = p.withCompletedRound(RoundRecord("ayah:1-114", 5, 10, day = 10))
+        p = p.withCompletedRound(RoundRecord("ayah:1-114", 5, 10, day = 11))
+        assertEquals(2, p.dayStreak)
+        assertEquals(2, p.currentDayStreak(11))
+    }
+
+    @Test
+    fun legacyReciterIndexIsMigrated() = runBlocking {
+        suspend fun folder(legacy: String) = ProgressSerializer.readFrom(legacy.byteInputStream()).reciterFolder
+        assertEquals("Alafasy_64kbps", folder("""{"reciter":17}"""))
+        assertEquals("Ahmed_ibn_Ali_al-Ajamy_64kbps_QuranExplorer.Com", folder("""{"reciter":18}"""))
+        assertEquals(null, folder("""{"reciter":99}"""))
     }
 }

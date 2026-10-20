@@ -1,6 +1,6 @@
 package suft.android.ayahiq.domain
 
-import java.io.File
+import suft.android.ayahiq.testing.TestData
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -10,18 +10,8 @@ import org.junit.Test
 
 class QuizLogicTest {
 
-    private val mutashabihat: Mutashabihat by lazy {
-        val file = listOf("src/main/assets/mutashabihat.txt", "app/src/main/assets/mutashabihat.txt")
-            .map(::File).first { it.exists() }
-        file.inputStream().use { Mutashabihat.parse(it, quran) }
-    }
-
-    private val quran: Quran by lazy {
-        // Gradle runs unit tests from the module directory.
-        val file = listOf("src/main/assets/quran_simple.xml", "app/src/main/assets/quran_simple.xml")
-            .map(::File).first { it.exists() }
-        file.inputStream().use(QuranXmlParser::parse)
-    }
+    private val mutashabihat: Mutashabihat get() = TestData.mutashabihat
+    private val quran: Quran get() = TestData.quran
 
     @Test
     fun parsesWholeQuran() {
@@ -59,63 +49,6 @@ class QuizLogicTest {
     }
 
     @Test
-    fun guessSurahQuestionsAreAlwaysUnambiguous() {
-        for (level in Levels.forStyle(GameStyle.GuessSurah, quran)) {
-            val gen = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(level.index))
-            repeat(300) { assertGuessSurahUnambiguous(gen.next(), level) }
-        }
-    }
-
-    private fun assertGuessSurahUnambiguous(q: Question, level: Level) {
-        assertEquals(4, q.options.toSet().size)
-        assertEquals(quran.surahs[q.surahIndex].name, q.options[q.correctOption])
-        val owners = quran.surahsContaining(q.shownAyahs)
-        q.options.forEachIndexed { i, name ->
-            if (i != q.correctOption) {
-                val idx = quran.surahs.indexOfFirst { it.name == name }
-                assertFalse("$name also contains the prompt", idx in owners)
-            }
-        }
-        if (level.openings) {
-            assertEquals(quran.surahs[q.surahIndex].firstAyah, q.shownAyahs.first)
-            assertEquals(2, q.promptAyahs.size)
-        } else {
-            assertTrue(q.surahIndex in level.surahRange)
-        }
-    }
-
-    @Test
-    fun nextAyahQuestionsAreAlwaysUnambiguous() {
-        for (level in Levels.forStyle(GameStyle.NextAyah, quran)) {
-            val gen = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(100 + level.index))
-            repeat(300) { assertNextAyahUnambiguous(gen.next(), level) }
-        }
-    }
-
-    private fun assertNextAyahUnambiguous(q: Question, level: Level) {
-        assertEquals(4, q.options.toSet().size)
-        assertTrue(q.surahIndex in level.surahRange)
-        val answer = q.shownAyahs.last + 1
-        assertEquals(quran.surahOf(q.shownAyahs.first), quran.surahOf(answer))
-        val correct = q.options[q.correctOption].removeSuffix(" …")
-        assertTrue(quran.text(answer).startsWith(correct))
-
-        // No wrong option may be an ayah that follows the same prompt text.
-        val validFollowers = quran.occurrencesOf(quran.text(q.shownAyahs.last))
-            .filter { !quran.isLastOfSurah(it) }
-            .map { quran.text(it + 1) }
-        q.options.forEachIndexed { i, label ->
-            if (i != q.correctOption) {
-                val prefix = label.removeSuffix(" …")
-                assertFalse(
-                    "«$label» is also a valid next ayah",
-                    validFollowers.any { it == prefix || (label.endsWith("…") && it.startsWith(prefix)) },
-                )
-            }
-        }
-    }
-
-    @Test
     fun mutashabihatParsesBothDirectionsStrongestFirst() {
         val m = Mutashabihat.parse("# header\n\n1:1 1:3 100\n1:1 27:30 50\n2:1 1:1 70\n".byteInputStream(), quran)
         assertEquals(
@@ -126,45 +59,6 @@ class QuizLogicTest {
         assertTrue(m.of(1).isEmpty())
         for (bad in listOf("2:287 1:1 5", "1:1 1:2")) {
             assertThrows(IllegalArgumentException::class.java) { Mutashabihat.parse(bad.byteInputStream(), quran) }
-        }
-    }
-
-    @Test
-    fun hafizOptionsAreTrapsAndStayUnambiguous() {
-        for (style in GameStyle.entries) {
-            for (level in Levels.forStyle(style, quran)) {
-                val gen = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(200 + level.index), mutashabihat)
-                var trapped = 0
-                repeat(200) {
-                    val q = gen.next()
-                    val wrong = q.options.filterIndexed { i, _ -> i != q.correctOption }
-                    val hasTrap = when (style) {
-                        GameStyle.GuessSurah -> {
-                            assertGuessSurahUnambiguous(q, level)
-                            val trapNames = q.shownAyahs.flatMap { mutashabihat.of(it) }.map { quran.surahOf(it.ayah).name }
-                            wrong.any { it in trapNames }
-                        }
-                        GameStyle.NextAyah -> {
-                            assertNextAyahUnambiguous(q, level)
-                            val last = q.shownAyahs.last
-                            val candidates = mutashabihat.of(last + 1).map { it.ayah } +
-                                mutashabihat.of(last).filter { !quran.isLastOfSurah(it.ayah) }.map { it.ayah + 1 }
-                            wrong.any { label ->
-                                val prefix = label.removeSuffix(" …")
-                                candidates.any { quran.text(it).startsWith(prefix) }
-                            }
-                        }
-                    }
-                    if (hasTrap) trapped++
-                }
-                val name = "${style.name} «${level.name(AppLanguage.Arabic)}»"
-                if (style == GameStyle.GuessSurah && level.index == 0) {
-                    // Only 17 trapped prompts: below the repeat memory, so untrapped prompts are allowed too.
-                    assertTrue("$name: no trapped question", trapped > 0)
-                } else {
-                    assertEquals("$name: questions without a trap", 200, trapped)
-                }
-            }
         }
     }
 
