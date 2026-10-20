@@ -18,7 +18,7 @@ data class Reciter(val arabicName: String, val englishName: String, val folder: 
 }
 
 object Reciters {
-    /** The original 21 reciters (same order, so saved choices stay meaningful) plus newer ones. */
+    /** Reciters offered in the quiz; the first is the [default]. Saved choices are stored by folder, not position. */
     val all: List<Reciter> = listOf(
         Reciter("سعد الغامدي", "Saad Al-Ghamdi", "Ghamadi_40kbps"),
         Reciter("عبد الباسط (تجويد)", "Abdul Basit (Mujawwad)", "Abdul_Basit_Mujawwad_128kbps"),
@@ -37,7 +37,6 @@ object Reciters {
         Reciter("سعود الشريم", "Saud Al-Shuraim", "Saood_ash-Shuraym_64kbps"),
         Reciter("محمد جبريل", "Muhammad Jibreel", "Muhammad_Jibreel_64kbps"),
         Reciter("محمود علي البنا", "Mahmoud Ali Al-Banna", "mahmoud_ali_al_banna_32kbps"),
-        Reciter("مصطفى إسماعيل", "Mustafa Ismail", "Mustafa_Ismail_48kbps"),
         Reciter("أحمد علي العجمي", "Ahmed Al-Ajmi", "Ahmed_ibn_Ali_al-Ajamy_64kbps_QuranExplorer.Com"),
         // The original app had these two folders swapped.
         Reciter("محمد صديق المنشاوي (ترتيل)", "Muhammad Siddiq Al-Minshawi (Murattal)", "Minshawy_Murattal_128kbps"),
@@ -51,5 +50,43 @@ object Reciters {
         Reciter("صلاح البدير", "Salah Al-Budair", "Salah_Al_Budair_128kbps"),
     )
 
-    fun get(index: Int): Reciter = all.getOrElse(index) { all.first() }
+    val default: Reciter get() = all.first()
+
+    /** The reciter stored under [folder]; the [default] for null or a folder that no longer exists. */
+    fun byFolder(folder: String?): Reciter = all.firstOrNull { it.folder == folder } ?: default
+
+    /**
+     * What a progress file that stored a list index (the format before folders were stored) meant: the
+     * folders of the 27 reciters of that version in order. The removed Mustafa Ismail (his files are missing
+     * on everyayah.com) maps to Mishary Alafasy.
+     */
+    internal val legacyIndexFolders: List<String> = listOf(
+        "Ghamadi_40kbps",
+        "Abdul_Basit_Mujawwad_128kbps",
+        "Abdul_Basit_Murattal_64kbps",
+        "Abdurrahmaan_As-Sudais_64kbps",
+        "Abu_Bakr_Ash-Shaatree_64kbps",
+        "Alafasy_64kbps",
+        "Husary_Muallim_128kbps",
+        "Husary_64kbps",
+        "Husary_Mujawwad_64kbps",
+        "Maher_AlMuaiqly_64kbps",
+        "Khaalid_Abdullaah_al-Qahtaanee_192kbps",
+        "Abdullah_Basfar_64kbps",
+        "Muhsin_Al_Qasim_192kbps",
+        "Yasser_Ad-Dussary_128kbps",
+        "Saood_ash-Shuraym_64kbps",
+        "Muhammad_Jibreel_64kbps",
+        "mahmoud_ali_al_banna_32kbps",
+        "Alafasy_64kbps",
+        "Ahmed_ibn_Ali_al-Ajamy_64kbps_QuranExplorer.Com",
+        "Minshawy_Murattal_128kbps",
+        "Minshawy_Mujawwad_64kbps",
+        "Nasser_Alqatami_128kbps",
+        "Hani_Rifai_64kbps",
+        "Hudhaify_64kbps",
+        "Fares_Abbad_64kbps",
+        "Muhammad_Ayyoub_64kbps",
+        "Salah_Al_Budair_128kbps",
+    )
 }

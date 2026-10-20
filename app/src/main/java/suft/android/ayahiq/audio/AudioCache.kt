@@ -28,7 +28,6 @@ class AudioCache(context: Context) {
         .setUpstreamDataSourceFactory(
             DefaultHttpDataSource.Factory()
                 .setUserAgent("AyahIQ-Android")
-                .setAllowCrossProtocolRedirects(true)
                 .setConnectTimeoutMs(15_000)
                 .setReadTimeoutMs(15_000),
         )

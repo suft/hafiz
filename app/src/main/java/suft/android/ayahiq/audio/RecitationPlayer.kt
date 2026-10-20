@@ -10,6 +10,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.CacheWriter
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -17,6 +18,8 @@ import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.launch
 
 enum class PlaybackStatus { Idle, Buffering, Playing, Paused }
@@ -133,17 +137,32 @@ class RecitationPlayer(
                     /* temporaryBuffer = */ null,
                     /* progressListener = */ null,
                 )
-                val cancelHook = coroutineContext[Job]?.invokeOnCompletion { writer.cancel() }
                 try {
-                    writer.cache()
+                    cacheCancellable(writer)
+                } catch (e: HttpDataSource.InvalidResponseCodeException) {
+                    continue // this ayah is missing on the server; the next one may still exist
                 } catch (e: IOException) {
-                    break // offline or missing file; the real playback attempt will report it
+                    break // offline; the real playback attempt will report it
                 } catch (e: InterruptedException) {
                     break
-                } finally {
-                    cancelHook?.dispose()
                 }
             }
+        }
+    }
+
+    /** Runs the blocking download so that cancelling the coroutine cancels it too — and cannot leak a hook. */
+    private suspend fun cacheCancellable(writer: CacheWriter) = coroutineScope {
+        val watcher = launch {
+            try {
+                awaitCancellation()
+            } finally {
+                writer.cancel()
+            }
+        }
+        try {
+            runInterruptible { writer.cache() }
+        } finally {
+            watcher.cancel()
         }
     }
 
