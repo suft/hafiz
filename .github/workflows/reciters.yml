@@ -1,0 +1,16 @@
+name: reciters
+# everyayah.com is a third party: check weekly that every reciter still has all 6236 ayah files.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 tools/check_reciters.py
