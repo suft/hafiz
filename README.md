@@ -100,8 +100,8 @@ app/src/main/
     data/ProgressRepository.kt   DataStore: best scores, per-surah stats, settings
     audio/                       reciters, ExoPlayer wrapper, disk cache
     ui/                          Compose: home, levels, quiz (+ViewModel), stats, share card, theme
-  res/font/                      Amiri (OFL), Cordoba (from the original app)
-  res/drawable-nodpi/            paper texture, frames, logo (from the original app)
+  res/font/                      Amiri, Rakkas (OFL), Cordoba (from the original app)
+  res/drawable-nodpi/            paper texture, frames (from the original app)
 tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3)
 app/src/test/                    QuizLogicTest — runs against the real Quran text
 ```
@@ -117,5 +117,5 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 - **Quran text:** Tanzil Project, CC BY 3.0. The text must not be modified and the source must be credited with a link; the home screen does this.
 - **Recitations:** streamed from everyayah.com.
 - **Mutashabihat (Hafiz mode):** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the home screen credits the source. No licence is stated on the site, so get their permission before publishing.
-- **Amiri / Amiri Quran fonts:** SIL Open Font License 1.1 (`assets/licenses/Amiri-OFL.txt`).
-- **Cordoba font, paper texture, frames and logo** are reused from the original APK. Check that you have the rights to them before publishing.
+- **Amiri / Amiri Quran / Rakkas fonts:** SIL Open Font License 1.1 (`assets/licenses/Amiri-OFL.txt`, `assets/licenses/Rakkas-OFL.txt`).
+- **Cordoba font, paper texture and frames** are reused from the original APK. Check that you have the rights to them before publishing.

@@ -41,8 +41,8 @@ val NaskhFont = FontFamily(
 /** Decorative face used on the shareable ayah card (from the original app). */
 val CordobaFont = FontFamily(Font(R.font.cordoba))
 
-/** Ruqaa calligraphy (Aref Ruqaa, SIL OFL) for the Arabic app title. */
-val RuqaaFont = FontFamily(Font(R.font.aref_ruqaa_bold, FontWeight.Bold))
+/** Bold brush-calligraphy face (Rakkas, SIL OFL) for the app title, in Arabic and Latin. */
+val TitleFont = FontFamily(Font(R.font.rakkas_regular, FontWeight.Normal))
 
 /** Latin UI face for the English language (Inter, SIL OFL). */
 val InterFont = FontFamily(

@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -56,7 +54,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -69,7 +66,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import suft.android.ayahiq.AppContainer
-import suft.android.ayahiq.R
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
@@ -77,7 +73,7 @@ import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.i18n.LocalStrings
-import suft.android.ayahiq.ui.theme.RuqaaFont
+import suft.android.ayahiq.ui.theme.TitleFont
 import suft.android.ayahiq.ui.components.MenuCard
 import suft.android.ayahiq.ui.components.OrnamentDivider
 
@@ -108,18 +104,10 @@ fun HomeScreen(
                     .padding(horizontal = 20.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Image(
-                    painter = painterResource(R.drawable.logo_quran),
-                    contentDescription = null,
-                    modifier = Modifier.weight(1f, fill = false).heightIn(max = 132.dp).aspectRatio(1f),
-                )
+                Spacer(Modifier.height(32.dp))
                 Text(
                     text = strings.appName,
-                    style = if (strings.language == AppLanguage.Arabic) {
-                        MaterialTheme.typography.displaySmall.copy(fontFamily = RuqaaFont, fontSize = 44.sp)
-                    } else {
-                        MaterialTheme.typography.displaySmall
-                    },
+                    style = MaterialTheme.typography.displayMedium.copy(fontFamily = TitleFont, fontSize = 52.sp),
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
