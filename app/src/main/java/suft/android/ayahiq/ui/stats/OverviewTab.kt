@@ -27,9 +27,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Quran
+import suft.android.ayahiq.domain.RunStats
 import suft.android.ayahiq.domain.Score
 import suft.android.ayahiq.ui.i18n.LocalStrings
 import suft.android.ayahiq.ui.theme.LocalQuizColors
@@ -64,16 +66,18 @@ internal fun OverviewTab(progress: Progress, quran: Quran, bottomPadding: Dp) {
             return@LazyColumn
         }
 
-        items(GameMode.entries) { mode ->
-            val levels = remember(mode) { Levels.forMode(mode, quran) }
-            ModeCard(mode, progress, levels)
+        items(GameStyle.entries) { style ->
+            val levels = remember(style) { Levels.forStyle(style, quran) }
+            StyleCard(style, progress, levels)
         }
 
-        val modeAnswers = GameMode.entries.sumOf { progress.modeScore(it).total }
-        if (progress.overall.total > modeAnswers) {
+        items(listOf(GameMode.Survival, GameMode.ThreeLives)) { RunModeCard(it, progress.runStats(it)) }
+
+        val styleAnswers = GameStyle.entries.sumOf { progress.styleScore(it).total }
+        if (progress.overall.total > styleAnswers) {
             item {
                 Text(
-                    strings.modeAccuracySinceUpdate,
+                    strings.styleAccuracySinceUpdate,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -83,10 +87,10 @@ internal fun OverviewTab(progress: Progress, quran: Quran, bottomPadding: Dp) {
 }
 
 @Composable
-private fun ModeCard(mode: GameMode, progress: Progress, levels: List<Level>) {
+private fun StyleCard(style: GameStyle, progress: Progress, levels: List<Level>) {
     val quizColors = LocalQuizColors.current
     val strings = LocalStrings.current
-    val score = progress.modeScore(mode)
+    val score = progress.styleScore(style)
     val mastered = progress.mastered(levels)
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -98,7 +102,7 @@ private fun ModeCard(mode: GameMode, progress: Progress, levels: List<Level>) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text(strings.modeTitle(mode), style = MaterialTheme.typography.titleLarge)
+            Text(strings.styleTitle(style), style = MaterialTheme.typography.titleLarge)
             Text(
                 if (score.total > 0) strings.statisticsSummary(score.percent, score.total) else strings.noAnswersYet,
                 style = MaterialTheme.typography.bodyMedium,
@@ -115,6 +119,39 @@ private fun ModeCard(mode: GameMode, progress: Progress, levels: List<Level>) {
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+@Composable
+private fun RunModeCard(mode: GameMode, stats: RunStats) {
+    val strings = LocalStrings.current
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f),
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(strings.gameModeTitle(mode), style = MaterialTheme.typography.titleLarge)
+            if (stats.played == 0) {
+                Text(
+                    strings.noGamesYet,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(strings.bestScore(stats.best), style = MaterialTheme.typography.labelLarge)
+                Text(strings.gamesPlayed(stats.played), style = MaterialTheme.typography.labelLarge)
+                Text(strings.averageScore(stats.average), style = MaterialTheme.typography.labelLarge)
+                // In Survival the longest streak is the score itself.
+                if (mode == GameMode.ThreeLives) {
+                    Text(strings.longestStreak(stats.bestStreak), style = MaterialTheme.typography.labelLarge)
+                }
+            }
         }
     }
 }

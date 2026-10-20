@@ -28,20 +28,26 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.data.RoundRecord
+import suft.android.ayahiq.domain.GameMode
 import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.i18n.LocalStrings
 import suft.android.ayahiq.ui.theme.LocalQuizColors
 
-private class ResolvedRound(val record: RoundRecord, val level: Level)
+private class ResolvedRound(val record: RoundRecord, val level: Level, val mode: GameMode)
 
 @Composable
 internal fun ActivityTab(progress: Progress, quran: Quran, today: Long, bottomPadding: Dp) {
     val strings = LocalStrings.current
     val rounds = remember(progress.recentRounds) {
-        progress.recentRounds.mapNotNull { r -> Levels.byId(r.levelId, quran)?.let { ResolvedRound(r, it) } }
+        progress.recentRounds.mapNotNull { r ->
+            val mode = GameMode.entries.firstOrNull { it.key == r.mode } ?: return@mapNotNull null
+            Levels.byId(r.levelId, quran)?.let { ResolvedRound(r, it, mode) }
+        }
     }
+    // The percentage chart is meaningless for endless games.
+    val regular = remember(rounds) { rounds.filter { it.mode == GameMode.Regular } }
 
     LazyColumn(
         contentPadding = tabContentPadding(bottomPadding),
@@ -78,9 +84,9 @@ internal fun ActivityTab(progress: Progress, quran: Quran, today: Long, bottomPa
             return@LazyColumn
         }
 
-        if (rounds.size >= 2) {
+        if (regular.size >= 2) {
             item { SectionHeader(strings.scoreTrend) }
-            item { ScoreTrendChart(rounds.asReversed()) }
+            item { ScoreTrendChart(regular.asReversed()) }
         }
 
         item { SectionHeader(strings.recentRounds) }
@@ -158,7 +164,7 @@ private fun ScoreTrendChart(rounds: List<ResolvedRound>) {
             }
             points.forEachIndexed { i, p ->
                 val round = rounds[i]
-                val mastered = round.record.score >= round.level.mode.masteryFor(round.record.total)
+                val mastered = round.record.score >= round.level.style.masteryFor(round.record.total)
                 drawCircle(if (mastered) quizColors.correct else scheme.secondary, radius = 4.dp.toPx(), center = p)
             }
         }
@@ -171,7 +177,7 @@ private fun RoundRow(round: ResolvedRound, today: Long) {
     val strings = LocalStrings.current
     val record = round.record
     val level = round.level
-    val mastered = record.score >= level.mode.masteryFor(record.total)
+    val mastered = record.score >= level.style.masteryFor(record.total)
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -185,16 +191,29 @@ private fun RoundRow(round: ResolvedRound, today: Long) {
             Column(Modifier.weight(1f)) {
                 Text(level.name(strings.language), style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "${strings.modeTitle(level.mode)} · ${strings.daysAgo((today - record.day).coerceAtLeast(0).toInt())}",
+                    if (round.mode.endless) {
+                        "${strings.gameModeTitle(round.mode)} · ${strings.styleTitle(level.style)} · " +
+                            strings.daysAgo((today - record.day).coerceAtLeast(0).toInt())
+                    } else {
+                        "${strings.styleTitle(level.style)} · ${strings.daysAgo((today - record.day).coerceAtLeast(0).toInt())}"
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Text(
-                "${strings.number(record.score)} / ${strings.number(record.total)}",
-                style = MaterialTheme.typography.titleMedium,
-                color = if (mastered) quizColors.correct else quizColors.wrong,
-            )
+            if (round.mode.endless) {
+                Text(
+                    strings.number(record.score),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            } else {
+                Text(
+                    "${strings.number(record.score)} / ${strings.number(record.total)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (mastered) quizColors.correct else quizColors.wrong,
+                )
+            }
         }
     }
 }

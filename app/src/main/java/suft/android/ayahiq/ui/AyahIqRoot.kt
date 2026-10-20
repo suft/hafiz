@@ -26,6 +26,7 @@ import kotlinx.serialization.Serializable
 import suft.android.ayahiq.AppContainer
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.components.PaperBackground
@@ -34,6 +35,7 @@ import suft.android.ayahiq.ui.levels.LevelsScreen
 import suft.android.ayahiq.ui.quiz.QuizScreen
 import suft.android.ayahiq.ui.share.ShareCardScreen
 import suft.android.ayahiq.ui.stats.StatsScreen
+import suft.android.ayahiq.ui.styles.StylesScreen
 import suft.android.ayahiq.ui.i18n.LocalStrings
 import suft.android.ayahiq.ui.theme.AyahIqTheme
 
@@ -42,11 +44,15 @@ import suft.android.ayahiq.ui.theme.AyahIqTheme
 @Serializable
 object HomeRoute
 
+/** Question-style picker for one [GameMode.key]. */
 @Serializable
-data class LevelsRoute(val mode: String)
+data class StylesRoute(val mode: String)
 
 @Serializable
-data class QuizRoute(val mode: String, val level: Int)
+data class LevelsRoute(val mode: String, val style: String)
+
+@Serializable
+data class QuizRoute(val mode: String, val style: String, val level: Int)
 
 /** Next-ayah review round for one 0-based surah, opened from Statistics. */
 @Serializable
@@ -91,27 +97,41 @@ private fun AppNavHost(container: AppContainer, quran: Quran) {
             HomeScreen(
                 container = container,
                 quran = quran,
-                onOpenMode = { mode -> nav.navigate(LevelsRoute(mode.key)) },
+                onOpenMode = { mode -> nav.navigate(StylesRoute(mode.key)) },
                 onOpenStats = { nav.navigate(StatsRoute) },
             )
         }
-        composable<LevelsRoute> { entry ->
-            val mode = GameMode.fromKey(entry.toRoute<LevelsRoute>().mode)
-            LevelsScreen(
+        composable<StylesRoute> { entry ->
+            val mode = GameMode.fromKey(entry.toRoute<StylesRoute>().mode)
+            StylesScreen(
                 container = container,
                 quran = quran,
                 mode = mode,
                 onBack = { nav.popBackStack() },
-                onPlay = { level -> nav.navigate(QuizRoute(mode.key, level.index)) },
+                onPick = { style -> nav.navigate(LevelsRoute(mode.key, style.key)) },
+            )
+        }
+        composable<LevelsRoute> { entry ->
+            val route = entry.toRoute<LevelsRoute>()
+            val mode = GameMode.fromKey(route.mode)
+            val style = GameStyle.fromKey(route.style)
+            LevelsScreen(
+                container = container,
+                quran = quran,
+                mode = mode,
+                style = style,
+                onBack = { nav.popBackStack() },
+                onPlay = { level -> nav.navigate(QuizRoute(mode.key, style.key, level.index)) },
             )
         }
         composable<QuizRoute> { entry ->
             val route = entry.toRoute<QuizRoute>()
-            val level = remember(route) { Levels.forMode(GameMode.fromKey(route.mode), quran)[route.level] }
+            val level = remember(route) { Levels.forStyle(GameStyle.fromKey(route.style), quran)[route.level] }
             QuizScreen(
                 container = container,
                 quran = quran,
                 level = level,
+                mode = GameMode.fromKey(route.mode),
                 onBack = { nav.popBackStack() },
                 onMainMenu = { nav.popBackStack<HomeRoute>(inclusive = false) },
                 onShareAyah = { range -> nav.navigate(ShareRoute(range.first, range.last)) },
@@ -124,6 +144,7 @@ private fun AppNavHost(container: AppContainer, quran: Quran) {
                 container = container,
                 quran = quran,
                 level = level,
+                mode = GameMode.Regular,
                 onBack = { nav.popBackStack() },
                 onMainMenu = { nav.popBackStack<HomeRoute>(inclusive = false) },
                 onShareAyah = { range -> nav.navigate(ShareRoute(range.first, range.last)) },

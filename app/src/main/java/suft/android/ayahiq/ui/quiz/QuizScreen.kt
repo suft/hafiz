@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
@@ -66,6 +68,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -79,6 +83,7 @@ import suft.android.ayahiq.audio.PlaybackStatus
 import suft.android.ayahiq.audio.Reciters
 import suft.android.ayahiq.domain.ArabicText
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Question
 import suft.android.ayahiq.domain.Quran
@@ -96,12 +101,13 @@ fun QuizScreen(
     container: AppContainer,
     quran: Quran,
     level: Level,
+    mode: GameMode,
     onBack: () -> Unit,
     onMainMenu: () -> Unit,
     onShareAyah: (IntRange) -> Unit,
 ) {
     val strings = LocalStrings.current
-    val vm: QuizViewModel = viewModel { QuizViewModel(container, quran, level, strings.language) }
+    val vm: QuizViewModel = viewModel { QuizViewModel(container, quran, level, mode, strings.language) }
     val state by vm.state.collectAsStateWithLifecycle()
     val playback by vm.playback.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
@@ -157,7 +163,7 @@ fun QuizScreen(
                     q.options.forEachIndexed { i, text ->
                         OptionButton(
                             text = text,
-                            mode = q.mode,
+                            style = q.style,
                             state = optionState(i, q, state.selected),
                             onClick = { vm.select(i) },
                         )
@@ -188,7 +194,7 @@ private fun ProgressHeader(state: QuizUiState, onNext: () -> Unit) {
     // The "next" TextButton's 48dp touch target must not grow the row when it appears.
     Row(modifier = Modifier.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
-            strings.questionProgress(state.number, state.total),
+            if (state.mode.endless) strings.questionNumber(state.number) else strings.questionProgress(state.number, state.total),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f),
         )
@@ -198,6 +204,33 @@ private fun ProgressHeader(state: QuizUiState, onNext: () -> Unit) {
                 Spacer(Modifier.width(4.dp))
                 // Auto-mirrored: points left (forward) in RTL.
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+            }
+        }
+        if (state.mode.endless) {
+            val livesLeft = state.livesLeft.coerceAtLeast(0)
+            Row(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .semantics { contentDescription = strings.livesLeft(livesLeft) },
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                repeat(state.mode.lives!!) { i ->
+                    if (i < livesLeft) {
+                        Icon(
+                            Icons.Filled.Favorite,
+                            contentDescription = null,
+                            tint = LocalQuizColors.current.wrong,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    } else {
+                        Icon(
+                            Icons.Filled.FavoriteBorder,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
             }
         }
         Surface(
@@ -212,12 +245,14 @@ private fun ProgressHeader(state: QuizUiState, onNext: () -> Unit) {
         }
     }
     Spacer(Modifier.height(8.dp))
-    val done = state.number - 1 + if (state.answered) 1 else 0
-    LinearProgressIndicator(
-        progress = { done.toFloat() / state.total },
-        modifier = Modifier.fillMaxWidth(),
-        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-    )
+    if (!state.mode.endless) {
+        val done = state.number - 1 + if (state.answered) 1 else 0
+        LinearProgressIndicator(
+            progress = { done.toFloat() / state.total },
+            modifier = Modifier.fillMaxWidth(),
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
+    }
 }
 
 // ---------------------------------------------------------------- prompt
@@ -248,9 +283,9 @@ private fun PromptCard(q: Question, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = when (q.mode) {
-                    GameMode.GuessSurah -> strings.whichSurah
-                    GameMode.NextAyah -> strings.whatIsNextAyah
+                text = when (q.style) {
+                    GameStyle.GuessSurah -> strings.whichSurah
+                    GameStyle.NextAyah -> strings.whatIsNextAyah
                 },
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
@@ -276,9 +311,9 @@ private fun PromptCard(q: Question, modifier: Modifier = Modifier) {
 }
 
 /** Guess-the-surah hides ayah numbers (they would give hints); next-ayah shows them. */
-private fun formatPrompt(q: Question): String = when (q.mode) {
-    GameMode.GuessSurah -> q.promptAyahs.joinToString("  ۝  ")
-    GameMode.NextAyah -> q.promptAyahs.indices.joinToString(" ") {
+private fun formatPrompt(q: Question): String = when (q.style) {
+    GameStyle.GuessSurah -> q.promptAyahs.joinToString("  ۝  ")
+    GameStyle.NextAyah -> q.promptAyahs.indices.joinToString(" ") {
         q.promptAyahs[it] + " " + ArabicText.ayahMarker(q.promptAyahNumbers[it])
     }
 }
@@ -359,7 +394,7 @@ private fun optionState(index: Int, q: Question, selected: Int?): OptionState = 
 }
 
 @Composable
-private fun OptionButton(text: String, mode: GameMode, state: OptionState, onClick: () -> Unit) {
+private fun OptionButton(text: String, style: GameStyle, state: OptionState, onClick: () -> Unit) {
     val quizColors = LocalQuizColors.current
     val strings = LocalStrings.current
     val container by animateColorAsState(
@@ -388,7 +423,7 @@ private fun OptionButton(text: String, mode: GameMode, state: OptionState, onCli
     }
 
     // Every next-ayah option reserves two lines so 1- or 2-line options don't resize the options column.
-    val minHeight = if (mode == GameMode.NextAyah) {
+    val minHeight = if (style == GameStyle.NextAyah) {
         with(LocalDensity.current) { (NextAyahOptionLineHeight * 2).toDp() } + 20.dp // 2 lines + vertical contentPadding
     } else {
         0.dp
@@ -412,7 +447,7 @@ private fun OptionButton(text: String, mode: GameMode, state: OptionState, onCli
     ) {
         Text(
             text = text,
-            style = if (mode == GameMode.NextAyah) {
+            style = if (style == GameStyle.NextAyah) {
                 quranTextStyle(17).copy(lineHeight = NextAyahOptionLineHeight)
             } else {
                 MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
@@ -443,7 +478,10 @@ private fun ResultDialog(
     val strings = LocalStrings.current
     val mastery = state.level.masteryScore
     val practice = state.level.practice
+    val endless = state.mode.endless
     val message = when {
+        state.mode == GameMode.Survival -> strings.survivalResult(state.score)
+        endless -> strings.livesResult(state.score, state.number)
         state.score == state.total -> strings.perfectScore
         state.score >= mastery -> if (practice) strings.surahReviewMastered else strings.levelMastered
         state.score * 2 >= state.total -> strings.keepReviewing
@@ -452,18 +490,27 @@ private fun ResultDialog(
     AlertDialog(
         onDismissRequest = {},
         icon = { Icon(Icons.Filled.EmojiEvents, contentDescription = null, tint = LocalQuizColors.current.gold) },
-        title = { Text(strings.resultTitle) },
+        title = { Text(if (endless) strings.gameOver else strings.resultTitle) },
         text = {
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(state.level.name(strings.language), style = MaterialTheme.typography.titleMedium)
+                if (endless) {
+                    Text(
+                        "${strings.gameModeTitle(state.mode)} · ${strings.styleTitle(state.level.style)}",
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "${strings.number(state.score)} / ${strings.number(state.total)}",
+                    if (endless) strings.number(state.score) else "${strings.number(state.score)} / ${strings.number(state.total)}",
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+                if (state.mode == GameMode.ThreeLives) {
+                    Text(strings.longestStreak(state.bestStreak), style = MaterialTheme.typography.bodyMedium)
+                }
                 if (state.isNewRecord && state.previousBest > 0) {
                     Spacer(Modifier.height(4.dp))
                     Text(
@@ -490,12 +537,21 @@ private fun ResultDialog(
 }
 
 private fun shareScore(context: Context, state: QuizUiState, strings: Strings) {
-    val text = strings.shareScoreText(
-        state.score,
-        state.total,
-        state.level.name(strings.language),
-        strings.modeTitle(state.level.mode),
-    )
+    val text = if (state.mode.endless) {
+        strings.shareRunText(
+            state.score,
+            state.level.name(strings.language),
+            strings.gameModeTitle(state.mode),
+            strings.styleTitle(state.level.style),
+        )
+    } else {
+        strings.shareScoreText(
+            state.score,
+            state.total,
+            state.level.name(strings.language),
+            strings.styleTitle(state.level.style),
+        )
+    }
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_SUBJECT, strings.appName)

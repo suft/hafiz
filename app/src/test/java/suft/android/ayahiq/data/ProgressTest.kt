@@ -5,11 +5,12 @@ import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.domain.Score
 
 class ProgressTest {
 
-    private val guess = GameMode.GuessSurah
+    private val guess = GameStyle.GuessSurah
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
@@ -56,12 +57,12 @@ class ProgressTest {
     }
 
     @Test
-    fun modeCountersFeedOverall() {
+    fun styleCountersFeedOverall() {
         val p = Progress()
-            .withAnswer(GameMode.GuessSurah, 0, true, day = 1)
-            .withAnswer(GameMode.NextAyah, 1, false, day = 1)
-        assertEquals(Score(1, 0), p.modeScore(GameMode.GuessSurah))
-        assertEquals(Score(0, 1), p.modeScore(GameMode.NextAyah))
+            .withAnswer(GameStyle.GuessSurah, 0, true, day = 1)
+            .withAnswer(GameStyle.NextAyah, 1, false, day = 1)
+        assertEquals(Score(1, 0), p.styleScore(GameStyle.GuessSurah))
+        assertEquals(Score(0, 1), p.styleScore(GameStyle.NextAyah))
         assertEquals(Score(1, 1), p.overall)
     }
 
@@ -81,6 +82,50 @@ class ProgressTest {
         assertEquals(Progress.NO_DAY, p.lastActiveDay)
         assertEquals(emptyList<RoundRecord>(), p.recentRounds)
         assertEquals(Score(3, 0), p.overall)
+    }
+
+    @Test
+    fun legacyModeCountersStillLoad() {
+        val p = json.decodeFromString(
+            Progress.serializer(),
+            """{"modeCorrect":{"surah":2},"modeWrong":{"ayah":1}}""",
+        )
+        assertEquals(Score(2, 0), p.styleScore(GameStyle.GuessSurah))
+        assertEquals(Score(0, 1), p.styleScore(GameStyle.NextAyah))
+    }
+
+    @Test
+    fun oldRoundRecordsAreRegular() {
+        val p = json.decodeFromString(
+            Progress.serializer(),
+            """{"recentRounds":[{"levelId":"ayah:1-114","score":5,"total":10,"day":3}]}""",
+        )
+        assertEquals("regular", p.recentRounds[0].mode)
+    }
+
+    @Test
+    fun runBestKeepsHigherPerModeAndLevel() {
+        val id = "surah:1-114"
+        val p = Progress()
+            .withRunBest(GameMode.Survival, id, 5, 5)
+            .withRunBest(GameMode.Survival, id, 3, 3)
+        assertEquals(5, p.runBest(GameMode.Survival, id))
+        assertEquals(5, p.runStats(GameMode.Survival).bestStreak)
+        assertEquals(0, p.runBest(GameMode.ThreeLives, id))
+    }
+
+    @Test
+    fun finishedRunsFeedStatsAndActivity() {
+        val id = "surah:1-114"
+        val p = Progress()
+            .withFinishedRun(RoundRecord(id, 6, 9, day = 10, mode = "lives"))
+            .withFinishedRun(RoundRecord(id, 3, 5, day = 11, mode = "lives"))
+        val stats = p.runStats(GameMode.ThreeLives)
+        assertEquals(2, stats.played)
+        assertEquals(5, stats.average)
+        assertEquals(2, p.roundsCompleted)
+        assertEquals(2, p.dayStreak)
+        assertEquals(3, p.recentRounds.first().score)
     }
 
     @Test

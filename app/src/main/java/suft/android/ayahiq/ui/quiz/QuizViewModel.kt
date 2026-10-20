@@ -19,6 +19,7 @@ import suft.android.ayahiq.audio.RecitationPlayer
 import suft.android.ayahiq.audio.Reciters
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Question
 import suft.android.ayahiq.domain.QuestionGenerator
@@ -33,12 +34,18 @@ data class QuizUiState(
     /** Option the user tapped, or null while the question is open. */
     val selected: Int? = null,
     val finished: Boolean = false,
-    /** Best score for this level before the current round. */
+    /** Best score for this level in this mode before the current game. */
     val previousBest: Int = 0,
     val reciter: Int = 0,
     val autoPlay: Boolean = true,
+    val mode: GameMode = GameMode.Regular,
+    /** Wrong answers, correct streak and its best in the current game. */
+    val wrong: Int = 0,
+    val streak: Int = 0,
+    val bestStreak: Int = 0,
 ) {
     val total: Int get() = level.questionsPerRound
+    val livesLeft: Int get() = (mode.lives ?: 0) - wrong
     val answered: Boolean get() = selected != null
     val isNewRecord: Boolean get() = finished && score > previousBest
 }
@@ -47,6 +54,7 @@ class QuizViewModel(
     private val container: AppContainer,
     quran: Quran,
     private val level: Level,
+    private val mode: GameMode,
     language: AppLanguage,
 ) : ViewModel() {
 
@@ -57,10 +65,10 @@ class QuizViewModel(
         context = container.appContext,
         audioCache = container.audioCache,
         scope = viewModelScope,
-        trimEndMs = if (level.mode == GameMode.NextAyah) 300 else 0,
+        trimEndMs = if (level.style == GameStyle.NextAyah) 300 else 0,
     )
 
-    private val _state = MutableStateFlow(QuizUiState(level = level))
+    private val _state = MutableStateFlow(QuizUiState(level = level, mode = mode))
     val state: StateFlow<QuizUiState> = _state.asStateFlow()
 
     val playback: StateFlow<PlaybackStatus> = player.status
@@ -79,7 +87,7 @@ class QuizViewModel(
                 it.copy(
                     reciter = saved.reciter.coerceIn(Reciters.all.indices),
                     autoPlay = saved.autoPlay,
-                    previousBest = saved.best(level.id),
+                    previousBest = if (mode.endless) saved.runBest(mode, level.id) else saved.best(level.id),
                 )
             }
             upcoming = generator.next()
@@ -98,8 +106,17 @@ class QuizViewModel(
         if (s.answered || s.finished) return
 
         val correct = option == q.correctOption
-        _state.update { it.copy(selected = option, score = it.score + if (correct) 1 else 0) }
-        viewModelScope.launch { repo.recordAnswer(q.mode, q.surahIndex, correct) }
+        _state.update {
+            val streak = if (correct) it.streak + 1 else 0
+            it.copy(
+                selected = option,
+                score = it.score + if (correct) 1 else 0,
+                wrong = it.wrong + if (correct) 0 else 1,
+                streak = streak,
+                bestStreak = maxOf(it.bestStreak, streak),
+            )
+        }
+        viewModelScope.launch { repo.recordAnswer(q.style, q.surahIndex, correct) }
 
         advanceJob = viewModelScope.launch {
             delay(if (correct) CORRECT_DELAY_MS else WRONG_DELAY_MS)
@@ -117,7 +134,7 @@ class QuizViewModel(
     private fun advance() {
         val s = _state.value
         if (s.finished) return
-        if (s.number >= s.total) finishRound() else showNextQuestion()
+        if (mode.isOver(s.number, s.wrong, s.total)) finishRound() else showNextQuestion()
     }
 
     private fun showNextQuestion() {
@@ -138,7 +155,13 @@ class QuizViewModel(
         _state.update { it.copy(finished = true) }
         recordRound()
         val s = _state.value
-        container.appScope.launch { repo.recordCompletedRound(level.id, s.score, s.total) }
+        container.appScope.launch {
+            if (mode.endless) {
+                repo.recordFinishedRun(mode, level.id, s.score, s.number)
+            } else {
+                repo.recordCompletedRound(level.id, s.score, s.total)
+            }
+        }
     }
 
     fun restart() {
@@ -146,17 +169,32 @@ class QuizViewModel(
         player.stop()
         val best = maxOf(_state.value.previousBest, _state.value.score)
         roundRecorded = false
-        _state.update { it.copy(number = 0, score = 0, selected = null, finished = false, previousBest = best, question = null) }
+        _state.update {
+            it.copy(
+                number = 0,
+                score = 0,
+                wrong = 0,
+                streak = 0,
+                bestStreak = 0,
+                selected = null,
+                finished = false,
+                previousBest = best,
+                question = null,
+            )
+        }
         showNextQuestion()
     }
 
     private fun recordRound() {
         if (roundRecorded) return
         roundRecorded = true
-        val score = _state.value.score
+        val s = _state.value
         // appScope: must complete even if the screen is being closed.
         if (!level.practice) {
-            container.appScope.launch { repo.recordLevelScore(level.id, score) }
+            container.appScope.launch {
+                if (mode.endless) repo.recordRunBest(mode, level.id, s.score, s.bestStreak)
+                else repo.recordLevelScore(level.id, s.score)
+            }
         }
     }
 
@@ -207,7 +245,9 @@ class QuizViewModel(
 
     override fun onCleared() {
         // Leaving mid-round still keeps the points earned so far (as the original did).
-        if (_state.value.score > 0) recordRound()
+        // An endless game whose last life went during the feedback delay still counts as finished.
+        val s = _state.value
+        if (mode.endless && !s.finished && s.livesLeft <= 0) finishRound() else if (s.score > 0) recordRound()
         player.release()
     }
 

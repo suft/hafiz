@@ -40,8 +40,8 @@ class QuizLogicTest {
 
     @Test
     fun levelTablesMatchOriginal() {
-        val surahLevels = Levels.forMode(GameMode.GuessSurah, quran)
-        val ayahLevels = Levels.forMode(GameMode.NextAyah, quran)
+        val surahLevels = Levels.forStyle(GameStyle.GuessSurah, quran)
+        val ayahLevels = Levels.forStyle(GameStyle.NextAyah, quran)
         assertEquals(20, surahLevels.size)
         assertEquals(25, ayahLevels.size)
         assertEquals((surahLevels + ayahLevels).size, (surahLevels + ayahLevels).map { it.id }.toSet().size)
@@ -53,7 +53,7 @@ class QuizLogicTest {
 
     @Test
     fun guessSurahQuestionsAreAlwaysUnambiguous() {
-        for (level in Levels.forMode(GameMode.GuessSurah, quran)) {
+        for (level in Levels.forStyle(GameStyle.GuessSurah, quran)) {
             val gen = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(level.index))
             repeat(300) {
                 val q = gen.next()
@@ -78,7 +78,7 @@ class QuizLogicTest {
 
     @Test
     fun nextAyahQuestionsAreAlwaysUnambiguous() {
-        for (level in Levels.forMode(GameMode.NextAyah, quran)) {
+        for (level in Levels.forStyle(GameStyle.NextAyah, quran)) {
             val gen = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(100 + level.index))
             repeat(300) {
                 val q = gen.next()
@@ -108,7 +108,7 @@ class QuizLogicTest {
 
     @Test
     fun ayahsAreNotRepeatedWithinARound() {
-        val level = Levels.forMode(GameMode.GuessSurah, quran)[3] // جزء عمَّ — 564 ayahs
+        val level = Levels.forStyle(GameStyle.GuessSurah, quran)[3] // جزء عمَّ — 564 ayahs
         val gen = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(7))
         val prompts = List(20) { gen.next().shownAyahs.first }
         assertEquals(20, prompts.toSet().size)
@@ -126,8 +126,8 @@ class QuizLogicTest {
         assertEquals("سورة البقرة · الآية ٢٥٥", quran.reference(b..b, AppLanguage.Arabic))
         assertEquals("Surah Al-Fatihah · Ayahs 1–2", quran.reference(0..1, AppLanguage.English))
 
-        val ayahLevels = Levels.forMode(GameMode.NextAyah, quran)
-        val surahLevels = Levels.forMode(GameMode.GuessSurah, quran)
+        val ayahLevels = Levels.forStyle(GameStyle.NextAyah, quran)
+        val surahLevels = Levels.forStyle(GameStyle.GuessSurah, quran)
         assertEquals("Surah Ya-Sin", ayahLevels[13].name(AppLanguage.English))
         assertEquals("Surahs At-Takwir and Al-Infitar", ayahLevels[3].name(AppLanguage.English))
         assertEquals("Al-'Adiyat to An-Nas", surahLevels[0].name(AppLanguage.English))
@@ -136,7 +136,7 @@ class QuizLogicTest {
 
     @Test
     fun englishQuestionsKeepQuranTextArabic() {
-        val surahLevels = Levels.forMode(GameMode.GuessSurah, quran)
+        val surahLevels = Levels.forStyle(GameStyle.GuessSurah, quran)
         val surahGen = QuestionGenerator(quran, surahLevels[0], AppLanguage.English, Random(1))
         repeat(50) {
             val q = surahGen.next()
@@ -144,7 +144,7 @@ class QuizLogicTest {
             assertEquals(q.shownAyahs.map(quran::text), q.promptAyahs)
         }
 
-        val ayahLevels = Levels.forMode(GameMode.NextAyah, quran)
+        val ayahLevels = Levels.forStyle(GameStyle.NextAyah, quran)
         val ayahGen = QuestionGenerator(quran, ayahLevels[0], AppLanguage.English, Random(2))
         repeat(50) {
             val q = ayahGen.next()
@@ -201,8 +201,8 @@ class QuizLogicTest {
 
     @Test
     fun levelIdsResolveAndStayStable() {
-        for (mode in GameMode.entries) {
-            for (level in Levels.forMode(mode, quran)) {
+        for (style in GameStyle.entries) {
+            for (level in Levels.forStyle(style, quran)) {
                 assertEquals(level, Levels.byId(level.id, quran))
             }
         }
@@ -212,7 +212,7 @@ class QuizLogicTest {
         assertTrue(resolved.practice)
         assertEquals(1, resolved.firstSurah)
         assertEquals(null, Levels.byId("surah:999-999", quran))
-        assertEquals("ayah:1-114:openings", Levels.forMode(GameMode.NextAyah, quran)[23].id)
+        assertEquals("ayah:1-114:openings", Levels.forStyle(GameStyle.NextAyah, quran)[23].id)
     }
 
     @Test
@@ -248,10 +248,20 @@ class QuizLogicTest {
 
     @Test
     fun masteryScalesWithRoundLength() {
-        assertEquals(9, GameMode.NextAyah.masteryFor(10))
-        assertEquals(2, GameMode.NextAyah.masteryFor(2))
-        assertEquals(16, GameMode.GuessSurah.masteryFor(20))
+        assertEquals(9, GameStyle.NextAyah.masteryFor(10))
+        assertEquals(2, GameStyle.NextAyah.masteryFor(2))
+        assertEquals(16, GameStyle.GuessSurah.masteryFor(20))
         assertEquals(2, Levels.surahPractice(107, quran).questionsPerRound)
         assertEquals(10, Levels.surahPractice(1, quran).questionsPerRound)
+    }
+
+    @Test
+    fun gameOverRules() {
+        assertTrue(GameMode.Regular.isOver(20, 0, 20))
+        assertFalse(GameMode.Regular.isOver(19, 5, 20))
+        assertTrue(GameMode.Survival.isOver(50, 1, 20))
+        assertFalse(GameMode.Survival.isOver(50, 0, 20))
+        assertFalse(GameMode.ThreeLives.isOver(7, 2, 20))
+        assertTrue(GameMode.ThreeLives.isOver(7, 3, 20))
     }
 }

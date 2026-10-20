@@ -28,14 +28,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +51,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -74,10 +72,12 @@ import suft.android.ayahiq.R
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.i18n.LocalStrings
 import suft.android.ayahiq.ui.theme.RuqaaFont
+import suft.android.ayahiq.ui.components.MenuCard
 import suft.android.ayahiq.ui.components.OrnamentDivider
 
 @Composable
@@ -130,14 +130,28 @@ fun HomeScreen(
                 OrnamentDivider()
                 Spacer(Modifier.height(16.dp))
 
+                val styleLevels = remember { GameStyle.entries.map { Levels.forStyle(it, quran) } }
                 GameMode.entries.forEach { mode ->
-                    val levels = remember(mode) { Levels.forMode(mode, quran) }
-                    val mastered = progress.mastered(levels)
+                    val badge: String?
+                    val badgeLabel: String
+                    if (mode.endless) {
+                        val best = progress.runStats(mode).best
+                        badge = if (best > 0) strings.number(best) else null
+                        badgeLabel = strings.best
+                    } else {
+                        badge = "${strings.number(styleLevels.sumOf { progress.mastered(it) })}/${strings.number(styleLevels.sumOf { it.size })}"
+                        badgeLabel = strings.mastered
+                    }
                     MenuCard(
-                        icon = if (mode == GameMode.GuessSurah) Icons.Filled.Quiz else Icons.AutoMirrored.Filled.MenuBook,
-                        title = strings.modeTitle(mode),
-                        subtitle = strings.modeSubtitle(mode),
-                        badge = "${strings.number(mastered)}/${strings.number(levels.size)}",
+                        icon = when (mode) {
+                            GameMode.Regular -> Icons.Filled.Flag
+                            GameMode.Survival -> Icons.Filled.LocalFireDepartment
+                            GameMode.ThreeLives -> Icons.Filled.Favorite
+                        },
+                        title = strings.gameModeTitle(mode),
+                        subtitle = strings.gameModeSubtitle(mode),
+                        badge = badge,
+                        badgeLabel = badgeLabel,
                         onClick = { onOpenMode(mode) },
                     )
                     Spacer(Modifier.height(12.dp))
@@ -153,6 +167,7 @@ fun HomeScreen(
                         strings.statisticsSummary(overall.percent, overall.total)
                     },
                     badge = null,
+                    badgeLabel = null,
                     onClick = onOpenStats,
                 )
 
@@ -173,49 +188,6 @@ fun HomeScreen(
             onSelect = { scope.launch { container.progress.setLanguage(it) } },
             onClose = { showLanguage = false },
         )
-    }
-}
-
-@Composable
-private fun MenuCard(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    badge: String?,
-    onClick: () -> Unit,
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f),
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Box(
-                Modifier
-                    .size(52.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            if (badge != null) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(badge, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-                    Text(LocalStrings.current.mastered, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
     }
 }
 

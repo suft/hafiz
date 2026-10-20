@@ -5,7 +5,7 @@ import kotlin.random.Random
 
 /** One multiple-choice question. */
 data class Question(
-    val mode: GameMode,
+    val style: GameStyle,
     /** Global indices of the ayahs shown (and recited) in the prompt. */
     val shownAyahs: IntRange,
     /** The surah the shown ayahs belong to — the one stats are recorded against. */
@@ -14,7 +14,7 @@ data class Question(
     val promptAyahs: List<String>,
     /** 1-based ayah numbers of [promptAyahs] inside the surah. */
     val promptAyahNumbers: List<Int>,
-    /** e.g. "سورة البقرة · الآية ٢٥٥" / "Surah Al-Baqarah · Ayah 255" — only for [GameMode.NextAyah] (where the surah is given). */
+    /** e.g. "سورة البقرة · الآية ٢٥٥" / "Surah Al-Baqarah · Ayah 255" — only for [GameStyle.NextAyah] (where the surah is given). */
     val reference: String?,
     val options: List<String>,
     val correctOption: Int,
@@ -50,9 +50,9 @@ class QuestionGenerator(
 
     fun next(): Question {
         val shown = if (level.practice) nextPracticePrompt() else pickFreshPrompt()
-        return when (level.mode) {
-            GameMode.GuessSurah -> guessSurahQuestion(shown)
-            GameMode.NextAyah -> nextAyahQuestion(shown)
+        return when (level.style) {
+            GameStyle.GuessSurah -> guessSurahQuestion(shown)
+            GameStyle.NextAyah -> nextAyahQuestion(shown)
         }
     }
 
@@ -91,9 +91,9 @@ class QuestionGenerator(
         }
         val first = quran.surahs[level.firstSurah].firstAyah
         val last = quran.surahs[level.lastSurah].lastAyah
-        return when (level.mode) {
-            GameMode.GuessSurah -> random.nextInt(first, last + 1).let { it..it }
-            GameMode.NextAyah -> {
+        return when (level.style) {
+            GameStyle.GuessSurah -> random.nextInt(first, last + 1).let { it..it }
+            GameStyle.NextAyah -> {
                 // Uniform over ayahs that have a following ayah in the same surah.
                 var ayah: Int
                 do {
@@ -121,7 +121,7 @@ class QuestionGenerator(
 
         val (options, correct) = shuffleWithCorrect(surah.displayName(language), wrong)
         return Question(
-            mode = GameMode.GuessSurah,
+            style = GameStyle.GuessSurah,
             shownAyahs = shown,
             surahIndex = surah.index,
             promptAyahs = shown.map(quran::text),
@@ -161,7 +161,7 @@ class QuestionGenerator(
 
         val (options, correct) = shuffleWithCorrect(labels.first(), labels.drop(1))
         return Question(
-            mode = GameMode.NextAyah,
+            style = GameStyle.NextAyah,
             shownAyahs = shown,
             surahIndex = surah.index,
             promptAyahs = shown.map(quran::text),

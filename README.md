@@ -3,11 +3,20 @@
 A Quran memorisation quiz for Android, rewritten from the original *AyahSurah 2.0* APK
 (Java + Android Views, 2013) in **Kotlin + Jetpack Compose**, with a **mise** toolchain.
 
-| Mode | What you do | Levels | Questions / round |
+| Question style | What you do | Levels | Questions / round (Regular) |
 |---|---|---|---|
 | **آية وسورة** (guess the surah) | Read/hear an ayah and pick the surah it's from | 20 | 20 |
 | **آيات** (next ayah) | Read/hear an ayah and pick the one that follows it | 25 | 10 |
-| **إحصائيات** (stats) | Overall accuracy and the surahs you most often get wrong | — | — |
+
+Pick a **game mode** first, then a question style and a level:
+
+| Game mode | How it ends | Score |
+|---|---|---|
+| **عادي** (Regular) | After a fixed-length round | Correct answers out of the round |
+| **البقاء** (Survival) | First wrong answer | Correct answers in a row |
+| **ثلاث فرص** (3 Lives) | Third wrong answer | Correct answers |
+
+Survival and 3 Lives keep a best score per level, and their games show up in **إحصائيات** (stats: overall accuracy, the surahs you most often get wrong, per-mode games played and averages) and its activity history.
 
 Recitations stream from [everyayah.com](https://everyayah.com) (27 reciters). Quran text: [Tanzil](https://tanzil.net) (Simple, v1.0.2).
 

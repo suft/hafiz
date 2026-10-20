@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import suft.android.ayahiq.AppContainer
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Levels
 import suft.android.ayahiq.domain.Quran
@@ -47,18 +48,28 @@ fun LevelsScreen(
     container: AppContainer,
     quran: Quran,
     mode: GameMode,
+    style: GameStyle,
     onBack: () -> Unit,
     onPlay: (Level) -> Unit,
 ) {
     val progress by container.progress.progress.collectAsStateWithLifecycle(initialValue = Progress())
     val strings = LocalStrings.current
-    val levels = remember(mode) { Levels.forMode(mode, quran) }
+    val levels = remember(style) { Levels.forStyle(style, quran) }
     val total = progress.points(levels)
     val mastered = progress.mastered(levels)
 
     Scaffold(
         containerColor = Color.Transparent,
-        topBar = { AppTopBar(title = strings.modeTitle(mode), onBack = onBack) },
+        topBar = {
+            AppTopBar(
+                title = if (mode.endless) {
+                    "${strings.styleTitle(style)} · ${strings.gameModeTitle(mode)}"
+                } else {
+                    strings.styleTitle(style)
+                },
+                onBack = onBack,
+            )
+        },
     ) { padding ->
         LazyColumn(
             contentPadding = PaddingValues(
@@ -70,18 +81,26 @@ fun LevelsScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item {
-                Summary(
-                    subtitle = strings.modeSubtitle(mode),
-                    points = total,
-                    maxPoints = levels.size * mode.questionsPerRound,
-                    mastered = mastered,
-                    levelCount = levels.size,
-                )
+                if (mode.endless) {
+                    EndlessSummary(
+                        subtitle = strings.gameModeSubtitle(mode),
+                        best = levels.maxOf { progress.runBest(mode, it.id) },
+                    )
+                } else {
+                    Summary(
+                        subtitle = strings.styleSubtitle(style),
+                        points = total,
+                        maxPoints = levels.size * style.questionsPerRound,
+                        mastered = mastered,
+                        levelCount = levels.size,
+                    )
+                }
             }
             items(levels, key = { it.id }) { level ->
                 LevelRow(
                     level = level,
-                    best = progress.best(level.id),
+                    best = if (mode.endless) progress.runBest(mode, level.id) else progress.best(level.id),
+                    endless = mode.endless,
                     onClick = { onPlay(level) },
                 )
             }
@@ -120,9 +139,24 @@ private fun Summary(subtitle: String, points: Int, maxPoints: Int, mastered: Int
 }
 
 @Composable
-private fun LevelRow(level: Level, best: Int, onClick: () -> Unit) {
+private fun EndlessSummary(subtitle: String, best: Int) {
+    val strings = LocalStrings.current
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(10.dp))
+            Text(strings.bestScore(best), style = MaterialTheme.typography.titleLarge)
+        }
+    }
+}
+
+@Composable
+private fun LevelRow(level: Level, best: Int, endless: Boolean, onClick: () -> Unit) {
     val questions = level.questionsPerRound
-    val mastered = best >= level.masteryScore
+    val mastered = !endless && best >= level.masteryScore
     val quizColors = LocalQuizColors.current
     val strings = LocalStrings.current
 
@@ -159,16 +193,24 @@ private fun LevelRow(level: Level, best: Int, onClick: () -> Unit) {
             }
             Column(Modifier.weight(1f)) {
                 Text(level.name(strings.language), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(6.dp))
-                LinearProgressIndicator(
-                    progress = { best.toFloat() / questions },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = if (mastered) quizColors.correct else MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                )
+                if (!endless) {
+                    Spacer(Modifier.height(6.dp))
+                    LinearProgressIndicator(
+                        progress = { best.toFloat() / questions },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = if (mastered) quizColors.correct else MaterialTheme.colorScheme.secondary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    )
+                }
             }
             Text(
-                "${strings.number(best)}/${strings.number(questions)}",
+                if (!endless) {
+                    "${strings.number(best)}/${strings.number(questions)}"
+                } else if (best > 0) {
+                    strings.number(best)
+                } else {
+                    "—"
+                },
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

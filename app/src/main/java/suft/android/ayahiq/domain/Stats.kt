@@ -10,6 +10,12 @@ data class Score(val correct: Int = 0, val wrong: Int = 0) {
     val percent: Int get() = (accuracy * 100).toInt()
 }
 
+/** Aggregate of finished endless games in one [GameMode]. */
+data class RunStats(val played: Int, val totalScore: Int, val best: Int, val bestStreak: Int) {
+    /** Rounded to the nearest integer; 0 when nothing was played. */
+    val average: Int get() = if (played == 0) 0 else (totalScore + played / 2) / played
+}
+
 data class SurahScore(val surahIndex: Int, val score: Score)
 
 enum class SurahTier { NotPractised, Weak, Fair, Strong }

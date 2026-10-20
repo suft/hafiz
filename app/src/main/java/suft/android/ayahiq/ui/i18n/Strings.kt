@@ -3,6 +3,7 @@ package suft.android.ayahiq.ui.i18n
 import androidx.compose.runtime.staticCompositionLocalOf
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
+import suft.android.ayahiq.domain.GameStyle
 
 /** Every piece of UI text that is not Quran text. Numbers always go through [number]. */
 interface Strings {
@@ -16,8 +17,23 @@ interface Strings {
     val back: String
     val loadingQuran: String
     val homeTagline: String
-    fun modeTitle(mode: GameMode): String
-    fun modeSubtitle(mode: GameMode): String
+    fun styleTitle(style: GameStyle): String
+    fun styleSubtitle(style: GameStyle): String
+    fun gameModeTitle(mode: GameMode): String
+    fun gameModeSubtitle(mode: GameMode): String
+    val chooseStyle: String
+    val best: String
+    fun questionNumber(n: Int): String
+    fun livesLeft(n: Int): String
+    val gameOver: String
+    fun survivalResult(score: Int): String
+    fun livesResult(score: Int, answered: Int): String
+    fun longestStreak(n: Int): String
+    fun bestScore(n: Int): String
+    fun gamesPlayed(n: Int): String
+    fun averageScore(n: Int): String
+    val noGamesYet: String
+    fun shareRunText(score: Int, levelName: String, modeTitle: String, styleTitle: String): String
     val mastered: String
     val statistics: String
     val statisticsHint: String
@@ -53,7 +69,7 @@ interface Strings {
     val retry: String
     val goBack: String
     val mainMenu: String
-    fun shareScoreText(score: Int, total: Int, levelName: String, modeTitle: String): String
+    fun shareScoreText(score: Int, total: Int, levelName: String, styleTitle: String): String
     val playbackFailed: String
     val clearStatistics: String
     val clearStatisticsQuestion: String
@@ -72,7 +88,7 @@ interface Strings {
     val tabSurahs: String
     val tabActivity: String
     val noAnswersYet: String
-    val modeAccuracySinceUpdate: String
+    val styleAccuracySinceUpdate: String
     val surahMap: String
     fun surahsPractised(n: Int, total: Int): String
     val tierNotPractised: String
@@ -109,15 +125,42 @@ object ArabicStrings : Strings {
     override val back = "رجوع"
     override val loadingQuran = "جارٍ تحميل المصحف…"
     override val homeTagline = "مسابقة لاختبار حفظك للقرآن الكريم"
-    override fun modeTitle(mode: GameMode) = when (mode) {
-        GameMode.GuessSurah -> "آية وسورة"
-        GameMode.NextAyah -> "آيات"
+    override fun styleTitle(style: GameStyle) = when (style) {
+        GameStyle.GuessSurah -> "آية وسورة"
+        GameStyle.NextAyah -> "آيات"
     }
 
-    override fun modeSubtitle(mode: GameMode) = when (mode) {
-        GameMode.GuessSurah -> "اقرأ الآية واختر السورة التي وردت فيها"
-        GameMode.NextAyah -> "أكمل التلاوة واختر الآية التالية"
+    override fun styleSubtitle(style: GameStyle) = when (style) {
+        GameStyle.GuessSurah -> "اقرأ الآية واختر السورة التي وردت فيها"
+        GameStyle.NextAyah -> "أكمل التلاوة واختر الآية التالية"
     }
+
+    override fun gameModeTitle(mode: GameMode) = when (mode) {
+        GameMode.Regular -> "عادي"
+        GameMode.Survival -> "البقاء"
+        GameMode.ThreeLives -> "ثلاث فرص"
+    }
+
+    override fun gameModeSubtitle(mode: GameMode) = when (mode) {
+        GameMode.Regular -> "جولات محددة الأسئلة، أتقن كل مرحلة"
+        GameMode.Survival -> "أسئلة بلا نهاية، وأول خطأ ينهي اللعبة"
+        GameMode.ThreeLives -> "أسئلة بلا نهاية، وثلاثة أخطاء تنهي اللعبة"
+    }
+
+    override val chooseStyle = "اختر نوع الأسئلة"
+    override val best = "الأفضل"
+    override fun questionNumber(n: Int) = "السؤال ${number(n)}"
+    override fun livesLeft(n: Int) = "الفرص المتبقية: ${number(n)}"
+    override val gameOver = "انتهت اللعبة"
+    override fun survivalResult(score: Int) = "إجابات صحيحة متتالية: ${number(score)}"
+    override fun livesResult(score: Int, answered: Int) = "${number(score)} صحيحة من ${number(answered)} سؤالاً"
+    override fun longestStreak(n: Int) = "أطول سلسلة صحيحة: ${number(n)}"
+    override fun bestScore(n: Int) = "أفضل نتيجة: ${number(n)}"
+    override fun gamesPlayed(n: Int) = "ألعاب مكتملة: ${number(n)}"
+    override fun averageScore(n: Int) = "متوسط النتيجة: ${number(n)}"
+    override val noGamesYet = "لم تلعب بعد"
+    override fun shareRunText(score: Int, levelName: String, modeTitle: String, styleTitle: String) =
+        "حصلت على ${number(score)} في وضع «$modeTitle» بمرحلة «$levelName» في مسابقة القرآن الكريم «$appName – $styleTitle»"
 
     override val mastered = "مُتقَنة"
     override val statistics = "إحصائيات"
@@ -156,8 +199,8 @@ object ArabicStrings : Strings {
     override val retry = "إعادة"
     override val goBack = "عودة"
     override val mainMenu = "القائمة الرئيسية"
-    override fun shareScoreText(score: Int, total: Int, levelName: String, modeTitle: String) =
-        "حصلت على ${number(score)} من ${number(total)} في مرحلة «$levelName» في مسابقة القرآن الكريم «$appName – $modeTitle»"
+    override fun shareScoreText(score: Int, total: Int, levelName: String, styleTitle: String) =
+        "حصلت على ${number(score)} من ${number(total)} في مرحلة «$levelName» في مسابقة القرآن الكريم «$appName – $styleTitle»"
 
     override val playbackFailed = "تعذّر تحميل التلاوة. تأكد من الاتصال بالإنترنت."
     override val clearStatistics = "مسح الإحصائيات"
@@ -178,7 +221,7 @@ object ArabicStrings : Strings {
     override val tabSurahs = "السور"
     override val tabActivity = "النشاط"
     override val noAnswersYet = "لا إجابات بعد"
-    override val modeAccuracySinceUpdate = "دقة كل نوع تشمل الإجابات منذ هذا التحديث فقط، والإجابات الأقدم محسوبة في الدقة الكلية."
+    override val styleAccuracySinceUpdate = "دقة كل نوع تشمل الإجابات منذ هذا التحديث فقط، والإجابات الأقدم محسوبة في الدقة الكلية."
     override val surahMap = "خريطة السور"
     override fun surahsPractised(n: Int, total: Int) = "تدرّبت على ${number(n)} من ${number(total)} سورة"
     override val tierNotPractised = "لم تُختبر"
@@ -221,15 +264,42 @@ object EnglishStrings : Strings {
     override val back = "Back"
     override val loadingQuran = "Loading the Quran…"
     override val homeTagline = "Test your memorization of the Holy Quran"
-    override fun modeTitle(mode: GameMode) = when (mode) {
-        GameMode.GuessSurah -> "Guess the Surah"
-        GameMode.NextAyah -> "Next Ayah"
+    override fun styleTitle(style: GameStyle) = when (style) {
+        GameStyle.GuessSurah -> "Guess the Surah"
+        GameStyle.NextAyah -> "Next Ayah"
     }
 
-    override fun modeSubtitle(mode: GameMode) = when (mode) {
-        GameMode.GuessSurah -> "Read the ayah and pick its surah"
-        GameMode.NextAyah -> "Pick the ayah that comes next"
+    override fun styleSubtitle(style: GameStyle) = when (style) {
+        GameStyle.GuessSurah -> "Read the ayah and pick its surah"
+        GameStyle.NextAyah -> "Pick the ayah that comes next"
     }
+
+    override fun gameModeTitle(mode: GameMode) = when (mode) {
+        GameMode.Regular -> "Regular"
+        GameMode.Survival -> "Survival"
+        GameMode.ThreeLives -> "3 Lives"
+    }
+
+    override fun gameModeSubtitle(mode: GameMode) = when (mode) {
+        GameMode.Regular -> "Fixed-length rounds; master every level"
+        GameMode.Survival -> "Endless questions; one mistake ends the game"
+        GameMode.ThreeLives -> "Endless questions; three mistakes end the game"
+    }
+
+    override val chooseStyle = "Choose a question style"
+    override val best = "best"
+    override fun questionNumber(n: Int) = "Question $n"
+    override fun livesLeft(n: Int) = "Lives left: $n"
+    override val gameOver = "Game over"
+    override fun survivalResult(score: Int) = "Correct in a row: $score"
+    override fun livesResult(score: Int, answered: Int) = "$score correct out of $answered questions"
+    override fun longestStreak(n: Int) = "Longest streak: $n"
+    override fun bestScore(n: Int) = "Best score: $n"
+    override fun gamesPlayed(n: Int) = "Games played: $n"
+    override fun averageScore(n: Int) = "Average score: $n"
+    override val noGamesYet = "No games yet"
+    override fun shareRunText(score: Int, levelName: String, modeTitle: String, styleTitle: String) =
+        "I scored $score in $modeTitle mode on the level “$levelName” in the Quran quiz “AyahIQ – $styleTitle”"
 
     override val mastered = "mastered"
     override val statistics = "Statistics"
@@ -268,8 +338,8 @@ object EnglishStrings : Strings {
     override val retry = "Retry"
     override val goBack = "Back"
     override val mainMenu = "Main menu"
-    override fun shareScoreText(score: Int, total: Int, levelName: String, modeTitle: String) =
-        "I scored $score out of $total on the level “$levelName” in the Quran quiz “AyahIQ – $modeTitle”"
+    override fun shareScoreText(score: Int, total: Int, levelName: String, styleTitle: String) =
+        "I scored $score out of $total on the level “$levelName” in the Quran quiz “AyahIQ – $styleTitle”"
 
     override val playbackFailed = "Couldn't load the recitation. Check your internet connection."
     override val clearStatistics = "Clear statistics"
@@ -290,7 +360,7 @@ object EnglishStrings : Strings {
     override val tabSurahs = "Surahs"
     override val tabActivity = "Activity"
     override val noAnswersYet = "No answers yet"
-    override val modeAccuracySinceUpdate = "Per-mode accuracy counts answers given since this update; older answers are only in the overall accuracy."
+    override val styleAccuracySinceUpdate = "Per-style accuracy counts answers given since this update; older answers are only in the overall accuracy."
     override val surahMap = "Surah map"
     override fun surahsPractised(n: Int, total: Int) = "$n of $total surahs practised"
     override val tierNotPractised = "Not practised"

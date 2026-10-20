@@ -1,7 +1,7 @@
 package suft.android.ayahiq.domain
 
 /** The two quiz types of the original app. */
-enum class GameMode(
+enum class GameStyle(
     val key: String,
     val questionsPerRound: Int,
     /** Score needed for a level to count as "mastered" (original: > 15/20 and > 8/10). */
@@ -25,7 +25,7 @@ enum class GameMode(
     fun masteryFor(total: Int): Int = (masteryScore * total + questionsPerRound - 1) / questionsPerRound
 
     companion object {
-        fun fromKey(key: String): GameMode = entries.first { it.key == key }
+        fun fromKey(key: String): GameStyle = entries.first { it.key == key }
     }
 }
 
@@ -34,10 +34,10 @@ enum class GameMode(
  *
  * @property openings "فواتح السور" — questions use the first two ayahs of a random surah.
  * @property practice single-surah review round started from Statistics; never stores a best score.
- * @property questionsPerRound questions in one round; shorter than the mode's only for practice on short surahs.
+ * @property questionsPerRound questions in one round; shorter than the style's only for practice on short surahs.
  */
 data class Level(
-    val mode: GameMode,
+    val style: GameStyle,
     val index: Int,
     val arabicName: String,
     val englishName: String,
@@ -45,16 +45,16 @@ data class Level(
     val lastSurah: Int,
     val openings: Boolean = false,
     val practice: Boolean = false,
-    val questionsPerRound: Int = mode.questionsPerRound,
+    val questionsPerRound: Int = style.questionsPerRound,
 ) {
     /** Score needed for this level to count as mastered. */
-    val masteryScore: Int get() = mode.masteryFor(questionsPerRound)
+    val masteryScore: Int get() = style.masteryFor(questionsPerRound)
 
     fun name(language: AppLanguage): String = if (language == AppLanguage.English) englishName else arabicName
 
     /** Stable key used to persist the best score (independent of list order). */
     val id: String
-        get() = "${mode.key}:${firstSurah + 1}-${lastSurah + 1}" +
+        get() = "${style.key}:${firstSurah + 1}-${lastSurah + 1}" +
             (if (openings) ":openings" else "") +
             (if (practice) ":practice" else "")
 
@@ -103,14 +103,14 @@ object Levels {
         Spec(6, 11), Spec(2, 5), Spec(2, 2), Spec(1, 114, openings = true), Spec(1, 114),
     )
 
-    fun forMode(mode: GameMode, quran: Quran): List<Level> {
-        val specs = when (mode) {
-            GameMode.GuessSurah -> guessSurah
-            GameMode.NextAyah -> nextAyah
+    fun forStyle(style: GameStyle, quran: Quran): List<Level> {
+        val specs = when (style) {
+            GameStyle.GuessSurah -> guessSurah
+            GameStyle.NextAyah -> nextAyah
         }
         return specs.mapIndexed { i, s ->
             Level(
-                mode = mode,
+                style = style,
                 index = i,
                 arabicName = s.arabicName ?: autoName(s, quran, AppLanguage.Arabic),
                 englishName = s.englishName ?: autoName(s, quran, AppLanguage.English),
@@ -125,14 +125,14 @@ object Levels {
     fun surahPractice(surahIndex: Int, quran: Quran): Level {
         val surah = quran.surahs[surahIndex]
         return Level(
-            mode = GameMode.NextAyah,
+            style = GameStyle.NextAyah,
             index = -1, // not part of a level table
             arabicName = "مراجعة سورة ${surah.displayName(AppLanguage.Arabic)}",
             englishName = "Review: Surah ${surah.displayName(AppLanguage.English)}",
             firstSurah = surahIndex,
             lastSurah = surahIndex,
             practice = true,
-            questionsPerRound = minOf(GameMode.NextAyah.questionsPerRound, surah.ayahCount - 1),
+            questionsPerRound = minOf(GameStyle.NextAyah.questionsPerRound, surah.ayahCount - 1),
         )
     }
 
@@ -142,7 +142,7 @@ object Levels {
             val surah = id.substringAfter(':').substringBefore('-').toIntOrNull()?.minus(1)
             return surah?.takeIf { it in 0 until Quran.SURAH_COUNT }?.let { surahPractice(it, quran) }
         }
-        return GameMode.entries.firstNotNullOfOrNull { mode -> forMode(mode, quran).firstOrNull { it.id == id } }
+        return GameStyle.entries.firstNotNullOfOrNull { style -> forStyle(style, quran).firstOrNull { it.id == id } }
     }
 
     /** Same naming rules as the original "complete the ayah" levels. */
