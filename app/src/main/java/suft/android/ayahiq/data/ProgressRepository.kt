@@ -1,19 +1,29 @@
 package suft.android.ayahiq.data
 
-import android.content.Context
+import android.util.Log
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.Serializer
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
-import androidx.datastore.dataStore
+import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.TimeZone
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import suft.android.ayahiq.audio.Reciters
 import suft.android.ayahiq.domain.AppLanguage
 import suft.android.ayahiq.domain.GameMode
 import suft.android.ayahiq.domain.GameStyle
@@ -76,7 +86,8 @@ data class Progress(
     val runPoints: Map<String, Int> = emptyMap(),
     /** Longest correct streak inside one endless game, per [GameMode.key]. */
     val runBestStreak: Map<String, Int> = emptyMap(),
-    val reciter: Int = 0,
+    /** [suft.android.ayahiq.audio.Reciter.folder] of the chosen reciter; null = the default reciter. */
+    val reciterFolder: String? = null,
     val autoPlay: Boolean = true,
     val language: AppLanguage = AppLanguage.Arabic,
 ) {
@@ -115,11 +126,11 @@ data class Progress(
     fun answersToday(today: Long): Int = if (lastActiveDay == today) answersOnLastActiveDay else 0
 
     fun withAnswer(style: GameStyle, surahIndex: Int, correct: Boolean, day: Long): Progress {
-        // A clock moved backwards (day < lastActiveDay) counts as the same day.
-        val sameDay = lastActiveDay != NO_DAY && day <= lastActiveDay
+        val sameDay = lastActiveDay != NO_DAY && day == lastActiveDay
         val run = if (correct) correctRun + 1 else 0
         val base = copy(
-            lastActiveDay = if (sameDay) lastActiveDay else day,
+            // A clock that went backwards moves the "today" counters back with it, so they never freeze.
+            lastActiveDay = day,
             answersOnLastActiveDay = if (sameDay) answersOnLastActiveDay + 1 else 1,
             correctRun = run,
             bestCorrectRun = maxOf(bestCorrectRun, run),
@@ -140,21 +151,34 @@ data class Progress(
     }
 
     fun withCompletedRound(record: RoundRecord): Progress {
-        // A clock moved backwards (day < lastStreakDay) counts as the same day.
-        val sameDay = lastStreakDay != NO_DAY && record.day <= lastStreakDay
         val streak = when {
-            sameDay -> dayStreak
-            lastStreakDay != NO_DAY && record.day == lastStreakDay + 1 -> dayStreak + 1
+            lastStreakDay == NO_DAY -> 1
+            record.day == lastStreakDay -> dayStreak
+            record.day == lastStreakDay + 1 -> dayStreak + 1
+            // The clock moved back, or a day in the future was stored: keep the streak and continue from today.
+            record.day < lastStreakDay -> dayStreak
             else -> 1
         }
         return copy(
-            lastStreakDay = if (sameDay) lastStreakDay else record.day,
+            lastStreakDay = record.day,
             dayStreak = streak,
             bestDayStreak = maxOf(bestDayStreak, streak),
             roundsCompleted = roundsCompleted + 1,
             recentRounds = (listOf(record) + recentRounds).take(MAX_RECENT_ROUNDS),
         )
     }
+
+    /**
+     * What "Clear statistics" leaves: the best score of every level (as the dialog says) and the settings,
+     * nothing else.
+     */
+    fun afterStatisticsReset(): Progress = Progress(
+        bestScores = bestScores,
+        runBestScores = runBestScores,
+        reciterFolder = reciterFolder,
+        autoPlay = autoPlay,
+        language = language,
+    )
 
     /** Keeps the higher of the stored and the new value, for the level's best score and the mode's best streak. */
     fun withRunBest(mode: GameMode, levelId: String, score: Int, streak: Int): Progress {
@@ -184,33 +208,70 @@ data class Progress(
     }
 }
 
-private object ProgressSerializer : Serializer<Progress> {
-    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = false }
+internal object ProgressSerializer : Serializer<Progress> {
+    // coerceInputValues: an enum value this version does not know (a downgrade) falls back to its default
+    // instead of discarding the whole file.
+    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = false; coerceInputValues = true }
 
     override val defaultValue = Progress()
 
     override suspend fun readFrom(input: InputStream): Progress =
         try {
-            json.decodeFromString(Progress.serializer(), input.readBytes().decodeToString())
-        } catch (e: SerializationException) {
+            val root = json.parseToJsonElement(input.readBytes().decodeToString()).jsonObject
+            json.decodeFromJsonElement(Progress.serializer(), migrateLegacyReciter(root))
+        } catch (e: IllegalArgumentException) { // SerializationException and "not an object" alike
             throw CorruptionException("Unreadable progress file", e)
         }
+
+    /** Older files stored the reciter as an index into a list that has since changed; they store the folder now. */
+    private fun migrateLegacyReciter(root: JsonObject): JsonObject {
+        val index = (root["reciter"] as? JsonPrimitive)?.intOrNull ?: return root
+        val folder = Reciters.legacyIndexFolders.getOrNull(index)
+        return JsonObject(
+            root.toMutableMap().apply {
+                remove("reciter")
+                if (folder != null && "reciterFolder" !in this) put("reciterFolder", JsonPrimitive(folder))
+            },
+        )
+    }
 
     override suspend fun writeTo(t: Progress, output: OutputStream) {
         output.write(json.encodeToString(Progress.serializer(), t).encodeToByteArray())
     }
 }
 
-private val Context.progressStore: DataStore<Progress> by dataStore(
-    fileName = "progress.json",
+/** Opens the progress file as a DataStore. Tests pass a temp file and their own [scope]. */
+internal fun createProgressStore(
+    file: File,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+): DataStore<Progress> = DataStoreFactory.create(
     serializer = ProgressSerializer,
-    corruptionHandler = ReplaceFileCorruptionHandler { Progress() },
+    corruptionHandler = ReplaceFileCorruptionHandler { e ->
+        keepCorruptCopy(file, e)
+        Progress()
+    },
+    scope = scope,
+    produceFile = { file },
 )
 
-class ProgressRepository(context: Context) {
-    private val store = context.applicationContext.progressStore
+/** The handler is about to overwrite the unreadable file with an empty one; keep the bytes for support/recovery. */
+private fun keepCorruptCopy(file: File, cause: CorruptionException) {
+    Log.e(TAG, "The progress file is unreadable; starting empty", cause)
+    try {
+        file.copyTo(File(file.path + ".corrupt"), overwrite = true)
+    } catch (e: IOException) {
+        Log.e(TAG, "Could not keep a copy of the unreadable progress file", e)
+    }
+}
 
-    val progress: Flow<Progress> = store.data
+class ProgressRepository(private val store: DataStore<Progress>) {
+
+    /** An unreadable store (disk error) reads as empty progress rather than crashing the collector. */
+    val progress: Flow<Progress> = store.data.catch { e ->
+        if (e !is IOException) throw e
+        Log.e(TAG, "Could not read the progress file", e)
+        emit(Progress())
+    }
 
     suspend fun recordAnswer(style: GameStyle, surahIndex: Int, correct: Boolean) {
         store.updateData { it.withAnswer(style, surahIndex, correct, localEpochDay()) }
@@ -236,8 +297,8 @@ class ProgressRepository(context: Context) {
         store.updateData { it.withFinishedRun(RoundRecord(levelId, score, answered, localEpochDay(), mode.key)) }
     }
 
-    suspend fun setReciter(index: Int) {
-        store.updateData { it.copy(reciter = index) }
+    suspend fun setReciter(folder: String) {
+        store.updateData { it.copy(reciterFolder = folder) }
     }
 
     suspend fun setAutoPlay(enabled: Boolean) {
@@ -249,18 +310,8 @@ class ProgressRepository(context: Context) {
     }
 
     suspend fun resetStatistics() {
-        store.updateData {
-            Progress(
-                bestScores = it.bestScores,
-                runBestScores = it.runBestScores,
-                reciter = it.reciter,
-                autoPlay = it.autoPlay,
-                language = it.language,
-            )
-        }
-    }
-
-    suspend fun resetLevelScores() {
-        store.updateData { it.copy(bestScores = emptyMap(), runBestScores = emptyMap()) }
+        store.updateData { it.afterStatisticsReset() }
     }
 }
+
+private const val TAG = "ProgressRepository"
