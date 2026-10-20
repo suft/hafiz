@@ -16,7 +16,7 @@ interface Strings {
     val appName: String
     val back: String
     val loadingQuran: String
-    val homeTagline: String
+    val tagline: String
     fun styleTitle(style: GameStyle): String
     fun styleSubtitle(style: GameStyle): String
     fun gameModeTitle(mode: GameMode): String
@@ -42,11 +42,12 @@ interface Strings {
     val leaderboardsHint: String
     val leaderboardsUnavailable: String
     val languageLabel: String
-    val attributionQuranFrom: String
-    val attributionTanzil: String
-    val attributionRecitationsFrom: String
-    val attributionMutashabihatFrom: String
-    val attributionAswaatulQurraa: String
+    val credits: String
+    val creditsQuranText: String
+    val creditsRecitations: String
+    val creditsMutashabihat: String
+    val creditsTanzil: String
+    val creditsAswaatulQurraa: String
     fun totalPoints(points: Int): String
     fun masteredCount(mastered: Int, total: Int): String
     val start: String
@@ -135,7 +136,7 @@ object ArabicStrings : Strings {
     override val appName = "آية آي كيو"
     override val back = "رجوع"
     override val loadingQuran = "جارٍ تحميل المصحف…"
-    override val homeTagline = "مسابقة لاختبار حفظك للقرآن الكريم"
+    override val tagline = "مسابقة لاختبار حفظك للقرآن الكريم"
     override fun styleTitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "آية وسورة"
         GameStyle.NextAyah -> "آيات"
@@ -185,11 +186,12 @@ object ArabicStrings : Strings {
     override val leaderboardsUnavailable = "تعذّر فتح لوحات الصدارة. سجّل الدخول إلى Google Play Games وحاول مرة أخرى."
 
     override val languageLabel = "اللغة"
-    override val attributionQuranFrom = "نص القرآن الكريم من "
-    override val attributionTanzil = "مشروع تنزيل"
-    override val attributionRecitationsFrom = " · التلاوات من "
-    override val attributionMutashabihatFrom = " · المتشابهات من "
-    override val attributionAswaatulQurraa = "أصوات القرّاء"
+    override val credits = "شكر وتقدير"
+    override val creditsQuranText = "نص القرآن الكريم"
+    override val creditsRecitations = "التلاوات"
+    override val creditsMutashabihat = "المتشابهات"
+    override val creditsTanzil = "مشروع تنزيل"
+    override val creditsAswaatulQurraa = "أصوات القرّاء"
     override fun totalPoints(points: Int) = "مجموع النقاط: ${number(points)}"
     override fun masteredCount(mastered: Int, total: Int) = "${number(mastered)} من ${number(total)} مُتقَنة"
     override val start = "ابدأ"
@@ -296,7 +298,7 @@ object EnglishStrings : Strings {
     override val appName = "AyahIQ"
     override val back = "Back"
     override val loadingQuran = "Loading the Quran…"
-    override val homeTagline = "Test your memorization of the Holy Quran"
+    override val tagline = "Test your memorization of the Holy Quran"
     override fun styleTitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "Guess the Surah"
         GameStyle.NextAyah -> "Next Ayah"
@@ -346,11 +348,12 @@ object EnglishStrings : Strings {
     override val leaderboardsUnavailable = "Couldn't open the leaderboards. Sign in to Google Play Games and try again."
 
     override val languageLabel = "Language"
-    override val attributionQuranFrom = "Quran text from "
-    override val attributionTanzil = "the Tanzil Project"
-    override val attributionRecitationsFrom = " · Recitations from "
-    override val attributionMutashabihatFrom = " · Mutashabihat from "
-    override val attributionAswaatulQurraa = "Aswaatul Qurraa"
+    override val credits = "Credits"
+    override val creditsQuranText = "Quran text"
+    override val creditsRecitations = "Recitations"
+    override val creditsMutashabihat = "Mutashabihat"
+    override val creditsTanzil = "Tanzil Project"
+    override val creditsAswaatulQurraa = "Aswaatul Qurraa"
     override fun totalPoints(points: Int) = "Total points: $points"
     override fun masteredCount(mastered: Int, total: Int) = "$mastered of $total mastered"
     override val start = "Start"

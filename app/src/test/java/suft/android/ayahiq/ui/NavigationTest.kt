@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -20,6 +21,7 @@ import suft.android.ayahiq.MainActivity
 import suft.android.ayahiq.domain.GameMode
 import suft.android.ayahiq.domain.GameStyle
 import suft.android.ayahiq.ui.i18n.ArabicStrings
+import suft.android.ayahiq.ui.i18n.EnglishStrings
 
 @RunWith(RobolectricTestRunner::class)
 class NavigationTest {
@@ -29,8 +31,11 @@ class NavigationTest {
     private fun waitForText(text: String) =
         rule.waitUntil(15_000) { rule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
 
+    // The Statistics card exists only on Home among Home/Styles/Levels.
+    private fun waitForHome() = waitForText(ArabicStrings.statistics)
+
     private fun openRegularStyles() {
-        waitForText(ArabicStrings.homeTagline)
+        waitForHome()
         rule.onNodeWithText(ArabicStrings.gameModeTitle(GameMode.Regular)).performClick()
         waitForText(ArabicStrings.chooseStyle)
     }
@@ -47,7 +52,7 @@ class NavigationTest {
     fun doubleBackOnStylesStopsAtHome() {
         openRegularStyles()
         doubleBack()
-        rule.onNodeWithText(ArabicStrings.homeTagline).assertIsDisplayed()
+        rule.onNodeWithText(ArabicStrings.statistics).assertExists()
     }
 
     @Test
@@ -61,7 +66,7 @@ class NavigationTest {
 
     @Test
     fun doubleTapOnAModeOpensItOnce() {
-        waitForText(ArabicStrings.homeTagline)
+        waitForHome()
         rule.mainClock.autoAdvance = false
         val card = rule.onNodeWithText(ArabicStrings.gameModeTitle(GameMode.Regular))
         card.performClick()
@@ -70,17 +75,27 @@ class NavigationTest {
         rule.waitForIdle()
         rule.onNodeWithContentDescription(ArabicStrings.back).performClick()
         rule.waitForIdle()
-        rule.onNodeWithText(ArabicStrings.homeTagline).assertIsDisplayed()
+        rule.onNodeWithText(ArabicStrings.statistics).assertExists()
     }
 
     @Test
     fun languagePickerIsRadioGroupAndClosesOnSelect() {
-        waitForText(ArabicStrings.homeTagline)
+        waitForHome()
         rule.onNodeWithContentDescription("${ArabicStrings.languageLabel}: العربية").performClick()
         val radio = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton)
         rule.onAllNodes(radio).assertCountEquals(2)
-        rule.onNodeWithText("English").performClick()
-        rule.waitForIdle()
-        rule.onAllNodesWithText("English").assertCountEquals(0)
+        rule.onNodeWithContentDescription("English").performClick()
+        // Closes only after the language has been written and applied.
+        rule.waitUntil(5_000) { rule.onAllNodesWithContentDescription("English").fetchSemanticsNodes().isEmpty() }
+        rule.onNodeWithContentDescription("${EnglishStrings.languageLabel}: English").assertExists()
+    }
+
+    @Test
+    fun creditsOverlayShowsTanzilAndCloses() {
+        waitForHome()
+        rule.onNodeWithContentDescription(ArabicStrings.credits).performClick()
+        rule.onNodeWithText(ArabicStrings.creditsTanzil).assertIsDisplayed()
+        rule.onNodeWithContentDescription(ArabicStrings.back).performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText(ArabicStrings.creditsTanzil).fetchSemanticsNodes().isEmpty() }
     }
 }

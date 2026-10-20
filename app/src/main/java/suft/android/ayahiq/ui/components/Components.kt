@@ -36,9 +36,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import suft.android.ayahiq.R
 import suft.android.ayahiq.ui.i18n.LocalStrings
 import suft.android.ayahiq.ui.theme.LocalQuizColors
+import suft.android.ayahiq.ui.theme.TitleFont
 
 /** Old-paper texture from the original app (light theme) or a plain dark surface. */
 @Composable
@@ -159,4 +161,15 @@ fun OrnamentDivider(modifier: Modifier = Modifier) {
                 .padding(vertical = 2.dp),
         )
     }
+}
+
+/** The app name in the Rakkas title face, as on the main menu and the load screen. */
+@Composable
+fun AppTitle(modifier: Modifier = Modifier) {
+    Text(
+        text = LocalStrings.current.appName,
+        modifier = modifier,
+        style = MaterialTheme.typography.displayMedium.copy(fontFamily = TitleFont, fontSize = 52.sp),
+        color = MaterialTheme.colorScheme.primary,
+    )
 }

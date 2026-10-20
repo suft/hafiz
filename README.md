@@ -120,9 +120,9 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 ---
 
 ## Licences & credits
-- **Quran text:** Tanzil Project, CC BY 3.0. The text must not be modified and the source must be credited with a link; the home screen does this.
+- **Quran text:** Tanzil Project, CC BY 3.0. The text must not be modified and the source must be credited with a link; the credits screen (the ⓘ button on the main menu) does this.
 - **Recitations:** streamed from everyayah.com. One clip is truncated on the server and cannot be fixed here: `mahmoud_ali_al_banna_32kbps/012067.mp3` (surah 12, ayah 67). `mise run reciters` (also a weekly GitHub workflow) checks that every reciter has all 6236 files and lists known defects as warnings.
-- **Mutashabihat (Hafiz mode):** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the home screen credits the source. No licence is stated on the site, so get their permission before publishing. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Hafiz mode has traps for them too. Review those pairs before a release.
+- **Mutashabihat (Hafiz mode):** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site, so get their permission before publishing. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Hafiz mode has traps for them too. Review those pairs before a release.
 - **Fonts:** Amiri / Amiri Quran, Rakkas, Inter and Scheherazade New are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`). Scheherazade New is the second face of the share card (it replaced Cordoba, which does not cover Arabic).
 - **Paper texture and frames** are reused from the original APK. Check that you have the rights to them before publishing.
 - **Launcher glyph (themed icon):** Material Icons "menu_book", Apache 2.0.
