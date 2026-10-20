@@ -17,9 +17,9 @@ Pick a **game mode** first, then a question style and a level:
 | **ثلاث فرص** (3 Lives) | Third wrong answer | Correct answers |
 | **حافظ** (Hafiz) | Third wrong answer | Correct answers; the wrong options are *mutashabihat* traps: surahs and next ayahs that resemble the right answer |
 
-Survival, 3 Lives and Hafiz keep a best score per level, and their games show up in **إحصائيات** (stats: overall accuracy, the surahs you most often get wrong, per-mode games played and averages) and its activity history.
+Survival, 3 Lives and Hafiz keep a best score per level, and their games show up in **إحصائيات** (stats: overall and per-style accuracy, the surahs to review, per-mode games played, best score, average and longest streak) and its activity history.
 
-Recitations stream from [everyayah.com](https://everyayah.com) (27 reciters). Quran text: [Tanzil](https://tanzil.net) (Simple, v1.0.2).
+Recitations stream from [everyayah.com](https://everyayah.com) (26 reciters). Quran text: [Tanzil](https://tanzil.net) (Simple, v1.0.2).
 
 ---
 
@@ -28,7 +28,7 @@ Recitations stream from [everyayah.com](https://everyayah.com) (27 reciters). Qu
 You only need [mise](https://mise.jdx.dev/getting-started.html) and `curl`/`unzip`. mise installs the JDK and the tasks download the Android SDK, so Android Studio isn't required.
 
 ```bash
-cd AyahSurah
+cd ayahiq
 mise trust          # allow this project's mise.toml
 mise install        # Temurin JDK 21
 mise run setup      # Android cmdline-tools + platform 37 + build-tools (first run only)
@@ -46,12 +46,14 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 | `release` | Minified release APK → `dist/AyahIQ-release.apk` |
 | `bundle` | Release `.aab` for Google Play |
 | `keystore` | Create `release.jks` + `keystore.properties` for release signing |
-| `test` (`t`) | JVM unit tests for the quiz logic |
+| `mutashabihat` | Regenerate `assets/mutashabihat.txt` from Aswaatul Qurraa (python3) and merge the supplement |
+| `reciters` | Check that every reciter has all 6236 ayah files on everyayah.com (python3) |
+| `test` (`t`) | JVM unit tests (quiz logic, progress, stats) and Robolectric UI tests |
 | `lint` / `check` | Android lint / tests + lint |
 | `install`, `run`, `logcat` | Install on a device via adb, launch it, follow its logs |
 | `clean` | Delete build outputs |
 
-**Release signing.** If `keystore.properties` doesn't exist, the release APK is signed with the debug key, so it still installs. For a real release run `mise run keystore` once, then back up `release.jks` and its password. Both files are git-ignored.
+**Release signing.** A release build needs a real key: run `mise run keystore` once (then back up `release.jks` and its password; both files are git-ignored), or set `AYAHIQ_KEYSTORE_FILE`, `AYAHIQ_KEYSTORE_PASSWORD`, `AYAHIQ_KEY_ALIAS` and `AYAHIQ_KEY_PASSWORD`. Without one, `assembleRelease` stops with an explanation instead of silently signing with the public debug key. For a local test build only, set `AYAHIQ_ALLOW_DEBUG_SIGNING=1` (CI does); never distribute such an APK.
 
 **Upgrading from the old app.** The package name changed from `zozo.android.ayahsurra` to `suft.android.ayahiq`, so this installs as a separate app and does not update the old one. Scores and settings are not carried over. The debug build uses `suft.android.ayahiq.debug`.
 
@@ -76,7 +78,7 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 - No repeated ayahs within a round. Locked or half-migrated level data is gone: every level is open, as it effectively was in 2.0.
 
 **Improvements**
-- Recitations are **cached on disk** (200 MB LRU), and the next question's audio is prefetched, so replays work offline.
+- Recitations are **cached on disk** (200 MB LRU). With auto-play on, the next question's audio is prefetched, so replays work offline; with it off nothing is downloaded until you press play.
 - Your reciter and auto-play choices are remembered. Six new reciters: القطامي، الرفاعي، الحذيفي، فارس عباد، محمد أيوب، البدير.
 - Ayah text is set in the **Amiri Quran** font. The next-ayah mode shows ornate ayah numbers ﴿٥﴾. Long answer options are shortened to a distinct opening phrase.
 - New level list with progress bars and a "mastered" mark, a result dialog that shows new records, a "next" button to skip the feedback delay, and resettable statistics.
@@ -99,15 +101,19 @@ app/src/main/
     domain/                      pure Kotlin: Quran index, XML parser, levels, question generator, stats
     data/ProgressRepository.kt   DataStore: best scores, per-surah stats, settings
     audio/                       reciters, ExoPlayer wrapper, disk cache
+    games/                       Google Play Games leaderboards (dormant until configured)
     ui/                          Compose: home, levels, quiz (+ViewModel), stats, share card, theme
-  res/font/                      Amiri, Rakkas (OFL), Cordoba (from the original app)
+  res/font/                      Amiri, Rakkas, Inter, Scheherazade New (all OFL)
   res/drawable-nodpi/            paper texture, frames (from the original app)
-tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3)
-app/src/test/                    QuizLogicTest — runs against the real Quran text
+tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3; --offline only merges the supplement)
+tools/mutashabihat_supplement.txt  hand-curated pairs for the surahs the source does not cover
+tools/check_reciters.py          checks every reciter's files on everyayah.com (also .github/workflows/reciters.yml)
+app/src/test/                    JVM tests on the real Quran text (QuizLogicTest, QuestionCorrectnessTest, ProgressTest, ProgressStoreTest, StatsTest, ArabicTextTest, StringsTest)
+                                 and Robolectric UI tests (quiz layout/lifecycle, navigation, share card, stats); all run in `mise run test`
 ```
 
 ### Versions
-AGP 9.4.1 · Gradle 9.8.2 · Kotlin 2.4.21 · Compose BOM 2026.09.00 · Media3 1.11.1 · compileSdk 37 · targetSdk 35 · minSdk 24.
+AGP 9.4.1 · Gradle 9.8.2 · Kotlin 2.4.21 · Compose BOM 2026.09.00 · Media3 1.11.1 · compileSdk 37 · targetSdk 36 · minSdk 24.
 
 All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assistant* can bump them.
 
@@ -115,7 +121,11 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 
 ## Licences & credits
 - **Quran text:** Tanzil Project, CC BY 3.0. The text must not be modified and the source must be credited with a link; the home screen does this.
-- **Recitations:** streamed from everyayah.com.
-- **Mutashabihat (Hafiz mode):** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the home screen credits the source. No licence is stated on the site, so get their permission before publishing.
-- **Amiri / Amiri Quran / Rakkas fonts:** SIL Open Font License 1.1 (`assets/licenses/Amiri-OFL.txt`, `assets/licenses/Rakkas-OFL.txt`).
-- **Cordoba font, paper texture and frames** are reused from the original APK. Check that you have the rights to them before publishing.
+- **Recitations:** streamed from everyayah.com. One clip is truncated on the server and cannot be fixed here: `mahmoud_ali_al_banna_32kbps/012067.mp3` (surah 12, ayah 67). `mise run reciters` (also a weekly GitHub workflow) checks that every reciter has all 6236 files and lists known defects as warnings.
+- **Mutashabihat (Hafiz mode):** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the home screen credits the source. No licence is stated on the site, so get their permission before publishing. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Hafiz mode has traps for them too. Review those pairs before a release.
+- **Fonts:** Amiri / Amiri Quran, Rakkas, Inter and Scheherazade New are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`). Scheherazade New is the second face of the share card (it replaced Cordoba, which does not cover Arabic).
+- **Paper texture and frames** are reused from the original APK. Check that you have the rights to them before publishing.
+- **Launcher glyph (themed icon):** Material Icons "menu_book", Apache 2.0.
+
+### Google Play Games and privacy
+The leaderboards (Google Play Games Services) are dormant until `res/values/games-ids.xml` is filled in; debug builds never use them. Once enabled, the player's scores go to Google through Play Games, and the Play SDK is part of every release build. Publish a privacy policy and fill in Play Console's data-safety form before releasing with leaderboards enabled.
