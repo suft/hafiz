@@ -41,6 +41,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -225,12 +227,17 @@ private fun LanguageSelector(selected: AppLanguage, onSelect: (AppLanguage) -> U
                     onClick = { if (lang != selected) onSelect(lang) },
                     shape = SegmentedButtonDefaults.itemShape(index = i, count = AppLanguage.entries.size),
                 ) {
-                    // Endonyms: they do not change with the UI language.
+                    // Endonyms: they do not change with the UI language. Read by TalkBack instead of the flag.
+                    val name = when (lang) {
+                        AppLanguage.Arabic -> "العربية"
+                        AppLanguage.English -> "English"
+                    }
                     Text(
                         when (lang) {
-                            AppLanguage.Arabic -> "العربية"
-                            AppLanguage.English -> "English"
+                            AppLanguage.Arabic -> "\uD83C\uDDF8\uD83C\uDDE6" // 🇸🇦
+                            AppLanguage.English -> "\uD83C\uDDEC\uD83C\uDDE7" // 🇬🇧
                         },
+                        modifier = Modifier.semantics { contentDescription = name },
                     )
                 }
             }
