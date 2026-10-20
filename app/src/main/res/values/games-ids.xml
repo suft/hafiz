@@ -15,8 +15,6 @@
   4. Add Android credentials for package suft.android.ayahiq with the SHA-1 of the upload key
      (release.jks) and of the Play app-signing key. While the game is unpublished, add test
      accounts as testers.
-  5. Scores don't drop on the boards after "reset level scores", because Play Games keeps each
-     player's best.
 -->
 <resources>
     <string name="game_services_project_id" translatable="false"></string>
