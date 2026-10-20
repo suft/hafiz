@@ -55,28 +55,33 @@ class Quran private constructor(
 
     fun isLastOfSurah(ayah: Int): Boolean = surahOf(ayah).lastAyah == ayah
 
-    /** Every global index whose text is exactly [text]. */
-    fun occurrencesOf(text: String): IntArray = textIndex[text] ?: IntArray(0)
+    /** [ArabicText.equalityKey] of an ayah: its text apart from pause marks. */
+    fun key(ayah: Int): String = keys[ayah]
+
+    /** Every global index whose text equals that of [ayah] apart from pause marks (including [ayah] itself). */
+    fun occurrencesOf(ayah: Int): IntArray = keyIndex.getValue(keys[ayah])
 
     /**
-     * Indices of the surahs that contain the consecutive ayah texts of [shown] (same order,
-     * inside one surah). Used to avoid offering a second, equally correct answer.
+     * Indices of the surahs that contain the consecutive ayahs of [shown] (same order, inside one surah,
+     * equal apart from pause marks). Used to avoid offering a second, equally correct answer.
      */
     fun surahsContaining(shown: IntRange): Set<Int> {
-        val wanted = shown.map(::text)
-        return occurrencesOf(wanted.first())
+        val wanted = shown.map(::key)
+        return occurrencesOf(shown.first)
             .filter { start ->
                 val surah = surahOf(start)
                 wanted.indices.all { k ->
                     val g = start + k
-                    g <= surah.lastAyah && texts[g] == wanted[k]
+                    g <= surah.lastAyah && keys[g] == wanted[k]
                 }
             }
             .mapTo(mutableSetOf()) { surahOfAyah[it] }
     }
 
-    private val textIndex: Map<String, IntArray> by lazy {
-        texts.indices.groupBy { texts[it] }.mapValues { (_, v) -> v.toIntArray() }
+    private val keys: List<String> = texts.map(ArabicText::equalityKey)
+
+    private val keyIndex: Map<String, IntArray> by lazy {
+        keys.indices.groupBy { keys[it] }.mapValues { (_, v) -> v.toIntArray() }
     }
 
     companion object {
