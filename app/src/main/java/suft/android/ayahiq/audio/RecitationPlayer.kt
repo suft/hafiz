@@ -1,8 +1,8 @@
 package suft.android.ayahiq.audio
 
 import android.content.Context
-import android.net.Uri
 import androidx.annotation.OptIn
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -129,7 +129,7 @@ class RecitationPlayer(
                 if (!isActive) break
                 val writer = CacheWriter(
                     audioCache.dataSourceFactory.createDataSource(),
-                    DataSpec(Uri.parse(url)),
+                    DataSpec(url.toUri()),
                     /* temporaryBuffer = */ null,
                     /* progressListener = */ null,
                 )
