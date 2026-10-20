@@ -1,0 +1,14 @@
+name: build
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: mise run test
+      - run: mise run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AyahIQ-debug
+          path: dist/*.apk
