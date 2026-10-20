@@ -2,6 +2,7 @@ package suft.android.ayahiq.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -165,6 +166,9 @@ fun AyahIqTheme(
         LocalStrings provides stringsFor(language),
         LocalQuizColors provides if (darkTheme) DarkQuiz else LightQuiz,
     ) {
-        MaterialTheme(colorScheme = scheme, typography = typography(), content = content)
+        MaterialTheme(colorScheme = scheme, typography = typography()) {
+            // The paper background is not a Surface, so without this text defaults to black, unreadable in dark mode.
+            CompositionLocalProvider(LocalContentColor provides scheme.onBackground, content = content)
+        }
     }
 }
