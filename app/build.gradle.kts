@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -17,7 +16,7 @@ val hasReleaseKeystore = keystoreProps.getProperty("storeFile") != null
 
 android {
     namespace = "suft.android.ayahiq"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         // Same id as the original app. The new build is signed with a different key, so

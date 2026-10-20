@@ -21,7 +21,7 @@ You only need [mise](https://mise.jdx.dev/getting-started.html) and `curl`/`unzi
 cd AyahSurah
 mise trust          # allow this project's mise.toml
 mise install        # Temurin JDK 21
-mise run setup      # Android cmdline-tools + platform 35 + build-tools (first run only)
+mise run setup      # Android cmdline-tools + platform 37 + build-tools (first run only)
 mise run build      # -> dist/AyahIQ-debug.apk
 ```
 
@@ -95,7 +95,7 @@ app/src/test/                    QuizLogicTest — runs against the real Quran t
 ```
 
 ### Versions
-AGP 8.10.1 · Gradle 8.14.3 · Kotlin 2.1.21 · Compose BOM 2025.05.00 · Media3 1.6.1 · compileSdk/targetSdk 35 · minSdk 24.
+AGP 9.4.1 · Gradle 9.8.2 · Kotlin 2.4.21 · Compose BOM 2026.09.00 · Media3 1.11.1 · compileSdk 37 · targetSdk 35 · minSdk 24.
 
 All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assistant* can bump them.
 

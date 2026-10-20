@@ -1,15 +1,15 @@
 [versions]
-agp = "8.10.1"
-kotlin = "2.1.21"
-coreKtx = "1.16.0"
-activityCompose = "1.10.1"
-composeBom = "2025.05.00"
-lifecycle = "2.8.7"
-navigation = "2.8.9"
-media3 = "1.6.1"
-datastore = "1.1.4"
-kotlinxSerialization = "1.8.1"
-kotlinxCoroutines = "1.10.2"
+agp = "9.4.1"
+kotlin = "2.4.21"
+coreKtx = "1.19.1"
+activityCompose = "1.13.0"
+composeBom = "2026.09.00"
+lifecycle = "2.11.0"
+navigation = "2.10.2"
+media3 = "1.11.1"
+datastore = "1.2.1"
+kotlinxSerialization = "1.12.0"
+kotlinxCoroutines = "1.11.0"
 junit = "4.13.2"
 
 [libraries]
@@ -40,6 +40,5 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

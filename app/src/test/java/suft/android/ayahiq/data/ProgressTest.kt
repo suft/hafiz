@@ -10,6 +10,7 @@ import suft.android.ayahiq.domain.Score
 class ProgressTest {
 
     private val guess = GameMode.GuessSurah
+    private val json = Json { ignoreUnknownKeys = true }
 
     @Test
     fun dayStreaks() {
@@ -75,7 +76,7 @@ class ProgressTest {
 
     @Test
     fun oldProgressFilesStillLoad() {
-        val p = Json { ignoreUnknownKeys = true }
+        val p = json
             .decodeFromString(Progress.serializer(), """{"totalCorrect":3,"surahCorrect":{"0":3}}""")
         assertEquals(Progress.NO_DAY, p.lastActiveDay)
         assertEquals(emptyList<RoundRecord>(), p.recentRounds)
