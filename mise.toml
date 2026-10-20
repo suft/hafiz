@@ -92,7 +92,7 @@ echo "✓ dist/AyahIQ-debug.apk"
 '''
 
 [tasks.release]
-description = "Build the minified release APK (uses keystore.properties if present, else the debug key)"
+description = "Build the minified release APK (needs keystore.properties, AYAHIQ_KEYSTORE_* or AYAHIQ_ALLOW_DEBUG_SIGNING=1)"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
@@ -104,7 +104,7 @@ echo "✓ dist/AyahIQ-release.apk"
 '''
 
 [tasks.bundle]
-description = "Build a release Android App Bundle (.aab) for Google Play"
+description = "Build a release Android App Bundle (.aab) for Google Play (needs keystore.properties, AYAHIQ_KEYSTORE_* or AYAHIQ_ALLOW_DEBUG_SIGNING=1)"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
@@ -116,13 +116,17 @@ echo "✓ dist/AyahIQ-release.aab"
 '''
 
 [tasks.test]
-description = "Run JVM unit tests (question generator, levels, stats)"
+description = "Run JVM unit tests (question generator, levels, stats, progress) and the Robolectric UI tests"
 alias = "t"
 run = "./gradlew :app:testDebugUnitTest"
 
 [tasks.mutashabihat]
-description = "Re-download Aswaatul Qurraa's mutashabihat and regenerate app/src/main/assets/mutashabihat.txt (needs python3)"
+description = "Re-download Aswaatul Qurraa's mutashabihat and regenerate app/src/main/assets/mutashabihat.txt (needs python3; --offline just merges tools/mutashabihat_supplement.txt)"
 run = "python3 tools/mutashabihat.py"
+
+[tasks.reciters]
+description = "Check that every reciter has all 6236 ayah files on everyayah.com (needs python3)"
+run = "python3 tools/check_reciters.py"
 
 [tasks.lint]
 description = "Run Android lint"
@@ -152,16 +156,21 @@ run = '''
 set -euo pipefail
 if [ -f keystore.properties ]; then echo "keystore.properties already exists"; exit 0; fi
 read -r -s -p "Keystore password (min 6 chars): " pass; echo
-keytool -genkeypair -v -keystore release.jks -alias ayahsurah \
+# The password goes to keytool through the environment, not the command line (visible in `ps`).
+export KS_PASS="$pass"
+keytool -genkeypair -v -keystore release.jks -alias ayahiq \
   -keyalg RSA -keysize 4096 -validity 10000 \
-  -storepass "$pass" -keypass "$pass" \
-  -dname "CN=Ayah Surah, O=Ayah Surah, C=XX"
+  -storepass:env KS_PASS -keypass:env KS_PASS \
+  -dname "CN=AyahIQ, O=AyahIQ, C=XX"
+# .properties escapes: a backslash is doubled, a leading space is escaped.
+esc=$(printf '%s' "$pass" | sed -e 's/\\/\\\\/g' -e 's/^ /\\ /')
 cat > keystore.properties <<EOF
 storeFile=release.jks
-storePassword=$pass
-keyAlias=ayahsurah
-keyPassword=$pass
+storePassword=$esc
+keyAlias=ayahiq
+keyPassword=$esc
 EOF
+chmod 600 keystore.properties release.jks
 echo "✓ release.jks + keystore.properties created"
 '''
 

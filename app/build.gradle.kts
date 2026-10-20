@@ -7,23 +7,50 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-// Optional release signing: create keystore.properties with `mise run keystore`.
+// Release signing: `mise run keystore` creates keystore.properties; CI can set AYAHIQ_KEYSTORE_FILE,
+// AYAHIQ_KEYSTORE_PASSWORD, AYAHIQ_KEY_ALIAS and AYAHIQ_KEY_PASSWORD instead.
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }
-val hasReleaseKeystore = keystoreProps.getProperty("storeFile") != null
+
+fun signingProp(key: String, env: String): String? =
+    keystoreProps.getProperty(key) ?: providers.environmentVariable(env).orNull
+
+val releaseStoreFile: File? = signingProp("storeFile", "AYAHIQ_KEYSTORE_FILE")?.let { rootProject.file(it) }
+val hasReleaseKeystore = releaseStoreFile?.exists() == true
+
+// Opt-in for builds that are only run locally or in CI (-PallowDebugSigning or AYAHIQ_ALLOW_DEBUG_SIGNING=1).
+val allowDebugSigning: Boolean = providers.gradleProperty("allowDebugSigning")
+    .orElse(providers.environmentVariable("AYAHIQ_ALLOW_DEBUG_SIGNING"))
+    .map { it == "true" || it == "1" }
+    .getOrElse(false)
+
+val checkReleaseSigning = tasks.register("checkReleaseSigning") {
+    val configured = hasReleaseKeystore || allowDebugSigning
+    val missingFile = releaseStoreFile?.takeIf { !it.exists() }?.path
+    doLast {
+        if (!configured) {
+            throw GradleException(
+                (if (missingFile != null) "The release keystore $missingFile does not exist. " else "") +
+                    "Release signing is not configured: run `mise run keystore`, set the AYAHIQ_KEYSTORE_* " +
+                    "variables, or set AYAHIQ_ALLOW_DEBUG_SIGNING=1 to sign with the public debug key " +
+                    "(never distribute such builds).",
+            )
+        }
+    }
+}
+tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(checkReleaseSigning) }
 
 android {
     namespace = "suft.android.ayahiq"
     compileSdk = 37
 
     defaultConfig {
-        // Same id as the original app. The new build is signed with a different key, so
-        // Android will ask you to uninstall the old version first.
+        // Package changed from the original zozo.android.ayahsurra; installs as a separate app.
         applicationId = "suft.android.ayahiq"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 30
         versionName = "3.0"
     }
@@ -31,10 +58,10 @@ android {
     signingConfigs {
         if (hasReleaseKeystore) {
             create("release") {
-                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
-                storePassword = keystoreProps.getProperty("storePassword")
-                keyAlias = keystoreProps.getProperty("keyAlias")
-                keyPassword = keystoreProps.getProperty("keyPassword")
+                storeFile = releaseStoreFile
+                storePassword = signingProp("storePassword", "AYAHIQ_KEYSTORE_PASSWORD")
+                keyAlias = signingProp("keyAlias", "AYAHIQ_KEY_ALIAS")
+                keyPassword = signingProp("keyPassword", "AYAHIQ_KEY_PASSWORD")
             }
         }
     }
@@ -47,11 +74,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // Without a release keystore, sign with the debug key so the APK is still installable.
-            signingConfig = if (hasReleaseKeystore) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
+            // Never silently fall back to the public debug key: such a build could be sideloaded as "the" release
+            // and a leaked debug-signed update path is a supply-chain hazard. `checkReleaseSigning` explains how to opt in.
+            signingConfig = when {
+                hasReleaseKeystore -> signingConfigs.getByName("release")
+                allowDebugSigning -> signingConfigs.getByName("debug")
+                else -> null
             }
         }
         debug {
@@ -74,7 +102,15 @@ android {
     }
 
     testOptions {
-        unitTests.isReturnDefaultValues = true
+        unitTests {
+            isReturnDefaultValues = true
+            isIncludeAndroidResources = true
+            all {
+                it.systemProperty("java.awt.headless", "true")
+                // Robolectric 4.17 (SDK 36) reaches into JDK internals.
+                it.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
+            }
+        }
     }
 }
 
@@ -100,6 +136,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.datasource)
@@ -112,4 +149,10 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.espresso.core)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.lifecycle.runtime.testing)
 }
