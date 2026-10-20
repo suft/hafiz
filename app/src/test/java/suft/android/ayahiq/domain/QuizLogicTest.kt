@@ -178,6 +178,12 @@ class QuizLogicTest {
     }
 
     @Test
+    fun weakestRankingSmoothsSmallSamples() {
+        val ranked = Stats.weakestFirst(mapOf(0 to Score(0, 1), 1 to Score(2, 8)))
+        assertEquals(listOf(1, 0), ranked.map { it.surahIndex })
+    }
+
+    @Test
     fun surahTiers() {
         assertEquals(SurahTier.Weak, Stats.tier(Score(59, 41)))
         assertEquals(SurahTier.Fair, Stats.tier(Score(60, 40)))
@@ -218,12 +224,34 @@ class QuizLogicTest {
     @Test
     fun practiceRoundsWorkForEverySurah() {
         for (surah in 0 until Quran.SURAH_COUNT) {
-            val gen = QuestionGenerator(quran, Levels.surahPractice(surah, quran), AppLanguage.English, Random(surah))
-            repeat(10) {
-                val q = gen.next()
+            val level = Levels.surahPractice(surah, quran)
+            val n = level.questionsPerRound
+            val gen = QuestionGenerator(quran, level, AppLanguage.English, Random(surah))
+            val questions = List(3 * n) { gen.next() }
+            val prompts = questions.map { it.shownAyahs.first }
+            for (q in questions) {
                 assertEquals(surah, q.surahIndex)
                 assertEquals(4, q.options.toSet().size)
             }
+            assertEquals("surah $surah", n, prompts.take(n).toSet().size)
+            if (n > 1) {
+                for (i in 1 until prompts.size) assertTrue("surah $surah", prompts[i] != prompts[i - 1])
+            }
+            // More prompts than one round: any n consecutive draws (rounds are not deck-aligned) are distinct.
+            if (quran.surahs[surah].ayahCount - 1 > n) {
+                for (i in 0..prompts.size - n) {
+                    assertEquals("surah $surah window $i", n, prompts.subList(i, i + n).toSet().size)
+                }
+            }
         }
+    }
+
+    @Test
+    fun masteryScalesWithRoundLength() {
+        assertEquals(9, GameMode.NextAyah.masteryFor(10))
+        assertEquals(2, GameMode.NextAyah.masteryFor(2))
+        assertEquals(16, GameMode.GuessSurah.masteryFor(20))
+        assertEquals(2, Levels.surahPractice(107, quran).questionsPerRound)
+        assertEquals(10, Levels.surahPractice(1, quran).questionsPerRound)
     }
 }

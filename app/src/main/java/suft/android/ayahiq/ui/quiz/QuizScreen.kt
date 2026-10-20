@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -64,6 +65,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -86,6 +88,8 @@ import suft.android.ayahiq.ui.i18n.Strings
 import suft.android.ayahiq.ui.theme.LocalQuizColors
 import suft.android.ayahiq.ui.theme.NaskhFont
 import suft.android.ayahiq.ui.theme.quranTextStyle
+
+private val NextAyahOptionLineHeight = 30.sp
 
 @Composable
 fun QuizScreen(
@@ -181,7 +185,8 @@ fun QuizScreen(
 @Composable
 private fun ProgressHeader(state: QuizUiState, onNext: () -> Unit) {
     val strings = LocalStrings.current
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    // The "next" TextButton's 48dp touch target must not grow the row when it appears.
+    Row(modifier = Modifier.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             strings.questionProgress(state.number, state.total),
             style = MaterialTheme.typography.titleMedium,
@@ -382,11 +387,18 @@ private fun OptionButton(text: String, mode: GameMode, state: OptionState, onCli
         1f
     }
 
+    // Every next-ayah option reserves two lines so 1- or 2-line options don't resize the options column.
+    val minHeight = if (mode == GameMode.NextAyah) {
+        with(LocalDensity.current) { (NextAyahOptionLineHeight * 2).toDp() } + 20.dp // 2 lines + vertical contentPadding
+    } else {
+        0.dp
+    }
     OutlinedButton(
         onClick = onClick,
         enabled = state == OptionState.Open,
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = minHeight)
             .alpha(if (state == OptionState.Dimmed) 0.5f else 1f),
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(if (state == OptionState.Open || state == OptionState.Dimmed) 1.dp else 2.dp, borderColor),
@@ -401,7 +413,7 @@ private fun OptionButton(text: String, mode: GameMode, state: OptionState, onCli
         Text(
             text = text,
             style = if (mode == GameMode.NextAyah) {
-                quranTextStyle(17).copy(lineHeight = 30.sp)
+                quranTextStyle(17).copy(lineHeight = NextAyahOptionLineHeight)
             } else {
                 MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             },
@@ -429,12 +441,13 @@ private fun ResultDialog(
     onMainMenu: () -> Unit,
 ) {
     val strings = LocalStrings.current
-    val mastery = state.level.mode.masteryScore
+    val mastery = state.level.masteryScore
+    val practice = state.level.practice
     val message = when {
         state.score == state.total -> strings.perfectScore
-        state.score >= mastery -> strings.levelMastered
+        state.score >= mastery -> if (practice) strings.surahReviewMastered else strings.levelMastered
         state.score * 2 >= state.total -> strings.keepReviewing
-        else -> strings.needsReview
+        else -> if (practice) strings.surahNeedsReview else strings.needsReview
     }
     AlertDialog(
         onDismissRequest = {},

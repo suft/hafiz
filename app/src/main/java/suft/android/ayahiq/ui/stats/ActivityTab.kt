@@ -158,7 +158,7 @@ private fun ScoreTrendChart(rounds: List<ResolvedRound>) {
             }
             points.forEachIndexed { i, p ->
                 val round = rounds[i]
-                val mastered = round.record.score >= round.level.mode.masteryScore
+                val mastered = round.record.score >= round.level.mode.masteryFor(round.record.total)
                 drawCircle(if (mastered) quizColors.correct else scheme.secondary, radius = 4.dp.toPx(), center = p)
             }
         }
@@ -171,7 +171,7 @@ private fun RoundRow(round: ResolvedRound, today: Long) {
     val strings = LocalStrings.current
     val record = round.record
     val level = round.level
-    val mastered = record.score >= level.mode.masteryScore
+    val mastered = record.score >= level.mode.masteryFor(record.total)
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(

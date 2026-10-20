@@ -46,6 +46,8 @@ interface Strings {
     val levelMastered: String
     val keepReviewing: String
     val needsReview: String
+    val surahReviewMastered: String
+    val surahNeedsReview: String
     fun newRecord(previous: Int): String
     val shareResult: String
     val retry: String
@@ -70,6 +72,7 @@ interface Strings {
     val tabSurahs: String
     val tabActivity: String
     val noAnswersYet: String
+    val modeAccuracySinceUpdate: String
     val surahMap: String
     fun surahsPractised(n: Int, total: Int): String
     val tierNotPractised: String
@@ -146,6 +149,8 @@ object ArabicStrings : Strings {
     override val levelMastered = "أحسنت! لقد أتقنت هذه المرحلة"
     override val keepReviewing = "جيد، واصل المراجعة لتتقنها"
     override val needsReview = "هذه المرحلة تحتاج إلى مزيد من المراجعة"
+    override val surahReviewMastered = "أحسنت! حفظك لهذه السورة متقن"
+    override val surahNeedsReview = "هذه السورة تحتاج إلى مزيد من المراجعة"
     override fun newRecord(previous: Int) = "رقم قياسي جديد! (السابق ${number(previous)})"
     override val shareResult = "انشر النتيجة"
     override val retry = "إعادة"
@@ -173,6 +178,7 @@ object ArabicStrings : Strings {
     override val tabSurahs = "السور"
     override val tabActivity = "النشاط"
     override val noAnswersYet = "لا إجابات بعد"
+    override val modeAccuracySinceUpdate = "دقة كل نوع تشمل الإجابات منذ هذا التحديث فقط، والإجابات الأقدم محسوبة في الدقة الكلية."
     override val surahMap = "خريطة السور"
     override fun surahsPractised(n: Int, total: Int) = "تدرّبت على ${number(n)} من ${number(total)} سورة"
     override val tierNotPractised = "لم تُختبر"
@@ -189,7 +195,7 @@ object ArabicStrings : Strings {
     override val currentRun = "إجابات صحيحة متتالية"
     override val bestRun = "أطول سلسلة إجابات صحيحة"
     override val scoreTrend = "تطور النتائج"
-    override val recentRounds = "الجولات الأخيرة"
+    override val recentRounds = "آخر الجولات المكتملة"
     override val noRoundsYet = "أكمل جولة لتظهر نتائجك هنا."
     override fun daysAgo(days: Int) = when (days) {
         0 -> "اليوم"
@@ -255,6 +261,8 @@ object EnglishStrings : Strings {
     override val levelMastered = "Well done! You have mastered this level"
     override val keepReviewing = "Good, keep reviewing to master it"
     override val needsReview = "This level needs more review"
+    override val surahReviewMastered = "Well done! You know this surah well"
+    override val surahNeedsReview = "This surah needs more review"
     override fun newRecord(previous: Int) = "New record! (previous: $previous)"
     override val shareResult = "Share result"
     override val retry = "Retry"
@@ -282,6 +290,7 @@ object EnglishStrings : Strings {
     override val tabSurahs = "Surahs"
     override val tabActivity = "Activity"
     override val noAnswersYet = "No answers yet"
+    override val modeAccuracySinceUpdate = "Per-mode accuracy counts answers given since this update; older answers are only in the overall accuracy."
     override val surahMap = "Surah map"
     override fun surahsPractised(n: Int, total: Int) = "$n of $total surahs practised"
     override val tierNotPractised = "Not practised"
@@ -298,7 +307,7 @@ object EnglishStrings : Strings {
     override val currentRun = "Correct in a row"
     override val bestRun = "Best correct run"
     override val scoreTrend = "Score trend"
-    override val recentRounds = "Recent rounds"
+    override val recentRounds = "Finished rounds"
     override val noRoundsYet = "Finish a round to see your history here."
     override fun daysAgo(days: Int) = when (days) {
         0 -> "Today"

@@ -38,7 +38,7 @@ data class QuizUiState(
     val reciter: Int = 0,
     val autoPlay: Boolean = true,
 ) {
-    val total: Int get() = level.mode.questionsPerRound
+    val total: Int get() = level.questionsPerRound
     val answered: Boolean get() = selected != null
     val isNewRecord: Boolean get() = finished && score > previousBest
 }
@@ -147,7 +147,6 @@ class QuizViewModel(
         val best = maxOf(_state.value.previousBest, _state.value.score)
         roundRecorded = false
         _state.update { it.copy(number = 0, score = 0, selected = null, finished = false, previousBest = best, question = null) }
-        upcoming = generator.next()
         showNextQuestion()
     }
 

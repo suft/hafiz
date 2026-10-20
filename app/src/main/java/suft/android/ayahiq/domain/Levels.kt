@@ -21,6 +21,9 @@ enum class GameMode(
         masteryScore = 9,
     );
 
+    /** Mastery threshold for a round of [total] questions (same ratio as [masteryScore], rounded up). */
+    fun masteryFor(total: Int): Int = (masteryScore * total + questionsPerRound - 1) / questionsPerRound
+
     companion object {
         fun fromKey(key: String): GameMode = entries.first { it.key == key }
     }
@@ -31,6 +34,7 @@ enum class GameMode(
  *
  * @property openings "فواتح السور" — questions use the first two ayahs of a random surah.
  * @property practice single-surah review round started from Statistics; never stores a best score.
+ * @property questionsPerRound questions in one round; shorter than the mode's only for practice on short surahs.
  */
 data class Level(
     val mode: GameMode,
@@ -41,7 +45,11 @@ data class Level(
     val lastSurah: Int,
     val openings: Boolean = false,
     val practice: Boolean = false,
+    val questionsPerRound: Int = mode.questionsPerRound,
 ) {
+    /** Score needed for this level to count as mastered. */
+    val masteryScore: Int get() = mode.masteryFor(questionsPerRound)
+
     fun name(language: AppLanguage): String = if (language == AppLanguage.English) englishName else arabicName
 
     /** Stable key used to persist the best score (independent of list order). */
@@ -124,6 +132,7 @@ object Levels {
             firstSurah = surahIndex,
             lastSurah = surahIndex,
             practice = true,
+            questionsPerRound = minOf(GameMode.NextAyah.questionsPerRound, surah.ayahCount - 1),
         )
     }
 

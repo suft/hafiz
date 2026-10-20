@@ -46,13 +46,19 @@ object Stats {
             .toList()
 
     /**
-     * Surahs with at least one wrong answer, weakest first: lowest accuracy, then the
-     * most mistakes (same ordering as the original statistics screen).
+     * Surahs with at least one wrong answer, weakest first by accuracy with one extra correct and
+     * one extra wrong answer (so a single miss ranks below consistent misses); then most mistakes.
      */
     fun weakestFirst(scores: Map<Int, Score>): List<SurahScore> =
         scores.asSequence()
             .filter { it.value.wrong > 0 }
             .map { SurahScore(it.key, it.value) }
-            .sortedWith(compareBy<SurahScore> { it.score.accuracy }.thenByDescending { it.score.wrong })
+            .sortedWith(
+                compareBy<SurahScore> { smoothedAccuracy(it.score) }
+                    .thenByDescending { it.score.wrong }
+                    .thenBy { it.surahIndex },
+            )
             .toList()
+
+    private fun smoothedAccuracy(s: Score): Double = (s.correct + 1.0) / (s.total + 2)
 }

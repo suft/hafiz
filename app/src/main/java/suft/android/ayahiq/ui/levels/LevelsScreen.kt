@@ -121,8 +121,8 @@ private fun Summary(subtitle: String, points: Int, maxPoints: Int, mastered: Int
 
 @Composable
 private fun LevelRow(level: Level, best: Int, onClick: () -> Unit) {
-    val questions = level.mode.questionsPerRound
-    val mastered = best >= level.mode.masteryScore
+    val questions = level.questionsPerRound
+    val mastered = best >= level.masteryScore
     val quizColors = LocalQuizColors.current
     val strings = LocalStrings.current
 

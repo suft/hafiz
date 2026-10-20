@@ -30,7 +30,8 @@ data class Question(
  * * Wrong answers can never be a second correct answer (e.g. «الم» opens six surahs, and in
  *   سورة الرحمن «فبأي آلاء ربكما تكذبان» is followed by many different ayahs).
  * * Levels with very few surahs/ayahs fall back to a wider pool instead of looping forever.
- * * The same prompt is not repeated within a round.
+ * * The same prompt is not repeated within a round; practice rounds deal prompts from a shuffled deck, so a
+ *   round of `questionsPerRound` never repeats one.
  */
 class QuestionGenerator(
     private val quran: Quran,
@@ -39,16 +40,16 @@ class QuestionGenerator(
     private val random: Random = Random.Default,
 ) {
     private val recent = ArrayDeque<Int>()
+    private val practiceDeck = ArrayDeque<Int>()
+    private val practiceRecent = ArrayDeque<Int>()
+    private val practicePrompts: List<Int> by lazy {
+        level.surahRange.flatMap { quran.surahs[it].ayahRange }.filter { !quran.isLastOfSurah(it) }
+    }
+    private val practiceWindow: Int
+        get() = if (practicePrompts.size > level.questionsPerRound) level.questionsPerRound - 1 else 1
 
     fun next(): Question {
-        var shown = pickPrompt()
-        repeat(MAX_REPEAT_TRIES) {
-            if (shown.first !in recent) return@repeat
-            shown = pickPrompt()
-        }
-        recent.addLast(shown.first)
-        if (recent.size > RECENT_MEMORY) recent.removeFirst()
-
+        val shown = if (level.practice) nextPracticePrompt() else pickFreshPrompt()
         return when (level.mode) {
             GameMode.GuessSurah -> guessSurahQuestion(shown)
             GameMode.NextAyah -> nextAyahQuestion(shown)
@@ -56,6 +57,32 @@ class QuestionGenerator(
     }
 
     // ---------------------------------------------------------------- prompt selection
+
+    private fun pickFreshPrompt(): IntRange {
+        var shown = pickPrompt()
+        repeat(MAX_REPEAT_TRIES) {
+            if (shown.first !in recent) return@repeat
+            shown = pickPrompt()
+        }
+        recent.addLast(shown.first)
+        if (recent.size > RECENT_MEMORY) recent.removeFirst()
+        return shown
+    }
+
+    /**
+     * Each prompt ayah once per shuffled deck. Rounds are not aligned with decks (the next question
+     * is prefetched), so a prompt is also skipped while it is among the last `questionsPerRound - 1`
+     * dealt; for a surah with exactly one round of prompts only the one just dealt is avoided, so
+     * every round is reshuffled.
+     */
+    private fun nextPracticePrompt(): IntRange {
+        if (practiceDeck.isEmpty()) practiceDeck.addAll(practicePrompts.shuffled(random))
+        val pick = practiceDeck.indexOfFirst { it !in practiceRecent }.coerceAtLeast(0)
+        val prompt = practiceDeck.removeAt(pick)
+        practiceRecent.addLast(prompt)
+        while (practiceRecent.size > practiceWindow) practiceRecent.removeFirst()
+        return prompt..prompt
+    }
 
     private fun pickPrompt(): IntRange {
         if (level.openings) {
