@@ -93,6 +93,7 @@ fun QuizScreen(
     mode: GameMode,
     levelIndex: Int,
     onBack: () -> Unit,
+    onMainMenu: () -> Unit,
     onShareAyah: (IntRange) -> Unit,
 ) {
     val strings = LocalStrings.current
@@ -170,6 +171,7 @@ fun QuizScreen(
             onRestart = vm::restart,
             onShare = { shareScore(context, state, strings) },
             onBack = onBack,
+            onMainMenu = onMainMenu,
         )
     }
 }
@@ -424,6 +426,7 @@ private fun ResultDialog(
     onRestart: () -> Unit,
     onShare: () -> Unit,
     onBack: () -> Unit,
+    onMainMenu: () -> Unit,
 ) {
     val strings = LocalStrings.current
     val mastery = state.level.mode.masteryScore
@@ -464,7 +467,12 @@ private fun ResultDialog(
                 TextButton(onClick = onRestart) { Text(strings.retry) }
             }
         },
-        dismissButton = { TextButton(onClick = onBack) { Text(strings.goBack) } },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onMainMenu) { Text(strings.mainMenu) }
+                TextButton(onClick = onBack) { Text(strings.goBack) }
+            }
+        },
     )
 }
 

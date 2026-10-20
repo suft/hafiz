@@ -107,6 +107,7 @@ private fun AppNavHost(container: AppContainer, quran: Quran) {
                 mode = GameMode.fromKey(route.mode),
                 levelIndex = route.level,
                 onBack = { nav.popBackStack() },
+                onMainMenu = { nav.popBackStack<HomeRoute>(inclusive = false) },
                 onShareAyah = { range -> nav.navigate(ShareRoute(range.first, range.last)) },
             )
         }

@@ -50,6 +50,7 @@ interface Strings {
     val shareResult: String
     val retry: String
     val goBack: String
+    val mainMenu: String
     fun shareScoreText(score: Int, total: Int, levelName: String, modeTitle: String): String
     val playbackFailed: String
     val clearStatistics: String
@@ -126,6 +127,7 @@ object ArabicStrings : Strings {
     override val shareResult = "انشر النتيجة"
     override val retry = "إعادة"
     override val goBack = "عودة"
+    override val mainMenu = "القائمة الرئيسية"
     override fun shareScoreText(score: Int, total: Int, levelName: String, modeTitle: String) =
         "حصلت على ${number(score)} من ${number(total)} في مرحلة «$levelName» في مسابقة القرآن الكريم «AyahIQ – $modeTitle»"
 
@@ -159,20 +161,20 @@ object EnglishStrings : Strings {
     override val appName = "AyahIQ"
     override val back = "Back"
     override val loadingQuran = "Loading the Quran…"
-    override val homeTagline = "A quiz to test your memorization of the Holy Quran"
+    override val homeTagline = "Test your memorization of the Holy Quran"
     override fun modeTitle(mode: GameMode) = when (mode) {
         GameMode.GuessSurah -> "Guess the Surah"
         GameMode.NextAyah -> "Next Ayah"
     }
 
     override fun modeSubtitle(mode: GameMode) = when (mode) {
-        GameMode.GuessSurah -> "Read the ayah and choose the surah it comes from"
-        GameMode.NextAyah -> "Continue the recitation and choose the next ayah"
+        GameMode.GuessSurah -> "Read the ayah and pick its surah"
+        GameMode.NextAyah -> "Pick the ayah that comes next"
     }
 
     override val mastered = "mastered"
     override val statistics = "Statistics"
-    override val statisticsHint = "Find the surahs that need more review"
+    override val statisticsHint = "See which surahs need more review"
     override fun statisticsSummary(percent: Int, total: Int) =
         "Accuracy $percent% across $total ${if (total == 1) "question" else "questions"}"
 
@@ -204,6 +206,7 @@ object EnglishStrings : Strings {
     override val shareResult = "Share result"
     override val retry = "Retry"
     override val goBack = "Back"
+    override val mainMenu = "Main menu"
     override fun shareScoreText(score: Int, total: Int, levelName: String, modeTitle: String) =
         "I scored $score out of $total on the level “$levelName” in the Quran quiz “AyahIQ – $modeTitle”"
 
