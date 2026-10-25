@@ -178,7 +178,7 @@ private fun typography(language: AppLanguage): Typography {
 fun quranTextStyle(size: Int): TextStyle = TextStyle(
     fontFamily = QuranFont,
     fontSize = size.sp,
-    lineHeight = (size * 2.0).sp,
+    lineHeight = (size * 2.2).sp,
     // Ayah text stays right-to-left inside an LTR layout.
     textDirection = TextDirection.Rtl,
     localeList = LocaleList("ar"),
