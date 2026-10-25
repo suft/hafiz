@@ -107,7 +107,7 @@ import suft.android.ayahiq.ui.theme.LocalQuizColors
 import suft.android.ayahiq.ui.theme.NaskhFont
 import suft.android.ayahiq.ui.theme.quranTextStyle
 
-private val NextAyahOptionLineHeight = 34.sp
+private val NextAyahOptionLineHeight = 40.sp
 
 /** Share of the body height the options pane takes on portrait screens. */
 private const val OPTIONS_HEIGHT_FRACTION = 0.45f
