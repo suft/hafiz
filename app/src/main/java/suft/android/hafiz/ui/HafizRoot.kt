@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +51,7 @@ import androidx.navigation.toRoute
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import suft.android.hafiz.AppContainer
+import suft.android.hafiz.R
 import suft.android.hafiz.data.Progress
 import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.GameMode
@@ -288,6 +291,12 @@ private fun LoadingScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        Image(
+            painter = painterResource(R.drawable.hafiz),
+            contentDescription = null,
+            modifier = Modifier.size(180.dp),
+        )
+        Spacer(Modifier.height(16.dp))
         AppTitle()
         Text(
             text = strings.tagline,
