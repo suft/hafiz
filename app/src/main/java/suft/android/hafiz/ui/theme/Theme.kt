@@ -72,7 +72,7 @@ private val LightScheme = lightColorScheme(
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFF3E1B0),
     onSecondaryContainer = Color(0xFF2B1F00),
-    tertiary = Color(0xFF7A3B2E),
+    tertiary = Color(0xFF8A2232),
     background = Color(0xFFF4E9CF),
     onBackground = Color(0xFF2A1F12),
     surface = Color(0xFFFBF5E6),
@@ -121,7 +121,7 @@ private val LightQuiz = QuizColors(
     correctContainer = Color(0xFFCDEBD5),
     wrong = Color(0xFFB3261E),
     wrongContainer = Color(0xFFF9DEDA),
-    gold = Color(0xFFB8892B),
+    gold = Color(0xFFC4942E),
     paperIsTextured = true,
 )
 
