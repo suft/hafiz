@@ -353,11 +353,13 @@ private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
             strings.creditsAswaatulQurraa,
             "https://www.aswaatulqurraa.com/mutashabihat/",
         )
+        CreditEntry(strings.creditsInspiredBy, "AlrazyLabs")
+        CreditEntry(strings.creditsDeveloper, strings.developerName)
     }
 }
 
 @Composable
-private fun CreditEntry(label: String, source: String, url: String) {
+private fun CreditEntry(label: String, source: String, url: String? = null) {
     val linkStyle = TextLinkStyles(
         SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline),
     )
@@ -365,7 +367,7 @@ private fun CreditEntry(label: String, source: String, url: String) {
         Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
             text = buildAnnotatedString {
-                withLink(LinkAnnotation.Url(url, linkStyle)) { append(source) }
+                if (url != null) withLink(LinkAnnotation.Url(url, linkStyle)) { append(source) } else append(source)
             },
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,

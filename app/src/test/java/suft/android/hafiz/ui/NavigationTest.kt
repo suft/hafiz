@@ -12,6 +12,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performScrollToNode
@@ -132,6 +133,8 @@ class NavigationTest {
         waitForHome()
         rule.onNodeWithContentDescription(ArabicStrings.credits).performClick()
         rule.onNodeWithText(ArabicStrings.creditsTanzil).assertIsDisplayed()
+        rule.onNodeWithText("AlrazyLabs").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(ArabicStrings.developerName).performScrollTo().assertIsDisplayed()
         rule.onNodeWithContentDescription(ArabicStrings.back).performClick()
         rule.waitUntil(5_000) { rule.onAllNodesWithText(ArabicStrings.creditsTanzil).fetchSemanticsNodes().isEmpty() }
     }

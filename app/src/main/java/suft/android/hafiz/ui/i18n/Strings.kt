@@ -59,6 +59,9 @@ interface Strings {
     val creditsMutashabihat: String
     val creditsTanzil: String
     val creditsAswaatulQurraa: String
+    val creditsDeveloper: String
+    val developerName: String
+    val creditsInspiredBy: String
     fun totalPoints(points: Int): String
     fun masteredCount(mastered: Int, total: Int): String
     val start: String
@@ -215,6 +218,9 @@ object ArabicStrings : Strings {
     override val creditsMutashabihat = "المتشابهات"
     override val creditsTanzil = "مشروع تنزيل"
     override val creditsAswaatulQurraa = "أصوات القرّاء"
+    override val creditsDeveloper = "المطوّر"
+    override val developerName = "سفيان طوط"
+    override val creditsInspiredBy = "مستوحى من"
     override fun totalPoints(points: Int) = "مجموع النقاط: ${number(points)}"
     override fun masteredCount(mastered: Int, total: Int) = "${number(mastered)} من ${number(total)} مُتقَنة"
     override val start = "ابدأ"
@@ -389,6 +395,9 @@ object EnglishStrings : Strings {
     override val creditsMutashabihat = "Mutashabihat"
     override val creditsTanzil = "Tanzil Project"
     override val creditsAswaatulQurraa = "Aswaatul Qurraa"
+    override val creditsDeveloper = "Developer"
+    override val developerName = "Sufien Tout"
+    override val creditsInspiredBy = "Inspired by"
     override fun totalPoints(points: Int) = "Total points: $points"
     override fun masteredCount(mastered: Int, total: Int) = "$mastered of $total mastered"
     override val start = "Start"
