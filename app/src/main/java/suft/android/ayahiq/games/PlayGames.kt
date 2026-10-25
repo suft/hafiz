@@ -41,19 +41,15 @@ object PlayGames {
             GameStyle.GuessSurah -> R.string.leaderboard_survival_surah
             GameStyle.NextAyah -> R.string.leaderboard_survival_ayah
         }
-        GameMode.ThreeLives -> when (style) {
-            GameStyle.GuessSurah -> R.string.leaderboard_lives_surah
-            GameStyle.NextAyah -> R.string.leaderboard_lives_ayah
-        }
-        GameMode.Hafiz -> when (style) {
-            GameStyle.GuessSurah -> R.string.leaderboard_hafiz_surah
-            GameStyle.NextAyah -> R.string.leaderboard_hafiz_ayah
+        GameMode.Mutashabihat -> when (style) {
+            GameStyle.GuessSurah -> R.string.leaderboard_mutashabihat_surah
+            GameStyle.NextAyah -> R.string.leaderboard_mutashabihat_ayah
         }
     }
 }
 
 /**
- * Keeps the eight Play Games leaderboards (one per mode × style) in sync with local progress and opens
+ * Keeps the six Play Games leaderboards (one per mode × style) in sync with local progress and opens
  * the Play Games leaderboards screen. Construct in `onCreate`, before the activity is STARTED.
  */
 class PlayGamesLeaderboards(private val activity: ComponentActivity, container: AppContainer) {

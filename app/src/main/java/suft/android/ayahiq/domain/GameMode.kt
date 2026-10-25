@@ -4,10 +4,9 @@ package suft.android.ayahiq.domain
 enum class GameMode(val key: String, val lives: Int?, val trapOptions: Boolean = false) {
     Regular("regular", lives = null),
     Survival("survival", lives = 1),
-    ThreeLives("lives", lives = 3),
 
     /** Three lives; the wrong options are mutashabihat — ayahs and surahs that resemble the right answer. */
-    Hafiz("hafiz", lives = 3, trapOptions = true);
+    Mutashabihat("mutashabihat", lives = 3, trapOptions = true);
 
     val endless: Boolean get() = lives != null
 

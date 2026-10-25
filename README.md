@@ -8,16 +8,15 @@ A Quran memorisation quiz for Android, rewritten from the original *AyahSurah 2.
 | **آية وسورة** (guess the surah) | Read/hear an ayah and pick the surah it's from | 20 | 20 |
 | **آيات** (next ayah) | Read/hear an ayah and pick the one that follows it | 25 | 10 |
 
-Pick a **game mode** first, then a question style and a level:
+From the main menu, **Play** opens the **game modes**; pick a mode, then a question style and a level. **How to play** explains the styles, modes and levels in the app.
 
 | Game mode | How it ends | Score |
 |---|---|---|
 | **عادي** (Regular) | After a fixed-length round | Correct answers out of the round |
 | **البقاء** (Survival) | First wrong answer | Correct answers in a row |
-| **ثلاث فرص** (3 Lives) | Third wrong answer | Correct answers |
-| **حافظ** (Hafiz) | Third wrong answer | Correct answers; the wrong options are *mutashabihat* traps: surahs and next ayahs that resemble the right answer |
+| **المتشابهات** (Mutashabihat) | Third wrong answer | Correct answers; the wrong options are *mutashabihat* traps: surahs and next ayahs that resemble the right answer |
 
-Survival, 3 Lives and Hafiz keep a best score per level, and their games show up in **إحصائيات** (stats: overall and per-style accuracy, the surahs to review, per-mode games played, best score, average and longest streak) and its activity history.
+Survival and Mutashabihat keep a best score per level, and their games show up in **إحصائيات** (stats: overall and per-style accuracy, the surahs to review, per-mode games played, best score, average and longest streak) and its activity history.
 
 Recitations stream from [everyayah.com](https://everyayah.com) (26 reciters). Quran text: [Tanzil](https://tanzil.net) (Simple, v1.0.2).
 
@@ -83,7 +82,6 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 - Ayah text is set in the **Amiri Quran** font. The next-ayah mode shows ornate ayah numbers ﴿٥﴾. Long answer options are shortened to a distinct opening phrase.
 - New level list with progress bars and a "mastered" mark, a result dialog that shows new records, a "next" button to skip the feedback delay, and resettable statistics.
 - **Statistics screen with three tabs.** Overview shows overall accuracy plus per-mode accuracy, mastered levels and points. Surahs shows a 114-cell accuracy map, the surahs to review and the strongest surahs, with a **Practise** button that starts a 10-question next-ayah round limited to one surah (records answers and history, never a best score). Activity shows day streaks, questions today, completed rounds, correct-answer runs, a score trend chart and the last 20 rounds. Per-mode counts and activity are only tracked from the version that added them.
-- The share card renders the ayah on one of the five original Islamic frames, auto-fits the text, and offers a font choice. It is shared as a PNG through a `FileProvider`.
 - Edge-to-edge layout, dark theme, adaptive and themed launcher icon, and backup rules for scores.
 - **Arabic / English UI.** A selector on the main menu switches labels, digits, surah and level names, reciter names, ayah references and the layout direction (RTL / LTR). The choice is saved. Quran text always stays Arabic. Strings live in `ui/i18n/Strings.kt`; English surah names are quran.com transliterations in `domain/SurahNames.kt`.
 
@@ -96,20 +94,20 @@ mise.toml                        tools (JDK), env (ANDROID_HOME), tasks
 gradle/libs.versions.toml        all dependency versions
 app/src/main/
   assets/quran_simple.xml        Tanzil Quran text (verbatim, keep the licence header)
-  assets/mutashabihat.txt        similar-ayah pairs for Hafiz mode (generated: mise run mutashabihat)
+  assets/mutashabihat.txt        similar-ayah pairs for Mutashabihat mode (generated: mise run mutashabihat)
   java/suft/android/ayahiq/
     domain/                      pure Kotlin: Quran index, XML parser, levels, question generator, stats
     data/ProgressRepository.kt   DataStore: best scores, per-surah stats, settings
     audio/                       reciters, ExoPlayer wrapper, disk cache
     games/                       Google Play Games leaderboards (dormant until configured)
-    ui/                          Compose: home, levels, quiz (+ViewModel), stats, share card, theme
-  res/font/                      Amiri, Rakkas, Inter, Scheherazade New (all OFL)
-  res/drawable-nodpi/            paper texture, frames (from the original app)
+    ui/                          Compose: home, modes, guide, levels, quiz (+ViewModel), stats, theme
+  res/font/                      Amiri, Rakkas, Inter (all OFL)
+  res/drawable-nodpi/            paper texture (from the original app)
 tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3; --offline only merges the supplement)
 tools/mutashabihat_supplement.txt  hand-curated pairs for the surahs the source does not cover
 tools/check_reciters.py          checks every reciter's files on everyayah.com (also .github/workflows/reciters.yml)
 app/src/test/                    JVM tests on the real Quran text (QuizLogicTest, QuestionCorrectnessTest, ProgressTest, ProgressStoreTest, StatsTest, ArabicTextTest, StringsTest)
-                                 and Robolectric UI tests (quiz layout/lifecycle, navigation, share card, stats); all run in `mise run test`
+                                 and Robolectric UI tests (quiz layout/lifecycle, navigation, stats); all run in `mise run test`
 ```
 
 ### Versions
@@ -122,9 +120,9 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 ## Licences & credits
 - **Quran text:** Tanzil Project, CC BY 3.0. The text must not be modified and the source must be credited with a link; the credits screen (the ⓘ button on the main menu) does this.
 - **Recitations:** streamed from everyayah.com. One clip is truncated on the server and cannot be fixed here: `mahmoud_ali_al_banna_32kbps/012067.mp3` (surah 12, ayah 67). `mise run reciters` (also a weekly GitHub workflow) checks that every reciter has all 6236 files and lists known defects as warnings.
-- **Mutashabihat (Hafiz mode):** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site, so get their permission before publishing. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Hafiz mode has traps for them too. Review those pairs before a release.
-- **Fonts:** Amiri / Amiri Quran, Rakkas, Inter and Scheherazade New are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`). Scheherazade New is the second face of the share card (it replaced Cordoba, which does not cover Arabic).
-- **Paper texture and frames** are reused from the original APK. Check that you have the rights to them before publishing.
+- **Mutashabihat mode:** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site, so get their permission before publishing. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Mutashabihat mode has traps for them too. Review those pairs before a release.
+- **Fonts:** Amiri / Amiri Quran, Rakkas and Inter are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`).
+- **Paper texture** is reused from the original APK. Check that you have the rights to it before publishing.
 - **Launcher glyph (themed icon):** Material Icons "menu_book", Apache 2.0.
 
 ### Google Play Games and privacy

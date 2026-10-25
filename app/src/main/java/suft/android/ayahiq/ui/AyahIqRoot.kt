@@ -58,10 +58,11 @@ import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.components.AppTitle
 import suft.android.ayahiq.ui.components.OrnamentDivider
 import suft.android.ayahiq.ui.components.PaperBackground
+import suft.android.ayahiq.ui.guide.GuideScreen
 import suft.android.ayahiq.ui.home.HomeScreen
 import suft.android.ayahiq.ui.levels.LevelsScreen
+import suft.android.ayahiq.ui.modes.ModesScreen
 import suft.android.ayahiq.ui.quiz.QuizScreen
-import suft.android.ayahiq.ui.share.ShareCardScreen
 import suft.android.ayahiq.ui.stats.StatsScreen
 import suft.android.ayahiq.ui.styles.StylesScreen
 import suft.android.ayahiq.ui.i18n.LocalStrings
@@ -72,7 +73,15 @@ import suft.android.ayahiq.ui.theme.AyahIqTheme
 @Serializable
 object HomeRoute
 
-/** Question-style picker for one [GameMode.key]. */
+/** Game-mode picker, opened by Play on Home. */
+@Serializable
+object ModesRoute
+
+/** "How to play" guide. */
+@Serializable
+object GuideRoute
+
+/** Question-style picker for one [GameMode.key], opened from [ModesRoute]. */
 @Serializable
 data class StylesRoute(val mode: String)
 
@@ -88,10 +97,6 @@ data class PracticeRoute(val surah: Int)
 
 @Serializable
 object StatsRoute
-
-/** Global ayah indices (inclusive) to render on the shareable card. */
-@Serializable
-data class ShareRoute(val firstAyah: Int, val lastAyah: Int)
 
 // ---------------------------------------------------------------- root
 
@@ -199,11 +204,22 @@ private fun AppNavHost(
             HomeScreen(
                 container = container,
                 progress = progress,
-                quran = quran,
-                onOpenMode = { mode -> nav.navigateFrom(entry, StylesRoute(mode.key)) },
+                onOpenPlay = { nav.navigateFrom(entry, ModesRoute) },
+                onOpenGuide = { nav.navigateFrom(entry, GuideRoute) },
                 onOpenStats = { nav.navigateFrom(entry, StatsRoute) },
                 onOpenLeaderboards = onOpenLeaderboards,
             )
+        }
+        composable<ModesRoute> { entry ->
+            ModesScreen(
+                progress = progress,
+                quran = quran,
+                onBack = { nav.popFrom(entry) },
+                onPick = { mode -> nav.navigateFrom(entry, StylesRoute(mode.key)) },
+            )
+        }
+        composable<GuideRoute> { entry ->
+            GuideScreen(onBack = { nav.popFrom(entry) })
         }
         composable<StylesRoute> { entry ->
             val mode = GameMode.fromKey(entry.toRoute<StylesRoute>().mode)
@@ -238,7 +254,6 @@ private fun AppNavHost(
                 mode = GameMode.fromKey(route.mode),
                 onBack = { nav.popFrom(entry) },
                 onMainMenu = { if (entry.isResumed()) nav.popBackStack<HomeRoute>(inclusive = false) },
-                onShareAyah = { range -> nav.navigateFrom(entry, ShareRoute(range.first, range.last)) },
             )
         }
         composable<PracticeRoute> { entry ->
@@ -251,7 +266,6 @@ private fun AppNavHost(
                 mode = GameMode.Regular,
                 onBack = { nav.popFrom(entry) },
                 onMainMenu = { if (entry.isResumed()) nav.popBackStack<HomeRoute>(inclusive = false) },
-                onShareAyah = { range -> nav.navigateFrom(entry, ShareRoute(range.first, range.last)) },
             )
         }
         composable<StatsRoute> { entry ->
@@ -261,14 +275,6 @@ private fun AppNavHost(
                 quran = quran,
                 onBack = { nav.popFrom(entry) },
                 onPractice = { surah -> nav.navigateFrom(entry, PracticeRoute(surah)) },
-            )
-        }
-        composable<ShareRoute> { entry ->
-            val route = entry.toRoute<ShareRoute>()
-            ShareCardScreen(
-                quran = quran,
-                ayahs = route.firstAyah..route.lastAyah,
-                onBack = { nav.popFrom(entry) },
             )
         }
     }

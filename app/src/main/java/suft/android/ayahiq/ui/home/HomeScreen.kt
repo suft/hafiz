@@ -28,15 +28,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -75,10 +73,6 @@ import kotlinx.coroutines.launch
 import suft.android.ayahiq.AppContainer
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.domain.AppLanguage
-import suft.android.ayahiq.domain.GameMode
-import suft.android.ayahiq.domain.GameStyle
-import suft.android.ayahiq.domain.Levels
-import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.components.AppTitle
 import suft.android.ayahiq.ui.components.MenuCard
 import suft.android.ayahiq.ui.components.OrnamentDivider
@@ -88,8 +82,8 @@ import suft.android.ayahiq.ui.i18n.LocalStrings
 fun HomeScreen(
     container: AppContainer,
     progress: Progress,
-    quran: Quran,
-    onOpenMode: (GameMode) -> Unit,
+    onOpenPlay: () -> Unit,
+    onOpenGuide: () -> Unit,
     onOpenStats: () -> Unit,
     onOpenLeaderboards: (suspend () -> Boolean)?,
 ) {
@@ -120,33 +114,24 @@ fun HomeScreen(
                 OrnamentDivider()
                 Spacer(Modifier.height(16.dp))
 
-                val styleLevels = remember { GameStyle.entries.map { Levels.forStyle(it, quran) } }
-                GameMode.entries.forEach { mode ->
-                    val badge: String?
-                    val badgeLabel: String
-                    if (mode.endless) {
-                        val best = progress.runStats(mode).best
-                        badge = if (best > 0) strings.number(best) else null
-                        badgeLabel = strings.best
-                    } else {
-                        badge = "${strings.number(styleLevels.sumOf { progress.mastered(it) })}/${strings.number(styleLevels.sumOf { it.size })}"
-                        badgeLabel = strings.mastered
-                    }
-                    MenuCard(
-                        icon = when (mode) {
-                            GameMode.Regular -> Icons.Filled.Flag
-                            GameMode.Survival -> Icons.Filled.LocalFireDepartment
-                            GameMode.ThreeLives -> Icons.Filled.Favorite
-                            GameMode.Hafiz -> Icons.Filled.Psychology
-                        },
-                        title = strings.gameModeTitle(mode),
-                        subtitle = strings.gameModeSubtitle(mode),
-                        badge = badge,
-                        badgeLabel = badgeLabel,
-                        onClick = { onOpenMode(mode) },
-                    )
-                    Spacer(Modifier.height(12.dp))
-                }
+                MenuCard(
+                    icon = Icons.Filled.PlayArrow,
+                    title = strings.play,
+                    subtitle = strings.playHint,
+                    badge = null,
+                    badgeLabel = null,
+                    onClick = onOpenPlay,
+                )
+                Spacer(Modifier.height(12.dp))
+                MenuCard(
+                    icon = Icons.AutoMirrored.Filled.Help,
+                    title = strings.howToPlay,
+                    subtitle = strings.howToPlayHint,
+                    badge = null,
+                    badgeLabel = null,
+                    onClick = onOpenGuide,
+                )
+                Spacer(Modifier.height(12.dp))
 
                 val overall = progress.overall
                 MenuCard(

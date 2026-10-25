@@ -114,7 +114,7 @@ class ProgressTest {
             .withRunBest(GameMode.Survival, id, 3, 3)
         assertEquals(5, p.runBest(GameMode.Survival, id))
         assertEquals(5, p.runStats(GameMode.Survival).bestStreak)
-        assertEquals(0, p.runBest(GameMode.ThreeLives, id))
+        assertEquals(0, p.runBest(GameMode.Mutashabihat, id))
     }
 
     @Test
@@ -124,20 +124,19 @@ class ProgressTest {
         val levels = listOf(l0, l1)
         val p = Progress(bestScores = mapOf(l0.id to 18, l1.id to 12, "ayah:1-114" to 9))
             .withRunBest(GameMode.Survival, l0.id, 7, 7)
-            .withRunBest(GameMode.Hafiz, l1.id, 4, 3)
+            .withRunBest(GameMode.Mutashabihat, l1.id, 4, 3)
         assertEquals(30, p.leaderboardScore(GameMode.Regular, levels))
         assertEquals(7, p.leaderboardScore(GameMode.Survival, levels))
-        assertEquals(4, p.leaderboardScore(GameMode.Hafiz, levels))
-        assertEquals(0, p.leaderboardScore(GameMode.ThreeLives, levels))
+        assertEquals(4, p.leaderboardScore(GameMode.Mutashabihat, levels))
     }
 
     @Test
     fun finishedRunsFeedStatsAndActivity() {
         val id = "surah:1-114"
         val p = Progress()
-            .withFinishedRun(RoundRecord(id, 6, 9, day = 10, mode = "lives"))
-            .withFinishedRun(RoundRecord(id, 3, 5, day = 11, mode = "lives"))
-        val stats = p.runStats(GameMode.ThreeLives)
+            .withFinishedRun(RoundRecord(id, 6, 9, day = 10, mode = GameMode.Mutashabihat.key))
+            .withFinishedRun(RoundRecord(id, 3, 5, day = 11, mode = GameMode.Mutashabihat.key))
+        val stats = p.runStats(GameMode.Mutashabihat)
         assertEquals(2, stats.played)
         assertEquals(5, stats.average)
         assertEquals(2, p.roundsCompleted)

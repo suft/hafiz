@@ -31,11 +31,13 @@ class NavigationTest {
     private fun waitForText(text: String) =
         rule.waitUntil(15_000) { rule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
 
-    // The Statistics card exists only on Home among Home/Styles/Levels.
+    // The Statistics card exists only on Home among Home/Modes/Guide/Styles/Levels.
     private fun waitForHome() = waitForText(ArabicStrings.statistics)
 
     private fun openRegularStyles() {
         waitForHome()
+        rule.onNodeWithText(ArabicStrings.play).performClick()
+        waitForText(ArabicStrings.gameModes)
         rule.onNodeWithText(ArabicStrings.gameModeTitle(GameMode.Regular)).performClick()
         waitForText(ArabicStrings.chooseStyle)
     }
@@ -49,10 +51,10 @@ class NavigationTest {
     }
 
     @Test
-    fun doubleBackOnStylesStopsAtHome() {
+    fun doubleBackOnStylesStopsAtModes() {
         openRegularStyles()
         doubleBack()
-        rule.onNodeWithText(ArabicStrings.statistics).assertExists()
+        rule.onNodeWithText(ArabicStrings.gameModes).assertIsDisplayed()
     }
 
     @Test
@@ -65,14 +67,24 @@ class NavigationTest {
     }
 
     @Test
-    fun doubleTapOnAModeOpensItOnce() {
+    fun doubleTapOnPlayOpensModesOnce() {
         waitForHome()
         rule.mainClock.autoAdvance = false
-        val card = rule.onNodeWithText(ArabicStrings.gameModeTitle(GameMode.Regular))
+        val card = rule.onNodeWithText(ArabicStrings.play)
         card.performClick()
         card.performClick()
         rule.mainClock.autoAdvance = true
         rule.waitForIdle()
+        rule.onNodeWithContentDescription(ArabicStrings.back).performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText(ArabicStrings.statistics).assertExists()
+    }
+
+    @Test
+    fun howToPlayOpensGuideAndBackReturnsHome() {
+        waitForHome()
+        rule.onNodeWithText(ArabicStrings.howToPlay).performClick()
+        waitForText(ArabicStrings.guideStylesHeading)
         rule.onNodeWithContentDescription(ArabicStrings.back).performClick()
         rule.waitForIdle()
         rule.onNodeWithText(ArabicStrings.statistics).assertExists()

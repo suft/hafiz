@@ -35,6 +35,17 @@ interface Strings {
     val noGamesYet: String
     fun shareRunText(score: Int, levelName: String, modeTitle: String, styleTitle: String): String
     val mastered: String
+    val play: String
+    val playHint: String
+    val gameModes: String
+    val howToPlay: String
+    val howToPlayHint: String
+    val guideStylesHeading: String
+    val guideLevelsHeading: String
+    val guideLevels: String
+    fun guideMastery(styleTitle: String, questions: Int, mastery: Int): String
+    val guideStatsHeading: String
+    val guideStats: String
     val statistics: String
     val statisticsHint: String
     fun statisticsSummary(percent: Int, total: Int): String
@@ -51,7 +62,6 @@ interface Strings {
     fun totalPoints(points: Int): String
     fun masteredCount(mastered: Int, total: Int): String
     val start: String
-    val shareAyah: String
     fun questionProgress(current: Int, total: Int): String
     val next: String
     fun points(score: Int): String
@@ -114,13 +124,6 @@ interface Strings {
     val recentRounds: String
     val noRoundsYet: String
     fun daysAgo(days: Int): String
-    val frame: String
-    fun frameNumber(n: Int): String
-    val font: String
-    val fontMushaf: String
-    val fontScheherazade: String
-    val shareImage: String
-    val shareFailed: String
     fun questionsCount(n: Int): String
     fun surahCell(name: String, tier: String, percent: Int?): String
     fun scoreTrendDescription(first: Int, last: Int): String
@@ -150,15 +153,13 @@ object ArabicStrings : Strings {
     override fun gameModeTitle(mode: GameMode) = when (mode) {
         GameMode.Regular -> "عادي"
         GameMode.Survival -> "البقاء"
-        GameMode.ThreeLives -> "ثلاث فرص"
-        GameMode.Hafiz -> "حافظ"
+        GameMode.Mutashabihat -> "المتشابهات"
     }
 
     override fun gameModeSubtitle(mode: GameMode) = when (mode) {
         GameMode.Regular -> "جولات محددة الأسئلة، أتقن كل مرحلة"
         GameMode.Survival -> "أسئلة بلا نهاية، وأول خطأ ينهي اللعبة"
-        GameMode.ThreeLives -> "أسئلة بلا نهاية، وثلاثة أخطاء تنهي اللعبة"
-        GameMode.Hafiz -> "خيارات من الآيات المتشابهة، وثلاثة أخطاء تنهي اللعبة"
+        GameMode.Mutashabihat -> "خيارات من الآيات المتشابهة، وثلاثة أخطاء تنهي اللعبة"
     }
 
     override val chooseStyle = "اختر نوع الأسئلة"
@@ -179,6 +180,20 @@ object ArabicStrings : Strings {
     override val mastered = "مُتقَنة"
     override val statistics = "إحصائيات"
     override val statisticsHint = "تعرّف على السور التي تحتاج إلى مراجعة"
+    override val play = "العب"
+    override val playHint = "اختر وضع اللعب، ثم نوع الأسئلة والمرحلة"
+    override val gameModes = "أوضاع اللعب"
+    override val howToPlay = "طريقة اللعب"
+    override val howToPlayHint = "تعرّف على أنواع الأسئلة وأوضاع اللعب والمراحل"
+    override val guideStylesHeading = "أنواع الأسئلة"
+    override val guideLevelsHeading = "المراحل والإتقان"
+    override val guideLevels =
+        "لكل نوع من الأسئلة مراحل تغطي أجزاء مختلفة من القرآن، من قصار السور حتى القرآن كله. " +
+            "في الوضع العادي تُحفظ أفضل نتيجة لكل مرحلة، وفي البقاء والمتشابهات تُحفظ أفضل لعبة لكل مرحلة."
+    override fun guideMastery(styleTitle: String, questions: Int, mastery: Int) =
+        "«$styleTitle»: تتكون الجولة العادية من ${questionsCount(questions)}، وتُتقَن المرحلة إذا بلغت نتيجتك ${number(mastery)} أو أكثر."
+    override val guideStatsHeading = "الإحصائيات والمراجعة"
+    override val guideStats = "تعرض «إحصائيات» دقة إجاباتك والسور التي تحتاج إلى مراجعة، ومنها تبدأ جولة مراجعة لسورة واحدة."
     override fun statisticsSummary(percent: Int, total: Int) =
         "دقة إجاباتك ${percent(percent)} في ${questionsCount(total)}"
     override val leaderboards = "لوحات الصدارة"
@@ -195,7 +210,6 @@ object ArabicStrings : Strings {
     override fun totalPoints(points: Int) = "مجموع النقاط: ${number(points)}"
     override fun masteredCount(mastered: Int, total: Int) = "${number(mastered)} من ${number(total)} مُتقَنة"
     override val start = "ابدأ"
-    override val shareAyah = "انشر الآية"
     override fun questionProgress(current: Int, total: Int) = "السؤال ${number(current)} من ${number(total)}"
     override val next = "التالي"
     override fun points(score: Int) = "النقاط ${number(score)}"
@@ -227,7 +241,7 @@ object ArabicStrings : Strings {
     override val clearStatisticsQuestion = "مسح الإحصائيات؟"
     override val clearStatisticsBody =
         "سيتم حذف سجل الإجابات لكل السور، ودقة كل نوع من الأسئلة، وسلاسل الأيام والإجابات الصحيحة، وسجل الجولات، " +
-            "وعدد ألعاب البقاء والفرص الثلاث والحافظ ومتوسطاتها وأطول سلاسلها. أفضل نتيجة في كل مرحلة لن تتأثر."
+            "وعدد ألعاب البقاء والمتشابهات ومتوسطاتها وأطول سلاسلها. أفضل نتيجة في كل مرحلة لن تتأثر."
     override val clear = "مسح"
     override val cancel = "إلغاء"
     override val statisticsEmpty = "أجب عن بعض الأسئلة لتظهر هنا السور التي تحتاج إلى مراجعة."
@@ -268,13 +282,6 @@ object ArabicStrings : Strings {
         in 3..10 -> "منذ ${number(days)} أيام"
         else -> "منذ ${number(days)} يوماً"
     }
-    override val frame = "الإطار"
-    override fun frameNumber(n: Int) = "إطار ${number(n)}"
-    override val font = "الخط"
-    override val fontMushaf = "مصحف"
-    override val fontScheherazade = "شهرزاد"
-    override val shareImage = "انشر الصورة"
-    override val shareFailed = "تعذّر إنشاء صورة المشاركة."
     override fun questionsCount(n: Int) = when {
         n == 1 -> "سؤال واحد"
         n == 2 -> "سؤالين"
@@ -312,15 +319,13 @@ object EnglishStrings : Strings {
     override fun gameModeTitle(mode: GameMode) = when (mode) {
         GameMode.Regular -> "Regular"
         GameMode.Survival -> "Survival"
-        GameMode.ThreeLives -> "3 Lives"
-        GameMode.Hafiz -> "Hafiz"
+        GameMode.Mutashabihat -> "Mutashabihat"
     }
 
     override fun gameModeSubtitle(mode: GameMode) = when (mode) {
         GameMode.Regular -> "Fixed-length rounds; master every level"
         GameMode.Survival -> "Endless questions; one mistake ends the game"
-        GameMode.ThreeLives -> "Endless questions; three mistakes end the game"
-        GameMode.Hafiz -> "Similar-ayah traps (mutashabihat); three mistakes end the game"
+        GameMode.Mutashabihat -> "Similar-ayah traps (mutashabihat); three mistakes end the game"
     }
 
     override val chooseStyle = "Choose a question style"
@@ -341,6 +346,20 @@ object EnglishStrings : Strings {
     override val mastered = "mastered"
     override val statistics = "Statistics"
     override val statisticsHint = "See which surahs need more review"
+    override val play = "Play"
+    override val playHint = "Pick a game mode, then a question style and a level"
+    override val gameModes = "Game modes"
+    override val howToPlay = "How to play"
+    override val howToPlayHint = "Learn the question styles, game modes and levels"
+    override val guideStylesHeading = "Question styles"
+    override val guideLevelsHeading = "Levels and mastery"
+    override val guideLevels =
+        "Each question style has levels covering different parts of the Quran, from the short surahs to the whole Quran. " +
+            "Regular keeps your best round on each level; Survival and Mutashabihat keep your best game on each level."
+    override fun guideMastery(styleTitle: String, questions: Int, mastery: Int) =
+        "$styleTitle: a Regular round has ${questionsCount(questions)}; a score of ${number(mastery)} or more masters the level."
+    override val guideStatsHeading = "Statistics and review"
+    override val guideStats = "Statistics shows your accuracy and the surahs that need review; start a review round for a single surah from there."
     override fun statisticsSummary(percent: Int, total: Int) =
         "Accuracy ${percent(percent)} across ${questionsCount(total)}"
     override val leaderboards = "Leaderboards"
@@ -357,7 +376,6 @@ object EnglishStrings : Strings {
     override fun totalPoints(points: Int) = "Total points: $points"
     override fun masteredCount(mastered: Int, total: Int) = "$mastered of $total mastered"
     override val start = "Start"
-    override val shareAyah = "Share ayah"
     override fun questionProgress(current: Int, total: Int) = "Question $current of $total"
     override val next = "Next"
     override fun points(score: Int) = "Points: $score"
@@ -390,7 +408,7 @@ object EnglishStrings : Strings {
     override val clearStatisticsQuestion = "Clear statistics?"
     override val clearStatisticsBody =
         "This deletes the answer history for every surah, the accuracy per question style, day streaks and correct-answer runs, " +
-            "the round history, and the games played, averages and longest streaks of Survival, 3 Lives and Hafiz. " +
+            "the round history, and the games played, averages and longest streaks of Survival and Mutashabihat. " +
             "Your best score on each level is kept."
     override val clear = "Clear"
     override val cancel = "Cancel"
@@ -430,13 +448,6 @@ object EnglishStrings : Strings {
         1 -> "Yesterday"
         else -> "$days days ago"
     }
-    override val frame = "Frame"
-    override fun frameNumber(n: Int) = "Frame $n"
-    override val font = "Font"
-    override val fontMushaf = "Mushaf"
-    override val fontScheherazade = "Scheherazade"
-    override val shareImage = "Share image"
-    override val shareFailed = "Couldn't create the image to share."
     override fun questionsCount(n: Int) = if (n == 1) "1 question" else "$n questions"
     override fun surahCell(name: String, tier: String, percent: Int?) =
         "Surah $name, $tier" + (percent?.let { ", ${percent(it)}" } ?: "")

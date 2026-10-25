@@ -33,7 +33,7 @@ data class Question(
  * * The same prompt is not dealt again within [RECENT_MEMORY] questions (within a round for practice rounds);
  *   prompts come from a shuffled deck, so every prompt is dealt once before any repeats.
  *
- * In Hafiz mode ([mutashabihat] given) prompts are limited to ayahs that have a trap, and the wrong options are
+ * In Mutashabihat mode ([mutashabihat] given) prompts are limited to ayahs that have a trap, and the wrong options are
  * mutashabihat: surahs/next ayahs that resemble the right answer.
  */
 class QuestionGenerator(
@@ -41,11 +41,11 @@ class QuestionGenerator(
     private val level: Level,
     private val language: AppLanguage,
     private val random: Random = Random.Default,
-    /** Hafiz mode: wrong options come from these similar ayahs first; null in the other modes. */
+    /** Mutashabihat mode: wrong options come from these similar ayahs first; null in the other modes. */
     private val mutashabihat: Mutashabihat? = null,
 ) {
 
-    /** Hafiz: only the level's prompts that have a trap (every level has some); otherwise all of them. */
+    /** Mutashabihat: only the level's prompts that have a trap (every level has some); otherwise all of them. */
     internal val promptPool: List<IntRange> by lazy {
         val all = allPrompts()
         if (mutashabihat == null) all else all.filter(::hasTrap).ifEmpty { all }
@@ -97,7 +97,7 @@ class QuestionGenerator(
         GameStyle.NextAyah -> trapAyahs(shown, wrongNextAyahFilter(shown)).isNotEmpty()
     }
 
-    /** Hafiz: surahs holding an ayah that resembles one of [shown], most similar first, minus [exclude]. */
+    /** Mutashabihat: surahs holding an ayah that resembles one of [shown], most similar first, minus [exclude]. */
     private fun trapSurahs(shown: IntRange, exclude: Set<Int>): List<Int> {
         val similar = mutashabihat ?: return emptyList()
         return shown.flatMap(similar::of).sortedByDescending { it.strength }
@@ -105,7 +105,7 @@ class QuestionGenerator(
     }
 
     /**
-     * Hafiz: tempting wrong next ayahs, most similar first — ayahs that resemble the answer, and ayahs that
+     * Mutashabihat: tempting wrong next ayahs, most similar first — ayahs that resemble the answer, and ayahs that
      * follow an ayah resembling the prompt (where a reciter slips into the other passage).
      */
     private fun trapAyahs(shown: IntRange, acceptable: (Int) -> Boolean): List<Int> {
@@ -188,7 +188,7 @@ class QuestionGenerator(
             .toList()
 
         val wrongIdx = traps + ordered.shuffled(random).take(WRONG_OPTIONS - traps.size)
-        // The ۩ sign would mark the prostration ayah; the prompt and the share card keep it, the options do not.
+        // The ۩ sign would mark the prostration ayah; the prompt keeps it, the options do not.
         val texts = (listOf(answer) + wrongIdx).map { ArabicText.withoutSajdahSign(quran.text(it)) }
 
         val (options, correct) = shuffleWithCorrect(texts.first(), texts.drop(1))

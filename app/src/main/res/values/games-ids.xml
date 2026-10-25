@@ -7,10 +7,10 @@
   Setup:
   1. Create the game project in Play Console -> Play Games Services -> Configuration.
      Paste the project ID into game_services_project_id.
-  2. Create 8 leaderboards: Numeric, 0 decimals, "Larger is better". Paste each ID into the
+  2. Create 6 leaderboards: Numeric, 0 decimals, "Larger is better". Paste each ID into the
      matching string below. A board whose ID is left empty is simply skipped.
   3. Each board's score is the sum of the player's best score on every level of that question
-     style in that mode. Regular: best round score per level. Survival / 3 Lives / Hafiz: best
+     style in that mode. Regular: best round score per level. Survival / Mutashabihat: best
      game per level.
   4. Add Android credentials for package suft.android.ayahiq with the SHA-1 of the upload key
      (release.jks) and of the Play app-signing key. While the game is unpublished, add test
@@ -23,8 +23,6 @@
     <string name="leaderboard_regular_ayah" translatable="false"></string>
     <string name="leaderboard_survival_surah" translatable="false"></string>
     <string name="leaderboard_survival_ayah" translatable="false"></string>
-    <string name="leaderboard_lives_surah" translatable="false"></string>
-    <string name="leaderboard_lives_ayah" translatable="false"></string>
-    <string name="leaderboard_hafiz_surah" translatable="false"></string>
-    <string name="leaderboard_hafiz_ayah" translatable="false"></string>
+    <string name="leaderboard_mutashabihat_surah" translatable="false"></string>
+    <string name="leaderboard_mutashabihat_ayah" translatable="false"></string>
 </resources>

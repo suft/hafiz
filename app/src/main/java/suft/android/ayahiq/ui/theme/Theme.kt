@@ -39,9 +39,6 @@ val NaskhFont = FontFamily(
     Font(R.font.amiri_bold, FontWeight.Bold),
 )
 
-/** Second face of the shareable ayah card (Scheherazade New, SIL OFL); covers the Quran text and the ornate ﴿﴾ marks. */
-val ScheherazadeFont = FontFamily(Font(R.font.scheherazade_new_regular))
-
 /** Bold brush-calligraphy face (Rakkas, SIL OFL) for the app title, in Arabic and Latin. */
 val TitleFont = FontFamily(Font(R.font.rakkas_regular, FontWeight.Normal))
 

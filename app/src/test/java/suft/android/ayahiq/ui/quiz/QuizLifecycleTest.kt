@@ -53,7 +53,6 @@ class QuizLifecycleTest {
                         mode = GameMode.Regular,
                         onBack = {},
                         onMainMenu = {},
-                        onShareAyah = {},
                     )
                 }
             }

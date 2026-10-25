@@ -21,8 +21,8 @@ class QuestionCorrectnessTest {
     private fun norm(s: String) = s.replace(pauseMarks, " ").trim().split(spaces).joinToString(" ")
     private val normalised: List<String> by lazy { List(quran.ayahCount) { norm(quran.text(it)) } }
 
-    private fun generator(level: Level, hafiz: Boolean, seed: Int = level.index) =
-        QuestionGenerator(quran, level, AppLanguage.Arabic, Random(seed), if (hafiz) mutashabihat else null)
+    private fun generator(level: Level, traps: Boolean, seed: Int = level.index) =
+        QuestionGenerator(quran, level, AppLanguage.Arabic, Random(seed), if (traps) mutashabihat else null)
 
     private fun ayah(surah: Int, number: Int) = quran.surahs[surah - 1].firstAyah + number - 1
 
@@ -36,11 +36,11 @@ class QuestionCorrectnessTest {
     @Test
     fun everyGuessSurahPromptIsUnambiguous() {
         for (level in Levels.forStyle(GameStyle.GuessSurah, quran)) {
-            for (hafiz in listOf(false, true)) {
-                val gen = generator(level, hafiz)
+            for (traps in listOf(false, true)) {
+                val gen = generator(level, traps)
                 for (p in gen.promptPool) {
                     val q = gen.questionFor(p)
-                    val where = "${level.arabicName} hafiz=$hafiz ${quran.reference(p, AppLanguage.English)}"
+                    val where = "${level.arabicName} traps=$traps ${quran.reference(p, AppLanguage.English)}"
                     assertEquals(where, 4, q.options.toSet().size)
                     val surah = quran.surahOf(p.first)
                     assertEquals(where, surah.name, q.options[q.correctOption])
@@ -66,11 +66,11 @@ class QuestionCorrectnessTest {
             if (!quran.isLastOfSurah(g)) followers.getOrPut(normalised[g]) { ArrayList() } += normalised[g + 1]
         }
         for (level in Levels.forStyle(GameStyle.NextAyah, quran)) {
-            for (hafiz in listOf(false, true)) {
-                val gen = generator(level, hafiz)
+            for (traps in listOf(false, true)) {
+                val gen = generator(level, traps)
                 for (p in gen.promptPool) {
                     val q = gen.questionFor(p)
-                    val where = "${level.arabicName} hafiz=$hafiz ${quran.reference(p, AppLanguage.English)}"
+                    val where = "${level.arabicName} traps=$traps ${quran.reference(p, AppLanguage.English)}"
                     val answer = p.last + 1
                     assertEquals(where, quran.surahOf(p.first), quran.surahOf(answer))
                     val labels = q.options.map(::norm)
@@ -87,10 +87,10 @@ class QuestionCorrectnessTest {
     }
 
     @Test
-    fun hafizPromptsAllHaveTraps() {
+    fun mutashabihatPromptsAllHaveTraps() {
         for (style in GameStyle.entries) {
             for (level in Levels.forStyle(style, quran)) {
-                val gen = generator(level, hafiz = true)
+                val gen = generator(level, traps = true)
                 for (p in gen.promptPool) {
                     val q = gen.questionFor(p)
                     val wrong = q.options.filterIndexed { i, _ -> i != q.correctOption }
@@ -117,8 +117,8 @@ class QuestionCorrectnessTest {
     @Test
     fun bismillahIsNeverAGuessSurahPrompt() {
         for (level in Levels.forStyle(GameStyle.GuessSurah, quran).filter { !it.openings }) {
-            for (hafiz in listOf(false, true)) {
-                assertFalse("${level.arabicName} hafiz=$hafiz deals 1:1", (0..0) in generator(level, hafiz).promptPool)
+            for (traps in listOf(false, true)) {
+                assertFalse("${level.arabicName} traps=$traps deals 1:1", (0..0) in generator(level, traps).promptPool)
             }
         }
     }
@@ -126,7 +126,7 @@ class QuestionCorrectnessTest {
     @Test
     fun sajdahSignIsNotAnAnswerCue() {
         val level = Levels.forStyle(GameStyle.NextAyah, quran)[24]
-        val gen = generator(level, hafiz = false)
+        val gen = generator(level, traps = false)
         val sajdah = (0 until quran.ayahCount).filter { '\u06E9' in quran.text(it) && quran.ayahNumberInSurah(it) > 1 }
         assertTrue(sajdah.isNotEmpty())
         for (s in sajdah) {
@@ -141,7 +141,7 @@ class QuestionCorrectnessTest {
     fun promptsDoNotRepeatWithinTwentyQuestions() {
         val level = Levels.forStyle(GameStyle.NextAyah, quran)[0]
         for (seed in 0 until 50) {
-            val gen = generator(level, hafiz = true, seed = seed)
+            val gen = generator(level, traps = true, seed = seed)
             val prompts = List(20) { gen.next().shownAyahs }
             assertEquals("seed $seed repeats a prompt", 20, prompts.toSet().size)
         }
@@ -150,7 +150,7 @@ class QuestionCorrectnessTest {
     @Test
     fun guessSurahAnswerIsNotTheCentreOfTheOptions() {
         val level = Levels.forStyle(GameStyle.GuessSurah, quran)[18]
-        val gen = generator(level, hafiz = false, seed = 3)
+        val gen = generator(level, traps = false, seed = 3)
         var credit = 0.0
         val rounds = 4000
         repeat(rounds) {

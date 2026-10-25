@@ -59,7 +59,7 @@ class AppContainer(
         .flowOn(Dispatchers.IO)
         .stateIn(appScope, SharingStarted.Eagerly, null)
 
-    /** Similar-ayah pairs for Hafiz mode, parsed once the Quran is loaded (`null` until then). */
+    /** Similar-ayah pairs for Mutashabihat mode, parsed once the Quran is loaded (`null` until then). */
     val mutashabihat: StateFlow<Mutashabihat?> = quran.filterNotNull()
         .map<Quran, Mutashabihat?> { q -> appContext.assets.open(MUTASHABIHAT_ASSET).use { Mutashabihat.parse(it, q) } }
         .flowOn(Dispatchers.IO)

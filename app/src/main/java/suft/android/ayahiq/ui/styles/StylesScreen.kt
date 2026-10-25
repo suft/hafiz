@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import suft.android.ayahiq.data.Progress
 import suft.android.ayahiq.domain.GameMode
@@ -30,7 +31,7 @@ import suft.android.ayahiq.ui.components.AppTopBar
 import suft.android.ayahiq.ui.components.MenuCard
 import suft.android.ayahiq.ui.i18n.LocalStrings
 
-/** Second step of the menu: pick the question style for the chosen [mode]. */
+/** Second step of Play: pick the question style for the chosen [mode]. */
 @Composable
 fun StylesScreen(
     progress: Progress,
@@ -69,7 +70,7 @@ fun StylesScreen(
                         badgeLabel = strings.mastered
                     }
                     MenuCard(
-                        icon = if (style == GameStyle.GuessSurah) Icons.Filled.Quiz else Icons.AutoMirrored.Filled.MenuBook,
+                        icon = style.icon,
                         title = strings.styleTitle(style),
                         subtitle = strings.styleSubtitle(style),
                         badge = badge,
@@ -81,3 +82,7 @@ fun StylesScreen(
         }
     }
 }
+
+/** The icon that stands for a question style on the Styles and How to play screens. */
+val GameStyle.icon: ImageVector
+    get() = if (this == GameStyle.GuessSurah) Icons.Filled.Quiz else Icons.AutoMirrored.Filled.MenuBook

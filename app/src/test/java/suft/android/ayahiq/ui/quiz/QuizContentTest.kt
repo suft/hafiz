@@ -16,8 +16,6 @@ import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
@@ -25,7 +23,6 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onFirst
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
@@ -97,7 +94,6 @@ class QuizContentTest {
             snackbar = remember { SnackbarHostState() },
             onBack = { backs++ },
             onMainMenu = {},
-            onShareAyah = {},
             onSelect = {},
             onNext = {},
             onTogglePlayback = {},
@@ -181,18 +177,6 @@ class QuizContentTest {
     fun autoPlaySwitchHasAName() {
         show(state(GameStyle.GuessSurah))
         rule.onNode(isToggleable() and hasText(ArabicStrings.autoPlay)).assertExists()
-    }
-
-    @Test
-    fun shareIsDisabledUntilGuessSurahIsAnswered() {
-        show(state(GameStyle.GuessSurah))
-        rule.onNodeWithContentDescription(ArabicStrings.shareAyah).assertIsNotEnabled()
-    }
-
-    @Test
-    fun shareIsEnabledForNextAyah() {
-        show(state(GameStyle.NextAyah))
-        rule.onNodeWithContentDescription(ArabicStrings.shareAyah).assertIsEnabled()
     }
 
     @Test

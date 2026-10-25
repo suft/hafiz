@@ -1,4 +1,4 @@
-# Hand-curated mutashabihat for the surahs the source (Aswaatul Qurraa) does not cover, so that Hafiz mode has
+# Hand-curated mutashabihat for the surahs the source (Aswaatul Qurraa) does not cover, so that Mutashabihat mode has
 # trap options for them too. Merged into app/src/main/assets/mutashabihat.txt by tools/mutashabihat.py.
 # Format as in that file: <surah>:<ayah> <surah>:<ayah> <strength 0-100: % of words the two ayahs share>
 99:1 56:4 40

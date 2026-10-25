@@ -84,7 +84,7 @@ class QuizViewModel(
     private var roundRecorded = false
 
     // Nothing plays and no feedback timer runs while the screen is not in the foreground (Home, another
-    // screen on top, the share card…); what was skipped is picked up again by [setForeground].
+    // screen on top…); what was skipped is picked up again by [setForeground].
     private var foreground = false
     private var pendingAutoPlay = false
     private var resumeOnForeground = false
@@ -105,7 +105,7 @@ class QuizViewModel(
                 )
             }
             val similar = if (mode.trapOptions) container.mutashabihat.filterNotNull().first() else null
-            // Hafiz levels weigh thousands of prompts; build the pool and the first question off the main thread.
+            // Mutashabihat levels weigh thousands of prompts; build the pool and the first question off the main thread.
             generator = withContext(Dispatchers.Default) {
                 QuestionGenerator(quran, level, language, mutashabihat = similar).also { upcoming = it.next() }
             }

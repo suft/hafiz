@@ -40,7 +40,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,7 +48,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -120,7 +118,6 @@ fun QuizScreen(
     mode: GameMode,
     onBack: () -> Unit,
     onMainMenu: () -> Unit,
-    onShareAyah: (IntRange) -> Unit,
 ) {
     val strings = LocalStrings.current
     val vm: QuizViewModel = viewModel { QuizViewModel(container, quran, level, mode, strings.language) }
@@ -130,7 +127,7 @@ fun QuizScreen(
     val context = LocalContext.current
 
     // Audio and the feedback timer run only while the screen is resumed: not in the background, not behind
-    // another screen (share card), not while the activity is paused.
+    // another screen, not while the activity is paused.
     LifecycleResumeEffect(vm) {
         vm.setForeground(true)
         onPauseOrDispose { vm.setForeground(false) }
@@ -151,7 +148,6 @@ fun QuizScreen(
         snackbar = snackbar,
         onBack = onBack,
         onMainMenu = onMainMenu,
-        onShareAyah = onShareAyah,
         onSelect = vm::select,
         onNext = vm::advanceNow,
         onTogglePlayback = vm::togglePlayback,
@@ -189,7 +185,6 @@ internal fun QuizContent(
     snackbar: SnackbarHostState,
     onBack: () -> Unit,
     onMainMenu: () -> Unit,
-    onShareAyah: (IntRange) -> Unit,
     onSelect: (Int) -> Unit,
     onNext: () -> Unit,
     onTogglePlayback: () -> Unit,
@@ -207,16 +202,6 @@ internal fun QuizContent(
             AppTopBar(
                 title = state.level.name(strings.language),
                 onBack = onBack,
-                actions = {
-                    val q = state.question
-                    // Sharing the ayah of a guess-the-surah question before answering would reveal the surah.
-                    IconButton(
-                        onClick = { q?.let { onShareAyah(it.shownAyahs) } },
-                        enabled = q != null && (q.style == GameStyle.NextAyah || state.answered),
-                    ) {
-                        Icon(Icons.Filled.Share, contentDescription = strings.shareAyah)
-                    }
-                },
             )
         },
     ) { padding ->

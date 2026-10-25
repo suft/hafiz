@@ -214,7 +214,7 @@ class QuizLogicTest {
         assertFalse(GameMode.Regular.isOver(19, 5, 20))
         assertTrue(GameMode.Survival.isOver(50, 1, 20))
         assertFalse(GameMode.Survival.isOver(50, 0, 20))
-        assertFalse(GameMode.ThreeLives.isOver(7, 2, 20))
-        assertTrue(GameMode.ThreeLives.isOver(7, 3, 20))
+        assertFalse(GameMode.Mutashabihat.isOver(7, 2, 20))
+        assertTrue(GameMode.Mutashabihat.isOver(7, 3, 20))
     }
 }
