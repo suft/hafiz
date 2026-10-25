@@ -28,6 +28,7 @@ import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.domain.Level
+import suft.android.hafiz.domain.RevelationQuiz
 import suft.android.hafiz.domain.RunStats
 import suft.android.hafiz.domain.Score
 
@@ -202,6 +203,12 @@ data class Progress(
         runPoints = runPoints + (record.mode to (runPoints[record.mode] ?: 0) + record.score),
     )
 
+    /** A finished Makki/Madani game: a completed round in the history (day streak, rounds completed) and the best score. */
+    fun withRevelationGame(score: Int, total: Int, day: Long): Progress {
+        val p = withCompletedRound(RoundRecord(RevelationQuiz.LEVEL_ID, score, total, day, RevelationQuiz.MODE_KEY))
+        return if (score > p.best(RevelationQuiz.LEVEL_ID)) p.copy(bestScores = p.bestScores + (RevelationQuiz.LEVEL_ID to score)) else p
+    }
+
     companion object {
         const val NO_DAY = -1L
         const val MAX_RECENT_ROUNDS = 20
@@ -295,6 +302,10 @@ class ProgressRepository(private val store: DataStore<Progress>) {
     /** [answered] is stored as the record's total. */
     suspend fun recordFinishedRun(mode: GameMode, levelId: String, score: Int, answered: Int) {
         store.updateData { it.withFinishedRun(RoundRecord(levelId, score, answered, localEpochDay(), mode.key)) }
+    }
+
+    suspend fun recordRevelationGame(score: Int, total: Int) {
+        store.updateData { it.withRevelationGame(score, total, localEpochDay()) }
     }
 
     suspend fun setReciter(folder: String) {

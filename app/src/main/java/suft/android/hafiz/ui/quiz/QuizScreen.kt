@@ -160,7 +160,7 @@ fun QuizScreen(
 
 /** True while a screen reader with touch exploration (TalkBack) is on. */
 @Composable
-private fun rememberTouchExplorationEnabled(): Boolean {
+internal fun rememberTouchExplorationEnabled(): Boolean {
     val context = LocalContext.current
     val manager = remember(context) { context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager }
     var enabled by remember(manager) { mutableStateOf(manager.isTouchExplorationEnabled) }
@@ -229,7 +229,7 @@ internal fun QuizContent(
                     q.options.forEachIndexed { i, text ->
                         OptionButton(
                             text = text,
-                            style = q.style,
+                            quranText = q.style == GameStyle.NextAyah,
                             state = optionState(i, q, state.selected),
                             onClick = { onSelect(i) },
                             modifier = Modifier.testTag(QuizTestTags.option(i)),
@@ -537,7 +537,7 @@ private fun AudioBar(
 
 // ---------------------------------------------------------------- options
 
-private enum class OptionState { Open, Correct, Wrong, Dimmed }
+internal enum class OptionState { Open, Correct, Wrong, Dimmed }
 
 private fun optionState(index: Int, q: Question, selected: Int?): OptionState = when {
     selected == null -> OptionState.Open
@@ -547,9 +547,9 @@ private fun optionState(index: Int, q: Question, selected: Int?): OptionState = 
 }
 
 @Composable
-private fun OptionButton(
+internal fun OptionButton(
     text: String,
-    style: GameStyle,
+    quranText: Boolean,
     state: OptionState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -602,7 +602,7 @@ private fun OptionButton(
     ) {
         Text(
             text = text,
-            style = if (style == GameStyle.NextAyah) {
+            style = if (quranText) {
                 quranTextStyle(17).copy(lineHeight = NextAyahOptionLineHeight)
             } else {
                 MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)

@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Mosque
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.domain.Levels
 import suft.android.hafiz.domain.Quran
+import suft.android.hafiz.domain.RevelationQuiz
 import suft.android.hafiz.ui.components.AppTopBar
 import suft.android.hafiz.ui.components.MenuCard
 import suft.android.hafiz.ui.i18n.LocalStrings
@@ -37,6 +39,7 @@ fun ModesScreen(
     quran: Quran,
     onBack: () -> Unit,
     onPick: (GameMode) -> Unit,
+    onPickRevelation: () -> Unit,
 ) {
     val strings = LocalStrings.current
 
@@ -74,6 +77,16 @@ fun ModesScreen(
                         onClick = { onPick(mode) },
                     )
                 }
+                val revelationBest = progress.best(RevelationQuiz.LEVEL_ID)
+                MenuCard(
+                    icon = RevelationIcon,
+                    title = strings.revelationTitle,
+                    subtitle = strings.revelationSubtitle,
+                    badge = revelationBest.takeIf { it > 0 }
+                        ?.let { "${strings.number(it)}/${strings.number(RevelationQuiz.QUESTIONS)}" },
+                    badgeLabel = strings.best,
+                    onClick = onPickRevelation,
+                )
             }
         }
     }
@@ -86,3 +99,6 @@ val GameMode.icon: ImageVector
         GameMode.Survival -> Icons.Filled.LocalFireDepartment
         GameMode.Mutashabihat -> Icons.Filled.Psychology
     }
+
+/** The icon of the Makki-or-Madani game on the Play and How to play screens. */
+val RevelationIcon: ImageVector get() = Icons.Filled.Mosque

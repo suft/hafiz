@@ -36,6 +36,7 @@ import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.ui.components.AppTopBar
 import suft.android.hafiz.ui.i18n.LocalStrings
+import suft.android.hafiz.ui.modes.RevelationIcon
 import suft.android.hafiz.ui.modes.icon
 import suft.android.hafiz.ui.styles.icon
 import suft.android.hafiz.ui.theme.LocalQuizColors
@@ -73,6 +74,7 @@ fun GuideScreen(onBack: () -> Unit) {
                             GuideEntry(mode.icon, strings.gameModeTitle(mode), strings.gameModeSubtitle(mode))
                         }
                     }
+                    GuideCard { GuideEntry(RevelationIcon, strings.revelationTitle, strings.revelationSubtitle) }
                 }
 
                 GuideSection(strings.guideLevelsHeading) {

@@ -145,6 +145,19 @@ class ProgressTest {
     }
 
     @Test
+    fun revelationGamesKeepBestAndFeedActivity() {
+        val p = Progress().withRevelationGame(3, 5, day = 10).withRevelationGame(2, 5, day = 11)
+        assertEquals(3, p.best("revelation"))
+        assertEquals(2, p.roundsCompleted)
+        assertEquals(2, p.dayStreak)
+        val last = p.recentRounds.first()
+        assertEquals("revelation", last.mode)
+        assertEquals("revelation", last.levelId)
+        assertEquals(2, last.score)
+        assertEquals(5, last.total)
+    }
+
+    @Test
     fun localEpochDayUsesTimeZone() {
         val utc = TimeZone.getTimeZone("UTC")
         assertEquals(0L, localEpochDay(0L, utc))

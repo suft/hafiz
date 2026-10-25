@@ -129,6 +129,14 @@ interface Strings {
     fun scoreTrendDescription(first: Int, last: Int): String
     val notMastered: String
     val levelsList: String
+    val revelationTitle: String
+    val revelationSubtitle: String
+    val revelationQuestion: String
+    fun revelationSurah(name: String): String
+    val makki: String
+    val madani: String
+    val revelationGood: String
+    val revelationNeedsReview: String
 }
 
 object ArabicStrings : Strings {
@@ -295,6 +303,14 @@ object ArabicStrings : Strings {
         "تطور النتائج: من ${percent(first)} في أقدم جولة إلى ${percent(last)} في أحدثها"
     override val notMastered = "غير متقنة"
     override val levelsList = "المراحل"
+    override val revelationTitle = "مكية أم مدنية"
+    override val revelationSubtitle = "خمس سور: اختر هل نزلت في مكة أم في المدينة"
+    override val revelationQuestion = "أين نزلت هذه السورة؟"
+    override fun revelationSurah(name: String) = "سورة $name"
+    override val makki = "مكية"
+    override val madani = "مدنية"
+    override val revelationGood = "أحسنت! واصل حتى تبلغ العلامة الكاملة"
+    override val revelationNeedsReview = "راجع أماكن نزول السور وحاول مرة أخرى"
 }
 
 object EnglishStrings : Strings {
@@ -455,6 +471,14 @@ object EnglishStrings : Strings {
         "Score trend: from ${percent(first)} in the oldest round to ${percent(last)} in the latest"
     override val notMastered = "not mastered"
     override val levelsList = "Levels"
+    override val revelationTitle = "Makki or Madani"
+    override val revelationSubtitle = "Five surahs: say whether each was revealed in Makkah or Madinah"
+    override val revelationQuestion = "Where was this surah revealed?"
+    override fun revelationSurah(name: String) = "Surah $name"
+    override val makki = "Makki"
+    override val madani = "Madani"
+    override val revelationGood = "Well done! Keep going for a perfect score"
+    override val revelationNeedsReview = "Review where the surahs were revealed and try again"
 }
 
 fun stringsFor(language: AppLanguage): Strings = when (language) {

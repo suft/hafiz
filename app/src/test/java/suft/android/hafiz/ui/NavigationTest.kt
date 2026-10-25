@@ -12,6 +12,9 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.activity.ComponentActivity
 import org.junit.Rule
 import org.junit.Test
@@ -88,6 +91,28 @@ class NavigationTest {
         rule.onNodeWithContentDescription(ArabicStrings.back).performClick()
         rule.waitForIdle()
         rule.onNodeWithText(ArabicStrings.statistics).assertExists()
+    }
+
+    @Test
+    fun makkiMadaniGameAppearsInActivity() {
+        waitForHome()
+        rule.onNodeWithText(ArabicStrings.play).performClick()
+        waitForText(ArabicStrings.gameModes)
+        rule.onNodeWithText(ArabicStrings.revelationTitle).performClick()
+        waitForText(ArabicStrings.revelationQuestion)
+        repeat(5) {
+            rule.onNodeWithText(ArabicStrings.makki).performClick()
+            rule.onNodeWithText(ArabicStrings.next).performClick()
+        }
+        waitForText(ArabicStrings.resultTitle)
+        rule.onNodeWithText(ArabicStrings.mainMenu).performClick()
+        waitForHome()
+        rule.onNodeWithText(ArabicStrings.statistics).performClick()
+        waitForText(ArabicStrings.tabActivity)
+        rule.onNodeWithText(ArabicStrings.tabActivity).performClick()
+        // The tiny test viewport composes only the first rows of the lazy list; scroll the round to it.
+        rule.onNode(hasScrollAction()).performScrollToNode(hasText(ArabicStrings.revelationTitle))
+        rule.onNodeWithText(ArabicStrings.revelationTitle).assertIsDisplayed()
     }
 
     @Test

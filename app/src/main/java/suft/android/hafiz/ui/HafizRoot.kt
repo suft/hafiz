@@ -66,6 +66,7 @@ import suft.android.hafiz.ui.home.HomeScreen
 import suft.android.hafiz.ui.levels.LevelsScreen
 import suft.android.hafiz.ui.modes.ModesScreen
 import suft.android.hafiz.ui.quiz.QuizScreen
+import suft.android.hafiz.ui.revelation.RevelationScreen
 import suft.android.hafiz.ui.stats.StatsScreen
 import suft.android.hafiz.ui.styles.StylesScreen
 import suft.android.hafiz.ui.i18n.LocalStrings
@@ -97,6 +98,10 @@ data class QuizRoute(val mode: String, val style: String, val level: Int)
 /** Next-ayah review round for one 0-based surah, opened from Statistics. */
 @Serializable
 data class PracticeRoute(val surah: Int)
+
+/** Makki-or-Madani game, opened from [ModesRoute]. */
+@Serializable
+object RevelationRoute
 
 @Serializable
 object StatsRoute
@@ -219,6 +224,7 @@ private fun AppNavHost(
                 quran = quran,
                 onBack = { nav.popFrom(entry) },
                 onPick = { mode -> nav.navigateFrom(entry, StylesRoute(mode.key)) },
+                onPickRevelation = { nav.navigateFrom(entry, RevelationRoute) },
             )
         }
         composable<GuideRoute> { entry ->
@@ -267,6 +273,14 @@ private fun AppNavHost(
                 quran = quran,
                 level = level,
                 mode = GameMode.Regular,
+                onBack = { nav.popFrom(entry) },
+                onMainMenu = { if (entry.isResumed()) nav.popBackStack<HomeRoute>(inclusive = false) },
+            )
+        }
+        composable<RevelationRoute> { entry ->
+            RevelationScreen(
+                container = container,
+                quran = quran,
                 onBack = { nav.popFrom(entry) },
                 onMainMenu = { if (entry.isResumed()) nav.popBackStack<HomeRoute>(inclusive = false) },
             )
