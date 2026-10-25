@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -101,6 +100,7 @@ import suft.android.ayahiq.domain.Level
 import suft.android.ayahiq.domain.Question
 import suft.android.ayahiq.domain.Quran
 import suft.android.ayahiq.ui.components.AppTopBar
+import suft.android.ayahiq.ui.components.indicatedVerticalScroll
 import suft.android.ayahiq.ui.i18n.LocalStrings
 import suft.android.ayahiq.ui.i18n.Strings
 import suft.android.ayahiq.ui.theme.LocalQuizColors
@@ -268,7 +268,7 @@ internal fun QuizContent(
                         Column(Modifier.weight(1f).fillMaxHeight()) {
                             audio()
                             Spacer(Modifier.height(8.dp))
-                            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
+                            Column(Modifier.weight(1f).fillMaxWidth().indicatedVerticalScroll(rememberScrollState()).padding(end = 8.dp)) {
                                 options()
                                 Spacer(Modifier.height(4.dp + snackbarSpace))
                             }
@@ -309,7 +309,8 @@ internal fun QuizContent(
                                         Modifier.heightIn(max = optionsMaxHeight)
                                     },
                                 )
-                                .verticalScroll(rememberScrollState()),
+                                .indicatedVerticalScroll(rememberScrollState())
+                                .padding(end = 8.dp),
                         ) {
                             options()
                             Spacer(Modifier.height(4.dp + snackbarSpace))
@@ -435,7 +436,7 @@ private fun PromptCard(q: Question, modifier: Modifier = Modifier) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                    .indicatedVerticalScroll(rememberScrollState(), inset = 8.dp)
                     .padding(horizontal = 18.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,

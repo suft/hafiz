@@ -1,5 +1,15 @@
 package suft.android.ayahiq.ui.components
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -172,4 +182,36 @@ fun AppTitle(modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.displayMedium.copy(fontFamily = TitleFont, fontSize = 52.sp),
         color = MaterialTheme.colorScheme.primary,
     )
+}
+
+/**
+ * [verticalScroll] plus a thin thumb along the end edge, so a pane that holds more than it shows says so. The thumb
+ * is drawn only while there is something to scroll, dimmer at rest and brighter while the pane moves. It is drawn over
+ * the pane's end edge: leave a few dp of end padding inside if the content would otherwise run underneath it.
+ * [inset] keeps the thumb off the edge and off the ends of the track (more for a pane with rounded corners).
+ */
+@Composable
+fun Modifier.indicatedVerticalScroll(state: ScrollState, inset: Dp = 2.dp): Modifier {
+    val color = MaterialTheme.colorScheme.onSurface
+    val alpha by animateFloatAsState(if (state.isScrollInProgress) 0.6f else 0.3f, label = "scrollIndicator")
+    return this
+        .drawWithContent {
+            drawContent()
+            val range = state.maxValue
+            if (range <= 0) return@drawWithContent
+            val thickness = 3.dp.toPx()
+            val gap = inset.toPx()
+            val track = (size.height - 2 * gap).coerceAtLeast(0f)
+            val length = (track * track / (track + range)).coerceIn(24.dp.toPx().coerceAtMost(track), track)
+            val top = gap + (track - length) * state.value / range
+            val left = if (layoutDirection == LayoutDirection.Rtl) gap else size.width - gap - thickness
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(left, top),
+                size = Size(thickness, length),
+                cornerRadius = CornerRadius(thickness / 2),
+                alpha = alpha,
+            )
+        }
+        .verticalScroll(state)
 }
