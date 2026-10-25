@@ -123,7 +123,7 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 - **Mutashabihat mode:** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site, so get their permission before publishing. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Mutashabihat mode has traps for them too. Review those pairs before a release.
 - **Fonts:** Amiri / Amiri Quran, Rakkas and Inter are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`).
 - **Paper texture** is reused from the original APK. Check that you have the rights to it before publishing.
-- **Launcher glyph (themed icon):** Material Icons "menu_book", Apache 2.0.
+- **Launcher icon & loading-screen artwork:** `app/src/main/res/drawable-nodpi/hafiz.png`.
 
 ### Google Play Games and privacy
 The leaderboards (Google Play Games Services) are dormant until `res/values/games-ids.xml` is filled in; debug builds never use them. Once enabled, the player's scores go to Google through Play Games, and the Play SDK is part of every release build. Publish a privacy policy and fill in Play Console's data-safety form before releasing with leaderboards enabled.
