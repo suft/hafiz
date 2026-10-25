@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
@@ -36,22 +37,33 @@ import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.Level
 import suft.android.hafiz.domain.Levels
 import suft.android.hafiz.domain.Quran
+import suft.android.hafiz.domain.RevelationQuiz
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.theme.LocalQuizColors
 
-private class ResolvedRound(val record: RoundRecord, val level: Level, val mode: GameMode)
+private sealed interface ResolvedRound {
+    val record: RoundRecord
+}
+
+private class LevelRound(override val record: RoundRecord, val level: Level, val mode: GameMode) : ResolvedRound
+
+/** A finished Makki-or-Madani game. */
+private class RevelationRound(override val record: RoundRecord) : ResolvedRound
 
 @Composable
 internal fun ActivityTab(progress: Progress, quran: Quran, today: Long, bottomPadding: Dp) {
     val strings = LocalStrings.current
     val rounds = remember(progress.recentRounds) {
         progress.recentRounds.mapNotNull { r ->
+            if (r.mode == RevelationQuiz.MODE_KEY) return@mapNotNull RevelationRound(r)
             val mode = GameMode.entries.firstOrNull { it.key == r.mode } ?: return@mapNotNull null
-            Levels.byId(r.levelId, quran)?.let { ResolvedRound(r, it, mode) }
+            Levels.byId(r.levelId, quran)?.let { LevelRound(r, it, mode) }
         }
     }
     // The percentage chart is meaningless for endless games, and practice rounds have their own length.
-    val regular = remember(rounds) { rounds.filter { it.mode == GameMode.Regular && !it.level.practice } }
+    val regular = remember(rounds) {
+        rounds.filterIsInstance<LevelRound>().filter { it.mode == GameMode.Regular && !it.level.practice }
+    }
 
     LazyColumn(
         contentPadding = tabContentPadding(bottomPadding),
@@ -130,7 +142,7 @@ private fun StatTile(value: Int, label: String, modifier: Modifier) {
 /** [rounds] oldest first. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ScoreTrendChart(rounds: List<ResolvedRound>) {
+private fun ScoreTrendChart(rounds: List<LevelRound>) {
     val strings = LocalStrings.current
     val quizColors = LocalQuizColors.current
     val scheme = MaterialTheme.colorScheme
@@ -202,8 +214,32 @@ private fun RoundRow(round: ResolvedRound, today: Long) {
     val quizColors = LocalQuizColors.current
     val strings = LocalStrings.current
     val record = round.record
-    val level = round.level
-    val mastered = record.score >= level.style.masteryFor(record.total)
+    val daysAgo = strings.daysAgo((today - record.day).coerceAtLeast(0).toInt())
+    val title: String
+    val subtitle: String
+    val scoreText: String
+    val scoreColor: Color
+    when (round) {
+        is LevelRound -> {
+            val level = round.level
+            title = level.name(strings.language)
+            if (round.mode.endless) {
+                subtitle = "${strings.gameModeTitle(round.mode)} · ${strings.styleTitle(level.style)} · $daysAgo"
+                scoreText = strings.number(record.score)
+                scoreColor = MaterialTheme.colorScheme.primary
+            } else {
+                subtitle = "${strings.styleTitle(level.style)} · $daysAgo"
+                scoreText = "${strings.number(record.score)} / ${strings.number(record.total)}"
+                scoreColor = if (record.score >= level.style.masteryFor(record.total)) quizColors.correct else quizColors.wrong
+            }
+        }
+        is RevelationRound -> {
+            title = strings.revelationTitle
+            subtitle = daysAgo
+            scoreText = "${strings.number(record.score)} / ${strings.number(record.total)}"
+            scoreColor = if (record.score >= RevelationQuiz.GOOD_SCORE) quizColors.correct else quizColors.wrong
+        }
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -215,31 +251,14 @@ private fun RoundRow(round: ResolvedRound, today: Long) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(level.name(strings.language), style = MaterialTheme.typography.titleSmall)
+                Text(title, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    if (round.mode.endless) {
-                        "${strings.gameModeTitle(round.mode)} · ${strings.styleTitle(level.style)} · " +
-                            strings.daysAgo((today - record.day).coerceAtLeast(0).toInt())
-                    } else {
-                        "${strings.styleTitle(level.style)} · ${strings.daysAgo((today - record.day).coerceAtLeast(0).toInt())}"
-                    },
+                    subtitle,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            if (round.mode.endless) {
-                Text(
-                    strings.number(record.score),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                Text(
-                    "${strings.number(record.score)} / ${strings.number(record.total)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (mastered) quizColors.correct else quizColors.wrong,
-                )
-            }
+            Text(scoreText, style = MaterialTheme.typography.titleMedium, color = scoreColor)
         }
     }
 }
