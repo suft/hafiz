@@ -190,6 +190,10 @@ private fun AppNavHost(
         exitTransition = { sharedAxisExit(-forward) },
         popEnterTransition = { sharedAxisEnter(-forward) },
         popExitTransition = { sharedAxisExit(forward) },
+        // System back (button or gesture) runs through the predictive-back path, which otherwise falls back to the
+        // library's default scale+fade instead of the pop transition used by in-app back.
+        predictivePopEnterTransition = { sharedAxisEnter(-forward) },
+        predictivePopExitTransition = { sharedAxisExit(forward) },
     ) {
         composable<HomeRoute> { entry ->
             HomeScreen(
