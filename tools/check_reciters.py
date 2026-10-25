@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Checks that every reciter in Reciters.kt has all 6236 ayah files on everyayah.com.
 
-Reads the reciter folders from app/src/main/java/suft/android/ayahiq/audio/Reciters.kt and the per-surah ayah
+Reads the reciter folders from app/src/main/java/suft/android/hafiz/audio/Reciters.kt and the per-surah ayah
 counts from the bundled Quran text, then lists each folder on everyayah.com and reports missing files and
 suspiciously small ones (truncated uploads).
 
@@ -18,10 +18,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-RECITERS_KT = ROOT / "app/src/main/java/suft/android/ayahiq/audio/Reciters.kt"
+RECITERS_KT = ROOT / "app/src/main/java/suft/android/hafiz/audio/Reciters.kt"
 QURAN_XML = ROOT / "app/src/main/assets/quran_simple.xml"
 BASE_URL = "https://everyayah.com/data/{}/"
-USER_AGENT = "AyahIQ-reciter-check"
+USER_AGENT = "Hafiz-reciter-check"
 TIMEOUT_S = 60
 BACKOFF_S = (5, 10)
 MIN_BYTES = 4096

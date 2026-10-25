@@ -1,4 +1,4 @@
-# AyahIQ 3.0
+# Hafiz 3.0
 
 A Quran memorisation quiz for Android, rewritten from the original *AyahSurah 2.0* APK
 (Java + Android Views, 2013) in **Kotlin + Jetpack Compose**, with a **mise** toolchain.
@@ -27,22 +27,22 @@ Recitations stream from [everyayah.com](https://everyayah.com) (26 reciters). Qu
 You only need [mise](https://mise.jdx.dev/getting-started.html) and `curl`/`unzip`. mise installs the JDK and the tasks download the Android SDK, so Android Studio isn't required.
 
 ```bash
-cd ayahiq
+cd hafiz
 mise trust          # allow this project's mise.toml
 mise install        # Temurin JDK 21
 mise run setup      # Android cmdline-tools + platform 37 + build-tools (first run only)
-mise run build      # -> dist/AyahIQ-debug.apk
+mise run build      # -> dist/Hafiz-debug.apk
 ```
 
-Install on a phone with USB debugging enabled: `mise run run` (installs and launches it), or copy `dist/AyahIQ-debug.apk` to the phone.
+Install on a phone with USB debugging enabled: `mise run run` (installs and launches it), or copy `dist/Hafiz-debug.apk` to the phone.
 
 ### All tasks (`mise tasks`)
 
 | Task | What it does |
 |---|---|
 | `setup` / `sdk` | Download the Android SDK into `.android-sdk/` (or use `$ANDROID_HOME` if it's already set) and write `local.properties` |
-| `build` (`b`) | Debug APK → `dist/AyahIQ-debug.apk` |
-| `release` | Minified release APK → `dist/AyahIQ-release.apk` |
+| `build` (`b`) | Debug APK → `dist/Hafiz-debug.apk` |
+| `release` | Minified release APK → `dist/Hafiz-release.apk` |
 | `bundle` | Release `.aab` for Google Play |
 | `keystore` | Create `release.jks` + `keystore.properties` for release signing |
 | `mutashabihat` | Regenerate `assets/mutashabihat.txt` from Aswaatul Qurraa (python3) and merge the supplement |
@@ -52,9 +52,9 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 | `install`, `run`, `logcat` | Install on a device via adb, launch it, follow its logs |
 | `clean` | Delete build outputs |
 
-**Release signing.** A release build needs a real key: run `mise run keystore` once (then back up `release.jks` and its password; both files are git-ignored), or set `AYAHIQ_KEYSTORE_FILE`, `AYAHIQ_KEYSTORE_PASSWORD`, `AYAHIQ_KEY_ALIAS` and `AYAHIQ_KEY_PASSWORD`. Without one, `assembleRelease` stops with an explanation instead of silently signing with the public debug key. For a local test build only, set `AYAHIQ_ALLOW_DEBUG_SIGNING=1` (CI does); never distribute such an APK.
+**Release signing.** A release build needs a real key: run `mise run keystore` once (then back up `release.jks` and its password; both files are git-ignored), or set `HAFIZ_KEYSTORE_FILE`, `HAFIZ_KEYSTORE_PASSWORD`, `HAFIZ_KEY_ALIAS` and `HAFIZ_KEY_PASSWORD`. Without one, `assembleRelease` stops with an explanation instead of silently signing with the public debug key. For a local test build only, set `HAFIZ_ALLOW_DEBUG_SIGNING=1` (CI does); never distribute such an APK.
 
-**Upgrading from the old app.** The package name changed from `zozo.android.ayahsurra` to `suft.android.ayahiq`, so this installs as a separate app and does not update the old one. Scores and settings are not carried over. The debug build uses `suft.android.ayahiq.debug`.
+**Upgrading from the old app.** The package name changed from `zozo.android.ayahsurra` to `suft.android.hafiz`, so this installs as a separate app and does not update the old one. Scores and settings are not carried over. The debug build uses `suft.android.hafiz.debug`.
 
 **Android Studio** works too: open the folder and it will use the Gradle wrapper. Run `mise run sdk` first, or let Studio create `local.properties` itself.
 
@@ -95,7 +95,7 @@ gradle/libs.versions.toml        all dependency versions
 app/src/main/
   assets/quran_simple.xml        Tanzil Quran text (verbatim, keep the licence header)
   assets/mutashabihat.txt        similar-ayah pairs for Mutashabihat mode (generated: mise run mutashabihat)
-  java/suft/android/ayahiq/
+  java/suft/android/hafiz/
     domain/                      pure Kotlin: Quran index, XML parser, levels, question generator, stats
     data/ProgressRepository.kt   DataStore: best scores, per-surah stats, settings
     audio/                       reciters, ExoPlayer wrapper, disk cache

@@ -111,7 +111,7 @@ def fetch(juz):
     last = None
     for delay in (2, 4, None):
         try:
-            req = urllib.request.Request(URL.format(juz), headers={"User-Agent": "AyahIQ-mutashabihat-import"})
+            req = urllib.request.Request(URL.format(juz), headers={"User-Agent": "Hafiz-mutashabihat-import"})
             with urllib.request.urlopen(req, timeout=60) as r:
                 data = json.load(r)
             if not data:

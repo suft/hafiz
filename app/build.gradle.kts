@@ -7,8 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-// Release signing: `mise run keystore` creates keystore.properties; CI can set AYAHIQ_KEYSTORE_FILE,
-// AYAHIQ_KEYSTORE_PASSWORD, AYAHIQ_KEY_ALIAS and AYAHIQ_KEY_PASSWORD instead.
+// Release signing: `mise run keystore` creates keystore.properties; CI can set HAFIZ_KEYSTORE_FILE,
+// HAFIZ_KEYSTORE_PASSWORD, HAFIZ_KEY_ALIAS and HAFIZ_KEY_PASSWORD instead.
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -17,12 +17,12 @@ val keystoreProps = Properties().apply {
 fun signingProp(key: String, env: String): String? =
     keystoreProps.getProperty(key) ?: providers.environmentVariable(env).orNull
 
-val releaseStoreFile: File? = signingProp("storeFile", "AYAHIQ_KEYSTORE_FILE")?.let { rootProject.file(it) }
+val releaseStoreFile: File? = signingProp("storeFile", "HAFIZ_KEYSTORE_FILE")?.let { rootProject.file(it) }
 val hasReleaseKeystore = releaseStoreFile?.exists() == true
 
-// Opt-in for builds that are only run locally or in CI (-PallowDebugSigning or AYAHIQ_ALLOW_DEBUG_SIGNING=1).
+// Opt-in for builds that are only run locally or in CI (-PallowDebugSigning or HAFIZ_ALLOW_DEBUG_SIGNING=1).
 val allowDebugSigning: Boolean = providers.gradleProperty("allowDebugSigning")
-    .orElse(providers.environmentVariable("AYAHIQ_ALLOW_DEBUG_SIGNING"))
+    .orElse(providers.environmentVariable("HAFIZ_ALLOW_DEBUG_SIGNING"))
     .map { it == "true" || it == "1" }
     .getOrElse(false)
 
@@ -33,8 +33,8 @@ val checkReleaseSigning = tasks.register("checkReleaseSigning") {
         if (!configured) {
             throw GradleException(
                 (if (missingFile != null) "The release keystore $missingFile does not exist. " else "") +
-                    "Release signing is not configured: run `mise run keystore`, set the AYAHIQ_KEYSTORE_* " +
-                    "variables, or set AYAHIQ_ALLOW_DEBUG_SIGNING=1 to sign with the public debug key " +
+                    "Release signing is not configured: run `mise run keystore`, set the HAFIZ_KEYSTORE_* " +
+                    "variables, or set HAFIZ_ALLOW_DEBUG_SIGNING=1 to sign with the public debug key " +
                     "(never distribute such builds).",
             )
         }
@@ -43,12 +43,12 @@ val checkReleaseSigning = tasks.register("checkReleaseSigning") {
 tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(checkReleaseSigning) }
 
 android {
-    namespace = "suft.android.ayahiq"
+    namespace = "suft.android.hafiz"
     compileSdk = 37
 
     defaultConfig {
         // Package changed from the original zozo.android.ayahsurra; installs as a separate app.
-        applicationId = "suft.android.ayahiq"
+        applicationId = "suft.android.hafiz"
         minSdk = 24
         targetSdk = 37
         versionCode = 30
@@ -59,9 +59,9 @@ android {
         if (hasReleaseKeystore) {
             create("release") {
                 storeFile = releaseStoreFile
-                storePassword = signingProp("storePassword", "AYAHIQ_KEYSTORE_PASSWORD")
-                keyAlias = signingProp("keyAlias", "AYAHIQ_KEY_ALIAS")
-                keyPassword = signingProp("keyPassword", "AYAHIQ_KEY_PASSWORD")
+                storePassword = signingProp("storePassword", "HAFIZ_KEYSTORE_PASSWORD")
+                keyAlias = signingProp("keyAlias", "HAFIZ_KEY_ALIAS")
+                keyPassword = signingProp("keyPassword", "HAFIZ_KEY_PASSWORD")
             }
         }
     }

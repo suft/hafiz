@@ -1,4 +1,4 @@
-# mise configuration for AyahIQ
+# mise configuration for Hafiz
 #
 #   mise install          # installs the JDK pinned below
 #   mise run setup        # downloads the Android SDK packages the build needs
@@ -87,32 +87,32 @@ set -euo pipefail
 [ -f local.properties ] || mise run sdk
 ./gradlew :app:assembleDebug
 mkdir -p dist
-cp app/build/outputs/apk/debug/app-debug.apk dist/AyahIQ-debug.apk
-echo "✓ dist/AyahIQ-debug.apk"
+cp app/build/outputs/apk/debug/app-debug.apk dist/Hafiz-debug.apk
+echo "✓ dist/Hafiz-debug.apk"
 '''
 
 [tasks.release]
-description = "Build the minified release APK (needs keystore.properties, AYAHIQ_KEYSTORE_* or AYAHIQ_ALLOW_DEBUG_SIGNING=1)"
+description = "Build the minified release APK (needs keystore.properties, HAFIZ_KEYSTORE_* or HAFIZ_ALLOW_DEBUG_SIGNING=1)"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 [ -f local.properties ] || mise run sdk
 ./gradlew :app:assembleRelease
 mkdir -p dist
-cp app/build/outputs/apk/release/app-release.apk dist/AyahIQ-release.apk
-echo "✓ dist/AyahIQ-release.apk"
+cp app/build/outputs/apk/release/app-release.apk dist/Hafiz-release.apk
+echo "✓ dist/Hafiz-release.apk"
 '''
 
 [tasks.bundle]
-description = "Build a release Android App Bundle (.aab) for Google Play (needs keystore.properties, AYAHIQ_KEYSTORE_* or AYAHIQ_ALLOW_DEBUG_SIGNING=1)"
+description = "Build a release Android App Bundle (.aab) for Google Play (needs keystore.properties, HAFIZ_KEYSTORE_* or HAFIZ_ALLOW_DEBUG_SIGNING=1)"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 [ -f local.properties ] || mise run sdk
 ./gradlew :app:bundleRelease
 mkdir -p dist
-cp app/build/outputs/bundle/release/app-release.aab dist/AyahIQ-release.aab
-echo "✓ dist/AyahIQ-release.aab"
+cp app/build/outputs/bundle/release/app-release.aab dist/Hafiz-release.aab
+echo "✓ dist/Hafiz-release.aab"
 '''
 
 [tasks.test]
@@ -143,11 +143,11 @@ run = "./gradlew :app:installDebug"
 [tasks.run]
 description = "Install the debug APK and launch it"
 depends = ["install"]
-run = "adb shell am start -n suft.android.ayahiq.debug/suft.android.ayahiq.MainActivity"
+run = "adb shell am start -n suft.android.hafiz.debug/suft.android.hafiz.MainActivity"
 
 [tasks.logcat]
 description = "Follow the app's logs"
-run = "adb logcat --pid=$(adb shell pidof -s suft.android.ayahiq.debug)"
+run = "adb logcat --pid=$(adb shell pidof -s suft.android.hafiz.debug)"
 
 [tasks.keystore]
 description = "Create a release keystore + keystore.properties (never commit them)"
@@ -158,16 +158,16 @@ if [ -f keystore.properties ]; then echo "keystore.properties already exists"; e
 read -r -s -p "Keystore password (min 6 chars): " pass; echo
 # The password goes to keytool through the environment, not the command line (visible in `ps`).
 export KS_PASS="$pass"
-keytool -genkeypair -v -keystore release.jks -alias ayahiq \
+keytool -genkeypair -v -keystore release.jks -alias hafiz \
   -keyalg RSA -keysize 4096 -validity 10000 \
   -storepass:env KS_PASS -keypass:env KS_PASS \
-  -dname "CN=AyahIQ, O=AyahIQ, C=XX"
+  -dname "CN=Hafiz, O=Hafiz, C=XX"
 # .properties escapes: a backslash is doubled, a leading space is escaped.
 esc=$(printf '%s' "$pass" | sed -e 's/\\/\\\\/g' -e 's/^ /\\ /')
 cat > keystore.properties <<EOF
 storeFile=release.jks
 storePassword=$esc
-keyAlias=ayahiq
+keyAlias=hafiz
 keyPassword=$esc
 EOF
 chmod 600 keystore.properties release.jks

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # CI builds are never published; they sign the release APK with the debug key so it can be built at all.
-      AYAHIQ_ALLOW_DEBUG_SIGNING: "1"
+      HAFIZ_ALLOW_DEBUG_SIGNING: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v5
@@ -24,5 +24,5 @@ jobs:
       - run: mise run release
       - uses: actions/upload-artifact@v7
         with:
-          name: AyahIQ-debug
-          path: dist/AyahIQ-debug.apk
+          name: Hafiz-debug
+          path: dist/Hafiz-debug.apk
