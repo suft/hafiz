@@ -106,7 +106,7 @@ class QuizLogicTest {
             val q = ayahGen.next()
             assertEquals(quran.reference(q.shownAyahs, AppLanguage.English), q.reference)
             // The option is Arabic ayah text, never translated.
-            assertTrue(quran.text(q.shownAyahs.last + 1).startsWith(q.options[q.correctOption].removeSuffix(" …")))
+            assertEquals(ArabicText.withoutSajdahSign(quran.text(q.shownAyahs.last + 1)), q.options[q.correctOption])
         }
     }
 
@@ -114,9 +114,6 @@ class QuizLogicTest {
     fun arabicHelpers() {
         assertEquals("٢٥٥", ArabicText.digits(255))
         assertEquals("﴿٧﴾", ArabicText.ayahMarker(7))
-        assertEquals("أ ب …", ArabicText.firstWords("أ ب ج د", 2))
-        val labels = ArabicText.distinctPrefixes(listOf("a b c d e", "a b c x y", "q"), 2)
-        assertEquals(3, labels.toSet().size)
     }
 
     @Test

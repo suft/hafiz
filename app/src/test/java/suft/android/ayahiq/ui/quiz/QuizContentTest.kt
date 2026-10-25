@@ -3,6 +3,9 @@ package suft.android.ayahiq.ui.quiz
 import android.app.Application
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -140,6 +143,38 @@ class QuizContentTest {
         val promptBottom = rule.onNodeWithTag(QuizTestTags.PROMPT).getUnclippedBoundsInRoot().bottom
         val optionTop = rule.onNodeWithTag(QuizTestTags.option(0)).getUnclippedBoundsInRoot().top
         assertTrue("options start below the prompt ($optionTop >= $promptBottom)", optionTop < promptBottom)
+    }
+
+    @Test
+    fun nextAyahOptionsStayPut() = assertOptionsStayPut(GameStyle.NextAyah)
+
+    @Test
+    fun guessSurahOptionsStayPut() = assertOptionsStayPut(GameStyle.GuessSurah)
+
+    /** The options pane sits at the same place for a long prompt (2:255) and a short one (108:1). */
+    private fun assertOptionsStayPut(style: GameStyle) {
+        run {
+            val level = Levels.forStyle(style, quran).first { it.surahRange == 0..113 && !it.openings }
+            fun stateFor(ayah: Int) = QuizUiState(
+                level = level,
+                number = 1,
+                question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1)).questionFor(ayah..ayah),
+                mode = GameMode.Regular,
+            )
+            var current by mutableStateOf(stateFor(quran.surahs[1].firstAyah + 254)) // 2:255, long
+            rule.setContent {
+                AyahIqTheme(AppLanguage.Arabic, darkTheme = false) {
+                    DeviceConfigurationOverride(DeviceConfigurationOverride.ForcedSize(DpSize(360.dp, 800.dp))) {
+                        Content(current)
+                    }
+                }
+            }
+            fun tops() = List(4) { rule.onNodeWithTag(QuizTestTags.option(it)).getUnclippedBoundsInRoot().top.value }
+            val long = tops()
+            current = stateFor(quran.surahs[107].firstAyah) // 108:1, short
+            rule.waitForIdle()
+            assertEquals("$style: options moved", long[0], tops()[0])
+        }
     }
 
     @Test

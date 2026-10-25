@@ -75,7 +75,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -109,6 +108,9 @@ import suft.android.ayahiq.ui.theme.NaskhFont
 import suft.android.ayahiq.ui.theme.quranTextStyle
 
 private val NextAyahOptionLineHeight = 30.sp
+
+/** Share of the body height the options pane takes on portrait screens. */
+private const val OPTIONS_HEIGHT_FRACTION = 0.45f
 
 @Composable
 fun QuizScreen(
@@ -263,26 +265,24 @@ internal fun QuizContent(
                             Spacer(Modifier.height(10.dp))
                             PromptCard(q, Modifier.weight(1f).padding(bottom = 8.dp).testTag(QuizTestTags.PROMPT))
                         }
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                                .verticalScroll(rememberScrollState()),
-                        ) {
+                        Column(Modifier.weight(1f).fillMaxHeight()) {
                             audio()
                             Spacer(Modifier.height(8.dp))
-                            options()
-                            Spacer(Modifier.height(4.dp + snackbarSpace))
+                            Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
+                                options()
+                                Spacer(Modifier.height(4.dp + snackbarSpace))
+                            }
                         }
                     }
                 } else {
-                    // The whole page scrolls (large fonts, small screens); the prompt keeps at least 120 dp and
-                    // at most half the height, scrolling inside itself beyond that.
+                    // Nothing moves between questions: the header and audio bar are fixed, the options sit in a pane
+                    // of fixed size at the bottom, and the prompt takes the rest. A prompt or an option that does not
+                    // fit scrolls inside its own pane.
+                    val optionsMaxHeight = this@BoxWithConstraints.maxHeight * OPTIONS_HEIGHT_FRACTION
                     Column(
                         Modifier
                             .widthIn(max = 640.dp)
                             .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
                             .padding(horizontal = 16.dp),
                     ) {
                         ProgressHeader(state, onNext = onNext)
@@ -290,14 +290,30 @@ internal fun QuizContent(
                         PromptCard(
                             q,
                             Modifier
-                                .heightIn(min = 120.dp, max = (this@BoxWithConstraints.maxHeight * 0.5f).coerceAtLeast(120.dp))
+                                .weight(1f)
+                                .heightIn(min = 120.dp)
                                 .testTag(QuizTestTags.PROMPT),
                         )
                         Spacer(Modifier.height(8.dp))
                         audio()
                         Spacer(Modifier.height(8.dp))
-                        options()
-                        Spacer(Modifier.height(4.dp + snackbarSpace))
+                        // Full ayahs vary in length, so next-ayah options get a pane of constant height; guess-surah
+                        // options are all one line and size the pane themselves.
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .then(
+                                    if (q.style == GameStyle.NextAyah) {
+                                        Modifier.height(optionsMaxHeight)
+                                    } else {
+                                        Modifier.heightIn(max = optionsMaxHeight)
+                                    },
+                                )
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            options()
+                            Spacer(Modifier.height(4.dp + snackbarSpace))
+                        }
                     }
                 }
             }
@@ -582,19 +598,11 @@ private fun OptionButton(
     } else {
         null
     }
-
-    // Every next-ayah option reserves two lines so 1- or 2-line options don't resize the options column.
-    val minHeight = if (style == GameStyle.NextAyah) {
-        with(LocalDensity.current) { (NextAyahOptionLineHeight * 2).toDp() } + 20.dp // 2 lines + vertical contentPadding
-    } else {
-        0.dp
-    }
     OutlinedButton(
         onClick = onClick,
         enabled = state == OptionState.Open,
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = minHeight)
             .alpha(if (state == OptionState.Dimmed) 0.5f else 1f),
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(if (state == OptionState.Open || state == OptionState.Dimmed) 1.dp else 2.dp, borderColor),

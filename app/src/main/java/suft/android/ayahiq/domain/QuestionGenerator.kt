@@ -190,9 +190,8 @@ class QuestionGenerator(
         val wrongIdx = traps + ordered.shuffled(random).take(WRONG_OPTIONS - traps.size)
         // The ۩ sign would mark the prostration ayah; the prompt and the share card keep it, the options do not.
         val texts = (listOf(answer) + wrongIdx).map { ArabicText.withoutSajdahSign(quran.text(it)) }
-        val labels = ArabicText.distinctPrefixes(texts, OPTION_MIN_WORDS, validAnswerKeys(shown))
 
-        val (options, correct) = shuffleWithCorrect(labels.first(), labels.drop(1))
+        val (options, correct) = shuffleWithCorrect(texts.first(), texts.drop(1))
         return Question(
             style = GameStyle.NextAyah,
             shownAyahs = shown,
@@ -220,7 +219,6 @@ class QuestionGenerator(
         const val SURAH_NEIGHBOURHOOD = 16
         const val AYAH_NEIGHBOURHOOD = 8   // original: window of 8 ayahs around the answer
         const val AYAH_SEARCH_RADIUS = 60
-        const val OPTION_MIN_WORDS = 10
         const val RECENT_MEMORY = 20
     }
 }

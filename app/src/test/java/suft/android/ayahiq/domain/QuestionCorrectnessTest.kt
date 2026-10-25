@@ -73,17 +73,13 @@ class QuestionCorrectnessTest {
                     val where = "${level.arabicName} hafiz=$hafiz ${quran.reference(p, AppLanguage.English)}"
                     val answer = p.last + 1
                     assertEquals(where, quran.surahOf(p.first), quran.surahOf(answer))
-                    val labels = q.options.map { norm(it.removeSuffix(" …")) }
-                    assertEquals("$where: labels not distinct", 4, q.options.map(::norm).toSet().size)
-                    assertTrue(where, normalised[answer].startsWith(labels[q.correctOption]))
+                    val labels = q.options.map(::norm)
+                    assertEquals("$where: options not distinct", 4, labels.toSet().size)
+                    assertEquals(where, normalised[answer], labels[q.correctOption])
                     val valid = followers.getValue(normalised[p.last])
-                    q.options.forEachIndexed { i, option ->
+                    labels.forEachIndexed { i, label ->
                         if (i == q.correctOption) return@forEachIndexed
-                        val truncated = option.endsWith("…")
-                        assertFalse(
-                            "$where: «$option» is also a valid next ayah",
-                            valid.any { it == labels[i] || (truncated && it.startsWith(labels[i])) },
-                        )
+                        assertFalse("$where: «${q.options[i]}» is also a valid next ayah", label in valid)
                     }
                 }
             }
@@ -106,10 +102,7 @@ class QuestionCorrectnessTest {
                         GameStyle.NextAyah -> {
                             val candidates = mutashabihat.of(p.last + 1).map { it.ayah } +
                                 mutashabihat.of(p.last).filter { !quran.isLastOfSurah(it.ayah) }.map { it.ayah + 1 }
-                            wrong.any { label ->
-                                val prefix = norm(label.removeSuffix(" …"))
-                                candidates.any { normalised[it].startsWith(prefix) }
-                            }
+                            wrong.any { label -> candidates.any { normalised[it] == norm(label) } }
                         }
                     }
                     assertTrue(
