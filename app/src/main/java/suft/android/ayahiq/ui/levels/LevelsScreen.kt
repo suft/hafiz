@@ -75,12 +75,13 @@ fun LevelsScreen(
         val direction = LocalLayoutDirection.current
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
-                modifier = Modifier.widthIn(max = 640.dp),
+                // The top bar is transparent, so the list must start below it (not scroll under it).
+                modifier = Modifier.padding(top = padding.calculateTopPadding()).widthIn(max = 640.dp),
                 contentPadding = PaddingValues(
                     // Side insets matter in landscape (cutouts, rounded corners).
                     start = padding.calculateStartPadding(direction) + 16.dp,
                     end = padding.calculateEndPadding(direction) + 16.dp,
-                    top = padding.calculateTopPadding() + 4.dp,
+                    top = 4.dp,
                     bottom = padding.calculateBottomPadding() + 16.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
