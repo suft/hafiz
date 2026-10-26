@@ -58,7 +58,7 @@ fun StylesScreen(
                 Text(strings.gameModeSubtitle(mode), style = MaterialTheme.typography.bodyLarge)
                 Text(strings.chooseStyle, style = MaterialTheme.typography.titleMedium)
                 GameStyle.entries.forEach { style ->
-                    val levels = remember(style) { Levels.forStyle(style, quran) }
+                    val levels = remember(style, mode) { Levels.forMode(mode, style, quran) }
                     val badge: String?
                     val badgeLabel: String
                     if (mode.endless) {

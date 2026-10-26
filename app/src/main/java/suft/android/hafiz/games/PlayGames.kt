@@ -90,10 +90,10 @@ class PlayGamesLeaderboards(private val activity: ComponentActivity, container: 
         // integration existed and catches up after offline play. PGS ignores worse scores, so this is idempotent.
         activity.lifecycleScope.launch {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                val styleLevels = container.quran.filterNotNull()
-                    .map { q -> GameStyle.entries.associateWith { Levels.forStyle(it, q) } }
-                combine(authenticated, styleLevels, container.progress.progress) { auth, levels, progress ->
-                    if (auth) boards.mapValues { (key, _) -> progress.leaderboardScore(key.first, levels.getValue(key.second)) } else null
+                val boardLevels = container.quran.filterNotNull()
+                    .map { q -> boards.keys.associateWith { (mode, style) -> Levels.forMode(mode, style, q) } }
+                combine(authenticated, boardLevels, container.progress.progress) { auth, levels, progress ->
+                    if (auth) boards.mapValues { (key, _) -> progress.leaderboardScore(key.first, levels.getValue(key)) } else null
                 }.filterNotNull().distinctUntilChanged().collect { scores ->
                     for ((key, score) in scores) {
                         val id = boards.getValue(key)

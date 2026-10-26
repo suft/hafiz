@@ -237,7 +237,16 @@ private fun AppNavHost(
                 quran = quran,
                 mode = mode,
                 onBack = { nav.popFrom(entry) },
-                onPick = { style -> nav.navigateFrom(entry, LevelsRoute(mode.key, style.key)) },
+                onPick = { style ->
+                    nav.navigateFrom(
+                        entry,
+                        if (mode.wholeQuranOnly) {
+                            QuizRoute(mode.key, style.key, Levels.wholeQuran(style, quran).index)
+                        } else {
+                            LevelsRoute(mode.key, style.key)
+                        },
+                    )
+                },
             )
         }
         composable<LevelsRoute> { entry ->

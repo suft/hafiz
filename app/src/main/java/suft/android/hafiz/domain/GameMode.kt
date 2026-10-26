@@ -1,12 +1,18 @@
 package suft.android.hafiz.domain
 
 /** How a game ends: after a fixed round (Regular) or when the lives run out (endless modes). */
-enum class GameMode(val key: String, val lives: Int?, val trapOptions: Boolean = false) {
+enum class GameMode(
+    val key: String,
+    val lives: Int?,
+    val trapOptions: Boolean = false,
+    /** True when the mode has no level choice and always plays [Levels.wholeQuran]. */
+    val wholeQuranOnly: Boolean = false,
+) {
     Regular("regular", lives = null),
     Survival("survival", lives = 1),
 
-    /** Three lives; the wrong options are mutashabihat — ayahs and surahs that resemble the right answer. */
-    Mutashabihat("mutashabihat", lives = 3, trapOptions = true);
+    /** Three lives; the wrong options are mutashabihat — ayahs and surahs that resemble the right answer. Always the whole Quran: no level choice. */
+    Mutashabihat("mutashabihat", lives = 3, trapOptions = true, wholeQuranOnly = true);
 
     val endless: Boolean get() = lives != null
 

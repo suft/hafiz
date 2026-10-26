@@ -170,7 +170,7 @@ object ArabicStrings : Strings {
     override fun gameModeSubtitle(mode: GameMode) = when (mode) {
         GameMode.Regular -> "جولات محددة الأسئلة، أتقن كل مرحلة"
         GameMode.Survival -> "أسئلة بلا نهاية، وأول خطأ ينهي اللعبة"
-        GameMode.Mutashabihat -> "خيارات من الآيات المتشابهة، وثلاثة أخطاء تنهي اللعبة"
+        GameMode.Mutashabihat -> "أسئلة من القرآن كله بخيارات من الآيات المتشابهة، وثلاثة أخطاء تنهي اللعبة"
     }
 
     override val chooseStyle = "اختر نوع الأسئلة"
@@ -200,7 +200,7 @@ object ArabicStrings : Strings {
     override val guideLevelsHeading = "المراحل والإتقان"
     override val guideLevels =
         "لكل نوع من الأسئلة مراحل تغطي أجزاء مختلفة من القرآن، من قصار السور حتى القرآن كله. " +
-            "في الوضع العادي تُحفظ أفضل نتيجة لكل مرحلة، وفي البقاء والمتشابهات تُحفظ أفضل لعبة لكل مرحلة."
+            "في الوضع العادي تُحفظ أفضل نتيجة لكل مرحلة، وفي البقاء أفضل لعبة لكل مرحلة. أما المتشابهات فبلا مراحل: أسئلتها من القرآن كله."
     override fun guideMastery(styleTitle: String, questions: Int, mastery: Int) =
         "«$styleTitle»: تتكون الجولة العادية من ${questionsCount(questions)}، وتُتقَن المرحلة إذا بلغت نتيجتك ${number(mastery)} أو أكثر."
     override val guideStatsHeading = "الإحصائيات والمراجعة"
@@ -347,7 +347,7 @@ object EnglishStrings : Strings {
     override fun gameModeSubtitle(mode: GameMode) = when (mode) {
         GameMode.Regular -> "Fixed-length rounds; master every level"
         GameMode.Survival -> "Endless questions; one mistake ends the game"
-        GameMode.Mutashabihat -> "Similar-ayah traps (mutashabihat); three mistakes end the game"
+        GameMode.Mutashabihat -> "Questions from the whole Quran with similar-ayah traps (mutashabihat); three mistakes end the game"
     }
 
     override val chooseStyle = "Choose a question style"
@@ -377,7 +377,7 @@ object EnglishStrings : Strings {
     override val guideLevelsHeading = "Levels and mastery"
     override val guideLevels =
         "Each question style has levels covering different parts of the Quran, from the short surahs to the whole Quran. " +
-            "Regular keeps your best round on each level; Survival and Mutashabihat keep your best game on each level."
+            "Regular keeps your best round on each level and Survival your best game on each level. Mutashabihat has no levels: its questions come from the whole Quran."
     override fun guideMastery(styleTitle: String, questions: Int, mastery: Int) =
         "$styleTitle: a Regular round has ${questionsCount(questions)}; a score of ${number(mastery)} or more masters the level."
     override val guideStatsHeading = "Statistics and review"

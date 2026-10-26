@@ -17,10 +17,12 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performScrollToNode
 import androidx.activity.ComponentActivity
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import suft.android.hafiz.HafizApp
 import suft.android.hafiz.MainActivity
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
@@ -38,11 +40,11 @@ class NavigationTest {
     // The Statistics card exists only on Home among Home/Modes/Guide/Styles/Levels.
     private fun waitForHome() = waitForText(ArabicStrings.statistics)
 
-    private fun openRegularStyles() {
+    private fun openStyles(mode: GameMode) {
         waitForHome()
         rule.onNodeWithText(ArabicStrings.play).performClick()
         waitForText(ArabicStrings.gameModes)
-        rule.onNodeWithText(ArabicStrings.gameModeTitle(GameMode.Regular)).performClick()
+        rule.onNodeWithText(ArabicStrings.gameModeTitle(mode)).performClick()
         waitForText(ArabicStrings.chooseStyle)
     }
 
@@ -56,18 +58,29 @@ class NavigationTest {
 
     @Test
     fun doubleBackOnStylesStopsAtModes() {
-        openRegularStyles()
+        openStyles(GameMode.Regular)
         doubleBack()
         rule.onNodeWithText(ArabicStrings.gameModes).assertIsDisplayed()
     }
 
     @Test
     fun doubleBackOnLevelsStopsAtStyles() {
-        openRegularStyles()
+        openStyles(GameMode.Regular)
         rule.onNodeWithText(ArabicStrings.styleTitle(GameStyle.GuessSurah)).performClick()
         waitForText("العاديات حتى الناس")
         doubleBack()
         rule.onNodeWithText(ArabicStrings.chooseStyle).assertIsDisplayed()
+    }
+
+    @Test
+    fun mutashabihatOpensTheWholeQuranQuiz() {
+        // No audio streaming under Robolectric.
+        runBlocking { (rule.activity.application as HafizApp).container.progress.setAutoPlay(false) }
+        openStyles(GameMode.Mutashabihat)
+        rule.onNodeWithText(ArabicStrings.styleTitle(GameStyle.GuessSurah)).performClick()
+        waitForText(ArabicStrings.whichSurah)
+        rule.onNodeWithText("المصحف كاملاً").assertIsDisplayed()
+        rule.onAllNodesWithText("العاديات حتى الناس").assertCountEquals(0)
     }
 
     @Test

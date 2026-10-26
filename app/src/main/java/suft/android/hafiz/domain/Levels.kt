@@ -121,6 +121,14 @@ object Levels {
         }
     }
 
+    /** The whole-Quran level of [style] (not the openings one); the only level of a [GameMode.wholeQuranOnly] mode. */
+    fun wholeQuran(style: GameStyle, quran: Quran): Level =
+        forStyle(style, quran).single { it.firstSurah == 0 && it.lastSurah == Quran.SURAH_COUNT - 1 && !it.openings }
+
+    /** The levels [mode] offers for [style]. */
+    fun forMode(mode: GameMode, style: GameStyle, quran: Quran): List<Level> =
+        if (mode.wholeQuranOnly) listOf(wholeQuran(style, quran)) else forStyle(style, quran)
+
     /** Next-ayah round limited to one surah, started from the statistics screen. */
     fun surahPractice(surahIndex: Int, quran: Quran): Level {
         val surah = quran.surahs[surahIndex]
