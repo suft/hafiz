@@ -84,6 +84,9 @@ class Quran private constructor(
         keys.indices.groupBy { keys[it] }.mapValues { (_, v) -> v.toIntArray() }
     }
 
+    /** Word-sharing relatedness between surahs; built on first use (only Guess the Surah needs it). */
+    val themes: ThemeIndex by lazy { ThemeIndex(this) }
+
     companion object {
         const val SURAH_COUNT = 114
 

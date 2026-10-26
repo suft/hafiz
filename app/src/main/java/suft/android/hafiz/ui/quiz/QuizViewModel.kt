@@ -104,10 +104,11 @@ class QuizViewModel(
                     previousBest = if (mode.endless) saved.runBest(mode, level.id) else saved.best(level.id),
                 )
             }
-            val similar = if (mode.trapOptions) container.mutashabihat.filterNotNull().first() else null
+            val similar = container.mutashabihat.filterNotNull().first()
             // Mutashabihat levels weigh thousands of prompts; build the pool and the first question off the main thread.
             generator = withContext(Dispatchers.Default) {
-                QuestionGenerator(quran, level, language, mutashabihat = similar).also { upcoming = it.next() }
+                QuestionGenerator(quran, level, language, mutashabihat = similar, trapMode = mode.trapOptions)
+                    .also { upcoming = it.next() }
             }
             showNextQuestion()
         }

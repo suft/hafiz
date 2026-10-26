@@ -208,6 +208,29 @@ class QuizLogicTest {
         assertEquals(10, Levels.surahPractice(1, quran).questionsPerRound)
     }
 
+    private fun ayah(surah: Int, number: Int) = quran.surahs[surah - 1].firstAyah + number - 1
+
+    @Test
+    fun themeIndexRelatesTheSameStory() {
+        assertEquals("فرعون", ThemeIndex.normalise("وَفِرْعَوْنَ"))
+        assertEquals("كهف", ThemeIndex.normalise("الْكَهْفِ"))
+        assertEquals("رقيم", ThemeIndex.normalise("وَالرَّقِيمِ"))
+        assertEquals("لله", ThemeIndex.normalise("لِلَّهِ"))
+        assertEquals("", ThemeIndex.normalise("ۚ"))
+
+        // 20:24 («اذهب إلى فرعون إنه طغى»): An-Nazi'at 79:17 repeats it; Taha itself is scored without the prompt.
+        val taha = ayah(20, 24)
+        val rel = quran.themes.relatedness(taha..taha)
+        assertEquals(78, rel.indices.maxBy { rel[it] })
+        assertTrue(rel[19] < rel[78])
+
+        // 7:103 (Musa sent to Pharaoh): the same story in Yunus, An-Naml and Al-Qasas.
+        val a = ayah(7, 103)
+        val story = quran.themes.relatedness(a..a)
+        val top = story.indices.filter { it != 6 }.sortedByDescending { story[it] }.take(5)
+        assertTrue("top 5 for 7:103: $top", top.containsAll(listOf(9, 26, 27)))
+    }
+
     @Test
     fun gameOverRules() {
         assertTrue(GameMode.Regular.isOver(20, 0, 20))

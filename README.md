@@ -8,7 +8,7 @@ A Quran memorisation quiz for Android, rewritten from the original *AyahSurah 2.
 | **آية وسورة** (guess the surah) | Read/hear an ayah and pick the surah it's from | 20 | 20 |
 | **آيات** (next ayah) | Read/hear an ayah and pick the one that follows it | 25 | 10 |
 
-From the main menu, **Play** opens the **game modes**; pick a mode, then a question style and a level. **How to play** explains the styles, modes and levels in the app.
+From the main menu, **Play** opens the **game modes**; pick a mode, then a question style and a level (Mutashabihat has no levels: it always plays the whole Quran). **How to play** explains the styles, modes and levels in the app.
 
 | Game mode | How it ends | Score |
 |---|---|---|
@@ -16,7 +16,9 @@ From the main menu, **Play** opens the **game modes**; pick a mode, then a quest
 | **البقاء** (Survival) | First wrong answer | Correct answers in a row |
 | **المتشابهات** (Mutashabihat) | Third wrong answer | Correct answers; the wrong options are *mutashabihat* traps: surahs and next ayahs that resemble the right answer |
 
-Survival and Mutashabihat keep a best score per level, and their games show up in **إحصائيات** (stats: overall and per-style accuracy, the surahs to review, per-mode games played, best score, average and longest streak) and its activity history.
+In guess-the-surah, wrong surahs are drawn from the whole level, weighted by surah length and (Regular, Survival) by how many of the ayah's words they share, so no option stands out by number, length or topic. The word overlap is computed on the device from the bundled Tanzil text (`domain/ThemeIndex.kt`); no topic data set is used. Regular and Survival also swap in one *mutashabihat* look-alike (a surah or next ayah from the same level that resembles the answer) when the prompt has one.
+
+Survival keeps a best score per level; Mutashabihat keeps one best score per style. Their games show up in **إحصائيات** (stats: overall and per-style accuracy, the surahs to review, per-mode games played, best score, average and longest streak) and its activity history.
 
 **مكية أم مدنية** (Makki or Madani) sits next to the modes on the Play screen. It has no styles or levels: five surahs, each answered Makki or Madani (equal chance of each; revelation places are quran.com's `revelation_place`, bundled in `domain/Revelation.kt`). The card shows the best score and every finished game appears in the activity history.
 

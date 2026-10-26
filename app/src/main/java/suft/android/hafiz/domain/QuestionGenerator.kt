@@ -1,6 +1,8 @@
 package suft.android.hafiz.domain
 
 import kotlin.math.abs
+import kotlin.math.exp
+import kotlin.math.pow
 import kotlin.random.Random
 
 /** One multiple-choice question. */
@@ -32,23 +34,31 @@ data class Question(
  * * Levels with very few surahs/ayahs fall back to a wider pool instead of looping forever.
  * * The same prompt is not dealt again within [RECENT_MEMORY] questions (within a round for practice rounds);
  *   prompts come from a shuffled deck, so every prompt is dealt once before any repeats.
+ * * Wrong surahs are drawn from the whole level, weighted by length and by the prompt's words ([pickWrongSurahs]), so no
+ *   option stands out by number, length or topic.
  *
- * In Mutashabihat mode ([mutashabihat] given) prompts are limited to ayahs that have a trap, and the wrong options are
- * mutashabihat: surahs/next ayahs that resemble the right answer.
+ * In Mutashabihat mode ([trapMode]) prompts are limited to ayahs that have a trap, and the wrong options are
+ * mutashabihat: surahs/next ayahs that resemble the right answer. The other modes may be given [mutashabihat] too: they
+ * deal every prompt and swap at most [LIGHT_TRAPS] wrong option for such a look-alike, when the prompt has one.
  */
 class QuestionGenerator(
     private val quran: Quran,
     private val level: Level,
     private val language: AppLanguage,
     private val random: Random = Random.Default,
-    /** Mutashabihat mode: wrong options come from these similar ayahs first; null in the other modes. */
+    /** Similar ayahs the wrong options may be taken from; null when no traps are wanted. */
     private val mutashabihat: Mutashabihat? = null,
+    /** Mutashabihat mode: traps fill every wrong slot they can and prompts without a trap are never dealt. */
+    private val trapMode: Boolean = mutashabihat != null,
 ) {
 
-    /** Mutashabihat: only the level's prompts that have a trap (every level has some); otherwise all of them. */
+    /** How many wrong options may be traps. */
+    private val trapSlots = if (trapMode) WRONG_OPTIONS else LIGHT_TRAPS
+
+    /** Mutashabihat: only the level's prompts that have a trap; otherwise all of them. */
     internal val promptPool: List<IntRange> by lazy {
         val all = allPrompts()
-        if (mutashabihat == null) all else all.filter(::hasTrap).ifEmpty { all }
+        if (!trapMode) all else all.filter(::hasTrap).ifEmpty { all }
     }
 
     /** Pool indices still to deal from the current shuffle, and the ones dealt last. */
@@ -137,23 +147,12 @@ class QuestionGenerator(
     private fun guessSurahQuestion(shown: IntRange): Question {
         val surah = quran.surahOf(shown.first)
         val alsoCorrect = quran.surahsContaining(shown)
-        val traps = trapSurahs(shown, alsoCorrect).take(WRONG_OPTIONS)
+        val traps = trapSurahs(shown, alsoCorrect).filter { trapMode || it in level.surahRange }.take(trapSlots)
         val need = WRONG_OPTIONS - traps.size
 
-        fun pool(range: IntRange): List<Int> {
-            val allowed = range.filter { it != surah.index && it !in alsoCorrect && it !in traps }
-            if (allowed.size > SURAH_NEIGHBOURHOOD) {
-                // The answer sits at a random position of the window, not always in its middle.
-                val low = surah.index - random.nextInt(SURAH_NEIGHBOURHOOD + 1)
-                val window = allowed.filter { it in low..low + SURAH_NEIGHBOURHOOD }
-                if (window.size >= need) return window
-            }
-            return allowed.sortedBy { abs(it - surah.index) }.take(SURAH_NEIGHBOURHOOD)
-        }
-
-        val candidates = pool(level.surahRange).takeIf { it.size >= need }
-            ?: pool(0 until Quran.SURAH_COUNT)
-        val wrong = (traps + candidates.shuffled(random).take(need)).map { quran.surahs[it].displayName(language) }
+        fun allowed(range: IntRange) = range.filter { it != surah.index && it !in alsoCorrect && it !in traps }
+        val candidates = allowed(level.surahRange).takeIf { it.size >= need } ?: allowed(0 until Quran.SURAH_COUNT)
+        val wrong = (traps + pickWrongSurahs(shown, candidates, need)).map { quran.surahs[it].displayName(language) }
 
         val (options, correct) = shuffleWithCorrect(surah.displayName(language), wrong)
         return Question(
@@ -168,13 +167,51 @@ class QuestionGenerator(
         )
     }
 
+    /** Prompts of each surah this generator deals (the Mutashabihat pool's trap filter is reflected). */
+    private val promptsPerSurah: IntArray by lazy {
+        IntArray(Quran.SURAH_COUNT).also { n -> promptPool.forEach { n[quran.surahOf(it.first).index]++ } }
+    }
+
+    /**
+     * [count] of [candidates], drawn without replacement with weight `prompts^PROMPT_WEIGHT · e^(THEME_WEIGHT · relatedness)`:
+     * the answer is dealt per ayah and is usually the surah sharing most of the prompt's words, so wrong options follow the
+     * same two tendencies and neither length, number nor topic singles the answer out. Mutashabihat mode weights by length
+     * only: its traps are near-copies of the prompt, so topical fillers would leave the answer as the least related option.
+     */
+    private fun pickWrongSurahs(shown: IntRange, candidates: List<Int>, count: Int): List<Int> {
+        if (count <= 0) return emptyList()
+        val theme = if (trapMode) 0.0 else THEME_WEIGHT
+        val rel = if (theme == 0.0) null else quran.themes.relatedness(shown)
+        val top = rel?.let { r -> candidates.maxOf { r[it] } } ?: 0.0
+        val pool = candidates.toMutableList()
+        val weights = pool.mapTo(ArrayList()) { c ->
+            maxOf(promptsPerSurah[c], 1).toDouble().pow(PROMPT_WEIGHT) * if (rel == null) 1.0 else exp(theme * (rel[c] - top))
+        }
+        return List(count) {
+            var r = random.nextDouble() * weights.sum()
+            var pick = weights.lastIndex
+            for (i in weights.indices) {
+                r -= weights[i]
+                if (r < 0) {
+                    pick = i
+                    break
+                }
+            }
+            weights.removeAt(pick)
+            pool.removeAt(pick)
+        }
+    }
+
     // ---------------------------------------------------------------- next ayah
 
     private fun nextAyahQuestion(shown: IntRange): Question {
         val surah = quran.surahOf(shown.first)
         val answer = shown.last + 1
         val acceptable = wrongNextAyahFilter(shown)
-        val traps = trapAyahs(shown, acceptable).take(WRONG_OPTIONS)
+        // Outside Mutashabihat mode a look-alike must come from the level, or it would stand out as the odd one.
+        val trapFilter: (Int) -> Boolean =
+            if (trapMode) acceptable else { g -> acceptable(g) && quran.surahOf(g).index in level.surahRange }
+        val traps = trapAyahs(shown, trapFilter).take(trapSlots)
         val trapKeys = traps.mapTo(HashSet(), quran::key)
 
         // Nearby ayahs of the same surah first (as in the original), then neighbouring surahs.
@@ -212,11 +249,15 @@ class QuestionGenerator(
     private companion object {
         const val WRONG_OPTIONS = 3
 
-        /**
-         * Wrong surahs come from a window of this many surahs around the correct one, which sits at a random
-         * position inside it (so it is not predictable from where it falls among the options).
-         */
-        const val SURAH_NEIGHBOURHOOD = 16
+        /** Trap options per question outside Mutashabihat mode. */
+        const val LIGHT_TRAPS = 1
+
+        /** Exponent on a surah's prompt count; below 1 because relatedness already favours long surahs. */
+        const val PROMPT_WEIGHT = 0.75
+
+        /** How strongly wrong options follow the prompt's words (relatedness is ~0..1.5). */
+        const val THEME_WEIGHT = 6.0
+
         const val AYAH_NEIGHBOURHOOD = 8   // original: window of 8 ayahs around the answer
         const val AYAH_SEARCH_RADIUS = 60
         const val RECENT_MEMORY = 20
