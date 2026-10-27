@@ -19,6 +19,9 @@ enum class GameMode(
     /** Survival's score is its streak, so only games with more lives show the longest streak separately. */
     val showsLongestStreak: Boolean get() = (lives ?: 0) > 1
 
+    /** Mutashabihat mode needs look-alike wrong options, which a style without them ([GameStyle.hasLookAlikes]) cannot give. */
+    fun offers(style: GameStyle): Boolean = !trapOptions || style.hasLookAlikes
+
     /** Regular: after [roundLength] answers. Endless: when [wrong] reaches [lives]. */
     fun isOver(answered: Int, wrong: Int, roundLength: Int): Boolean =
         if (lives == null) answered >= roundLength else wrong >= lives

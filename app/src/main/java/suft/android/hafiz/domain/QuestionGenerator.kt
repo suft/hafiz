@@ -18,6 +18,7 @@ data class Question(
     val promptAyahNumbers: List<Int>,
     /** e.g. "سورة البقرة · الآية ٢٥٥" / "Surah Al-Baqarah · Ayah 255" — only for [GameStyle.NextAyah] (where the surah is given). */
     val reference: String?,
+    /** Answers; for [GameStyle.AyahPosition], the six [MushafCell] labels in entry order. */
     val options: List<String>,
     val correctOption: Int,
 ) {
@@ -50,6 +51,8 @@ class QuestionGenerator(
     private val mutashabihat: Mutashabihat? = null,
     /** Mutashabihat mode: traps fill every wrong slot they can and prompts without a trap are never dealt. */
     private val trapMode: Boolean = mutashabihat != null,
+    /** Where each ayah starts in the mushaf; required for [GameStyle.AyahPosition] levels. */
+    private val layout: MushafLayout? = null,
 ) {
 
     /** How many wrong options may be traps. */
@@ -74,6 +77,7 @@ class QuestionGenerator(
     internal fun questionFor(shown: IntRange): Question = when (level.style) {
         GameStyle.GuessSurah -> guessSurahQuestion(shown)
         GameStyle.NextAyah -> nextAyahQuestion(shown)
+        GameStyle.AyahPosition -> positionQuestion(shown)
     }
 
     // ---------------------------------------------------------------- prompt selection
@@ -94,17 +98,39 @@ class QuestionGenerator(
 
     /** Every prompt this level can deal. 1:1 is not a guess-the-surah prompt: it is the bismillah that opens 112 more. */
     internal fun allPrompts(): List<IntRange> {
-        if (level.openings) return level.surahRange.map { quran.surahs[it].firstAyah.let { f -> f..f + 1 } }
-        val first = quran.surahs[level.firstSurah].firstAyah
-        val last = quran.surahs[level.lastSurah].lastAyah
-        return (first..last)
-            .filter { if (level.style == GameStyle.GuessSurah) it != 0 else !quran.isLastOfSurah(it) }
-            .map { it..it }
+        val prompts = if (level.openings) {
+            level.surahRange.map { quran.surahs[it].firstAyah.let { f -> f..f + 1 } }
+        } else {
+            val first = quran.surahs[level.firstSurah].firstAyah
+            val last = quran.surahs[level.lastSurah].lastAyah
+            (first..last)
+                .filter {
+                    when (level.style) {
+                        GameStyle.GuessSurah -> it != 0
+                        GameStyle.NextAyah -> !quran.isLastOfSurah(it)
+                        GameStyle.AyahPosition -> true
+                    }
+                }
+                .map { it..it }
+        }
+        return if (level.style == GameStyle.AyahPosition) prompts.filter(::hasOnePosition) else prompts
+    }
+
+    /**
+     * Where's the Ayah? asks only about prompts with exactly one answer. An identical copy starting in another cell
+     * (e.g. 2:47 / 2:122) would make two answers correct. The framed pages 1–2 have no cell.
+     */
+    private fun hasOnePosition(shown: IntRange): Boolean {
+        val layout = checkNotNull(layout) { "Where's the Ayah? needs the mushaf layout" }
+        val cell = layout.cell(shown.first) ?: return false
+        if (shown.first != shown.last) return quran.surahsContaining(shown).size == 1
+        return quran.occurrencesOf(shown.first).all { layout.cell(it) == cell }
     }
 
     private fun hasTrap(shown: IntRange): Boolean = when (level.style) {
         GameStyle.GuessSurah -> trapSurahs(shown, quran.surahsContaining(shown)).isNotEmpty()
         GameStyle.NextAyah -> trapAyahs(shown, wrongNextAyahFilter(shown)).isNotEmpty()
+        GameStyle.AyahPosition -> false
     }
 
     /** Mutashabihat: surahs holding an ayah that resembles one of [shown], most similar first, minus [exclude]. */
@@ -238,6 +264,23 @@ class QuestionGenerator(
             reference = quran.reference(shown, language),
             options = options,
             correctOption = correct,
+        )
+    }
+
+    // ---------------------------------------------------------------- where's the ayah
+
+    private fun positionQuestion(shown: IntRange): Question {
+        val cell = checkNotNull(checkNotNull(layout).cell(shown.first))
+        return Question(
+            style = GameStyle.AyahPosition,
+            shownAyahs = shown,
+            surahIndex = quran.surahOf(shown.first).index,
+            promptAyahs = shown.map(quran::text),
+            promptAyahNumbers = shown.map(quran::ayahNumberInSurah),
+            reference = null,
+            // Not shuffled: the grid is positional.
+            options = MushafCell.entries.map { it.label(language) },
+            correctOption = cell.ordinal,
         )
     }
 

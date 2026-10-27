@@ -28,6 +28,9 @@ class QuestionCorrectnessTest {
     private fun lightGenerator(level: Level, seed: Int = level.index) =
         QuestionGenerator(quran, level, AppLanguage.Arabic, Random(seed), mutashabihat, trapMode = false)
 
+    private fun positionGenerator(level: Level) =
+        QuestionGenerator(quran, level, AppLanguage.Arabic, Random(level.index), layout = TestData.mushafLayout)
+
     /** The same level dealt without traps (Regular/Survival default), with light traps, and in Mutashabihat mode. */
     private fun everyTrapSetting(level: Level) = listOf(
         "none" to generator(level, traps = false),
@@ -101,7 +104,7 @@ class QuestionCorrectnessTest {
 
     @Test
     fun mutashabihatPromptsAllHaveTraps() {
-        for (style in GameStyle.entries) {
+        for (style in GameStyle.entries.filter(GameMode.Mutashabihat::offers)) {
             for (level in Levels.forMode(GameMode.Mutashabihat, style, quran)) {
                 val gen = generator(level, traps = true)
                 for (p in gen.promptPool) {
@@ -112,6 +115,7 @@ class QuestionCorrectnessTest {
                             val trapNames = p.flatMap { mutashabihat.of(it) }.map { quran.surahOf(it.ayah).name }
                             wrong.any { it in trapNames }
                         }
+                        GameStyle.AyahPosition -> error("not offered")
                         GameStyle.NextAyah -> {
                             val candidates = mutashabihat.of(p.last + 1).map { it.ayah } +
                                 mutashabihat.of(p.last).filter { !quran.isLastOfSurah(it.ayah) }.map { it.ayah + 1 }
@@ -217,7 +221,7 @@ class QuestionCorrectnessTest {
 
     @Test
     fun lightTrapsAddOneLookAlikeInsideTheLevel() {
-        for (style in GameStyle.entries) {
+        for (style in GameStyle.entries.filter { it.hasLookAlikes }) {
             for (level in Levels.forStyle(style, quran).filter { !it.openings }) {
                 val gen = lightGenerator(level)
                 assertEquals("${level.arabicName}: light traps must not shrink the pool", generator(level, false).promptPool, gen.promptPool)
@@ -237,6 +241,7 @@ class QuestionCorrectnessTest {
                                 assertTrue("$where: no look-alike surah offered", optionSurahs.any { it in traps })
                             }
                         }
+                        GameStyle.AyahPosition -> error("no look-alikes")
                         GameStyle.NextAyah -> {
                             val valid = followers.getValue(normalised[p.last])
                             val traps = (mutashabihat.of(p.last + 1).map { it.ayah } +
@@ -259,5 +264,38 @@ class QuestionCorrectnessTest {
     fun everySurahHasMutashabihat() {
         val without = quran.surahs.filter { s -> s.ayahRange.none { mutashabihat.of(it).isNotEmpty() } }
         assertTrue("surahs without mutashabihat: ${without.map { it.number }}", without.isEmpty())
+    }
+
+    @Test
+    fun everyPositionPromptIsUnambiguous() {
+        val layout = TestData.mushafLayout
+        val labels = MushafCell.entries.map { it.label(AppLanguage.Arabic) }
+        for (level in Levels.forStyle(GameStyle.AyahPosition, quran)) {
+            val gen = positionGenerator(level)
+            for (p in gen.promptPool) {
+                val q = gen.questionFor(p)
+                val where = "${level.arabicName} ${quran.reference(p, AppLanguage.English)}"
+                assertEquals(where, labels, q.options)
+                assertEquals(where, layout.cell(p.first)!!.ordinal, q.correctOption)
+                assertTrue("$where: framed page", layout.page(p.first) > 2)
+                if (p.first == p.last) {
+                    val copies = (0 until quran.ayahCount).filter { normalised[it] == normalised[p.first] }
+                    assertTrue("$where: a copy starts in another cell", copies.all { layout.cell(it) == layout.cell(p.first) })
+                }
+            }
+        }
+    }
+
+    @Test
+    fun positionPoolDropsCopiesInOtherCells() {
+        val whole = positionGenerator(Levels.wholeQuran(GameStyle.AyahPosition, quran)).promptPool
+        fun single(surah: Int, number: Int) = ayah(surah, number).let { it..it }
+        assertFalse("2:47 starts in another cell than its copy 2:122", single(2, 47) in whole)
+        assertFalse("2:122 starts in another cell than its copy 2:47", single(2, 122) in whole)
+        assertFalse("1:1 is on the framed page 1", single(1, 1) in whole)
+        assertTrue("59:1 and 61:1 are identical but start in the same cell", single(59, 1) in whole && single(61, 1) in whole)
+        assertFalse("3:1 repeats 2:1, which is on the framed page 2", single(3, 1) in whole)
+        val openings = positionGenerator(Levels.forStyle(GameStyle.AyahPosition, quran).single { it.openings }).promptPool
+        assertTrue(ayah(3, 1)..ayah(3, 2) in openings)
     }
 }

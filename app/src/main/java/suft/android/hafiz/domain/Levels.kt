@@ -1,11 +1,13 @@
 package suft.android.hafiz.domain
 
-/** The two quiz types of the original app. */
+/** Question styles: the two of the original app, plus Where's the Ayah?. */
 enum class GameStyle(
     val key: String,
     val questionsPerRound: Int,
     /** Score needed for a level to count as "mastered" (original: > 15/20 and > 8/10). */
     val masteryScore: Int,
+    /** False when the options are fixed, not drawn from look-alikes: Mutashabihat mode cannot offer the style. */
+    val hasLookAlikes: Boolean = true,
 ) {
     /** Show an ayah, guess which surah it belongs to. */
     GuessSurah(
@@ -19,6 +21,14 @@ enum class GameStyle(
         key = "ayah",
         questionsPerRound = 10,
         masteryScore = 9,
+    ),
+
+    /** Show an ayah, pick where it starts on the open Madinah mushaf (see [MushafCell]). */
+    AyahPosition(
+        key = "position",
+        questionsPerRound = 10,
+        masteryScore = 8,
+        hasLookAlikes = false,
     );
 
     /** Mastery threshold for a round of [total] questions (same ratio as [masteryScore], rounded up). */
@@ -106,7 +116,8 @@ object Levels {
     fun forStyle(style: GameStyle, quran: Quran): List<Level> {
         val specs = when (style) {
             GameStyle.GuessSurah -> guessSurah
-            GameStyle.NextAyah -> nextAyah
+            // Where's the Ayah? reuses the next-ayah surah ranges: small steps plus single long surahs suit page-by-page review.
+            GameStyle.NextAyah, GameStyle.AyahPosition -> nextAyah
         }
         return specs.mapIndexed { i, s ->
             Level(

@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -59,6 +60,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -72,6 +74,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -81,6 +84,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -95,6 +99,9 @@ import suft.android.hafiz.domain.ArabicText
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.domain.Level
+import suft.android.hafiz.domain.MushafCell
+import suft.android.hafiz.domain.PageSide
+import suft.android.hafiz.domain.PageThird
 import suft.android.hafiz.domain.Question
 import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.ui.components.AppTopBar
@@ -226,15 +233,20 @@ internal fun QuizContent(
                     )
                 }
                 val options: @Composable () -> Unit = {
-                    q.options.forEachIndexed { i, text ->
-                        OptionButton(
-                            text = text,
-                            quranText = q.style == GameStyle.NextAyah,
-                            state = optionState(i, q, state.selected),
-                            onClick = { onSelect(i) },
-                            modifier = Modifier.testTag(QuizTestTags.option(i)),
-                        )
+                    if (q.style == GameStyle.AyahPosition) {
+                        PositionGrid(q, state.selected, onSelect)
                         Spacer(Modifier.height(8.dp))
+                    } else {
+                        q.options.forEachIndexed { i, text ->
+                            OptionButton(
+                                text = text,
+                                quranText = q.style == GameStyle.NextAyah,
+                                state = optionState(i, q, state.selected),
+                                onClick = { onSelect(i) },
+                                modifier = Modifier.testTag(QuizTestTags.option(i)),
+                            )
+                            Spacer(Modifier.height(8.dp))
+                        }
                     }
                 }
                 if (maxWidth >= 560.dp && maxWidth > maxHeight) {
@@ -429,6 +441,7 @@ private fun PromptCard(q: Question, modifier: Modifier = Modifier) {
                 Text(
                     text = when (q.style) {
                         GameStyle.GuessSurah -> strings.whichSurah
+                        GameStyle.AyahPosition -> strings.whereIsAyah
                         GameStyle.NextAyah -> strings.whatIsNextAyah
                     },
                     style = MaterialTheme.typography.labelLarge,
@@ -455,9 +468,9 @@ private fun PromptCard(q: Question, modifier: Modifier = Modifier) {
     }
 }
 
-/** Guess-the-surah hides ayah numbers (they would give hints); next-ayah shows them. */
+/** Guess-the-surah and where's-the-ayah hide ayah numbers (they would give hints); next-ayah shows them. */
 private fun formatPrompt(q: Question): String = when (q.style) {
-    GameStyle.GuessSurah -> q.promptAyahs.joinToString("  ۝  ")
+    GameStyle.GuessSurah, GameStyle.AyahPosition -> q.promptAyahs.joinToString("  ۝  ")
     GameStyle.NextAyah -> q.promptAyahs.indices.joinToString(" ") {
         q.promptAyahs[it] + " " + ArabicText.ayahMarker(q.promptAyahNumbers[it])
     }
@@ -544,6 +557,36 @@ private fun optionState(index: Int, q: Question, selected: Int?): OptionState = 
     index == q.correctOption -> OptionState.Correct
     index == selected -> OptionState.Wrong
     else -> OptionState.Dimmed
+}
+
+/** The six options as an open mushaf: the right page on the right in both languages. */
+@Composable
+private fun PositionGrid(q: Question, selected: Int?, onSelect: (Int) -> Unit) {
+    val appDirection = LocalLayoutDirection.current
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (third in PageThird.entries) {
+                Row(
+                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    for (side in listOf(PageSide.Left, PageSide.Right)) {
+                        val i = MushafCell.of(side, third).ordinal
+                        // Text and icons keep the app's direction; only the placement of the pages is fixed.
+                        CompositionLocalProvider(LocalLayoutDirection provides appDirection) {
+                            OptionButton(
+                                text = q.options[i],
+                                quranText = false,
+                                state = optionState(i, q, selected),
+                                onClick = { onSelect(i) },
+                                modifier = Modifier.weight(1f).fillMaxHeight().testTag(QuizTestTags.option(i)),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable

@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -57,7 +58,7 @@ fun StylesScreen(
             ) {
                 Text(strings.gameModeSubtitle(mode), style = MaterialTheme.typography.bodyLarge)
                 Text(strings.chooseStyle, style = MaterialTheme.typography.titleMedium)
-                GameStyle.entries.forEach { style ->
+                GameStyle.entries.filter(mode::offers).forEach { style ->
                     val levels = remember(style, mode) { Levels.forMode(mode, style, quran) }
                     val badge: String?
                     val badgeLabel: String
@@ -85,4 +86,8 @@ fun StylesScreen(
 
 /** The icon that stands for a question style on the Styles and How to play screens. */
 val GameStyle.icon: ImageVector
-    get() = if (this == GameStyle.GuessSurah) Icons.Filled.Quiz else Icons.AutoMirrored.Filled.MenuBook
+    get() = when (this) {
+        GameStyle.GuessSurah -> Icons.Filled.Quiz
+        GameStyle.NextAyah -> Icons.AutoMirrored.Filled.MenuBook
+        GameStyle.AyahPosition -> Icons.Filled.AutoStories
+    }

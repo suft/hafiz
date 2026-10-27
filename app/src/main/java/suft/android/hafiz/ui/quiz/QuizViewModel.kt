@@ -105,9 +105,10 @@ class QuizViewModel(
                 )
             }
             val similar = container.mutashabihat.filterNotNull().first()
+            val layout = container.mushafLayout.filterNotNull().first()
             // Mutashabihat levels weigh thousands of prompts; build the pool and the first question off the main thread.
             generator = withContext(Dispatchers.Default) {
-                QuestionGenerator(quran, level, language, mutashabihat = similar, trapMode = mode.trapOptions)
+                QuestionGenerator(quran, level, language, mutashabihat = similar, trapMode = mode.trapOptions, layout = layout)
                     .also { upcoming = it.next() }
             }
             showNextQuestion()

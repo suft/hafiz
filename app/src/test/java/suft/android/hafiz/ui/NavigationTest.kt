@@ -77,6 +77,7 @@ class NavigationTest {
         // No audio streaming under Robolectric.
         runBlocking { (rule.activity.application as HafizApp).container.progress.setAutoPlay(false) }
         openStyles(GameMode.Mutashabihat)
+        rule.onAllNodesWithText(ArabicStrings.styleTitle(GameStyle.AyahPosition)).assertCountEquals(0)
         rule.onNodeWithText(ArabicStrings.styleTitle(GameStyle.GuessSurah)).performClick()
         waitForText(ArabicStrings.whichSurah)
         rule.onNodeWithText("المصحف كاملاً").assertIsDisplayed()

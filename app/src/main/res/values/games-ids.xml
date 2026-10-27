@@ -7,7 +7,7 @@
   Setup:
   1. Create the game project in Play Console -> Play Games Services -> Configuration.
      Paste the project ID into game_services_project_id.
-  2. Create 6 leaderboards: Numeric, 0 decimals, "Larger is better". Paste each ID into the
+  2. Create 8 leaderboards (Mutashabihat has no Where's the Ayah? board): Numeric, 0 decimals, "Larger is better". Paste each ID into the
      matching string below. A board whose ID is left empty is simply skipped.
   3. Each board's score is the sum of the player's best score on every level of that question
      style in that mode. Regular: best round score per level. Survival: best game per level.
@@ -21,8 +21,10 @@
 
     <string name="leaderboard_regular_surah" translatable="false"></string>
     <string name="leaderboard_regular_ayah" translatable="false"></string>
+    <string name="leaderboard_regular_position" translatable="false"></string>
     <string name="leaderboard_survival_surah" translatable="false"></string>
     <string name="leaderboard_survival_ayah" translatable="false"></string>
+    <string name="leaderboard_survival_position" translatable="false"></string>
     <string name="leaderboard_mutashabihat_surah" translatable="false"></string>
     <string name="leaderboard_mutashabihat_ayah" translatable="false"></string>
 </resources>

@@ -124,6 +124,10 @@ run = "./gradlew :app:testDebugUnitTest"
 description = "Re-download Aswaatul Qurraa's mutashabihat and regenerate app/src/main/assets/mutashabihat.txt (needs python3; --offline just merges tools/mutashabihat_supplement.txt)"
 run = "python3 tools/mutashabihat.py"
 
+[tasks.mushaf-layout]
+description = "Re-download the Madinah mushaf (1405H) page/line of every ayah from quran.com and regenerate app/src/main/assets/mushaf_layout.txt (needs python3)"
+run = "python3 tools/mushaf_layout.py"
+
 [tasks.reciters]
 description = "Check that every reciter has all 6236 ayah files on everyayah.com (needs python3)"
 run = "python3 tools/check_reciters.py"

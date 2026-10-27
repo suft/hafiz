@@ -36,20 +36,23 @@ object PlayGames {
         GameMode.Regular -> when (style) {
             GameStyle.GuessSurah -> R.string.leaderboard_regular_surah
             GameStyle.NextAyah -> R.string.leaderboard_regular_ayah
+            GameStyle.AyahPosition -> R.string.leaderboard_regular_position
         }
         GameMode.Survival -> when (style) {
             GameStyle.GuessSurah -> R.string.leaderboard_survival_surah
             GameStyle.NextAyah -> R.string.leaderboard_survival_ayah
+            GameStyle.AyahPosition -> R.string.leaderboard_survival_position
         }
         GameMode.Mutashabihat -> when (style) {
             GameStyle.GuessSurah -> R.string.leaderboard_mutashabihat_surah
             GameStyle.NextAyah -> R.string.leaderboard_mutashabihat_ayah
+            GameStyle.AyahPosition -> error("Mutashabihat mode does not offer $style")
         }
     }
 }
 
 /**
- * Keeps the six Play Games leaderboards (one per mode × style) in sync with local progress and opens
+ * Keeps the eight Play Games leaderboards (one per mode × style it offers) in sync with local progress and opens
  * the Play Games leaderboards screen. Construct in `onCreate`, before the activity is STARTED.
  */
 class PlayGamesLeaderboards(private val activity: ComponentActivity, container: AppContainer) {
@@ -59,7 +62,7 @@ class PlayGamesLeaderboards(private val activity: ComponentActivity, container: 
     /** Leaderboard id per mode × style; boards whose id is still blank are skipped. */
     private val boards: Map<Pair<GameMode, GameStyle>, String> = buildMap {
         for (mode in GameMode.entries) {
-            for (style in GameStyle.entries) {
+            for (style in GameStyle.entries.filter(mode::offers)) {
                 val id = activity.getString(PlayGames.leaderboardId(mode, style))
                 if (id.isNotBlank()) put(mode to style, id)
             }

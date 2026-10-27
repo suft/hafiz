@@ -334,7 +334,10 @@ private fun LanguageOption(language: AppLanguage, selected: Boolean, onClick: ()
     }
 }
 
-/** Credits the data sources: Tanzil's licence asks for a link; the mutashabihat come from Aswaatul Qurraa. */
+/**
+ * Credits the data sources: Tanzil's licence asks for a link; the mutashabihat come from Aswaatul Qurraa;
+ * the ayah positions in the mushaf come from quran.com.
+ */
 @Composable
 private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
     val strings = LocalStrings.current
@@ -353,6 +356,7 @@ private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
             strings.creditsAswaatulQurraa,
             "https://www.aswaatulqurraa.com/mutashabihat/",
         )
+        CreditEntry(strings.creditsMushafLayout, "quran.com", "https://quran.com")
         CreditEntry(strings.creditsInspiredBy, "AlrazyLabs")
         CreditEntry(strings.creditsDeveloper, strings.developerName)
     }

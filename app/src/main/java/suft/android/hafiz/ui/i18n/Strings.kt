@@ -57,6 +57,7 @@ interface Strings {
     val creditsQuranText: String
     val creditsRecitations: String
     val creditsMutashabihat: String
+    val creditsMushafLayout: String
     val creditsTanzil: String
     val creditsAswaatulQurraa: String
     val creditsDeveloper: String
@@ -70,6 +71,7 @@ interface Strings {
     fun points(score: Int): String
     val whichSurah: String
     val whatIsNextAyah: String
+    val whereIsAyah: String
     val pause: String
     val listen: String
     val chooseReciter: String
@@ -154,11 +156,13 @@ object ArabicStrings : Strings {
     override fun styleTitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "آية وسورة"
         GameStyle.NextAyah -> "آيات"
+        GameStyle.AyahPosition -> "أين الآية؟"
     }
 
     override fun styleSubtitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "اقرأ الآية واختر السورة التي وردت فيها"
         GameStyle.NextAyah -> "أكمل التلاوة واختر الآية التالية"
+        GameStyle.AyahPosition -> "اقرأ الآية واختر موضع بدايتها في مصحف المدينة"
     }
 
     override fun gameModeTitle(mode: GameMode) = when (mode) {
@@ -216,6 +220,7 @@ object ArabicStrings : Strings {
     override val creditsQuranText = "نص القرآن الكريم"
     override val creditsRecitations = "التلاوات"
     override val creditsMutashabihat = "المتشابهات"
+    override val creditsMushafLayout = "مواضع الآيات في المصحف"
     override val creditsTanzil = "مشروع تنزيل"
     override val creditsAswaatulQurraa = "أصوات القرّاء"
     override val creditsDeveloper = "المطوّر"
@@ -229,6 +234,7 @@ object ArabicStrings : Strings {
     override fun points(score: Int) = "النقاط ${number(score)}"
     override val whichSurah = "من أي سورة هذه الآية؟"
     override val whatIsNextAyah = "ما الآية التالية؟"
+    override val whereIsAyah = "أين تبدأ هذه الآية في المصحف؟"
     override val pause = "إيقاف مؤقت"
     override val listen = "استمع"
     override val chooseReciter = "اختر القارئ"
@@ -331,11 +337,13 @@ object EnglishStrings : Strings {
     override fun styleTitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "Guess the Surah"
         GameStyle.NextAyah -> "Next Ayah"
+        GameStyle.AyahPosition -> "Where's the Ayah?"
     }
 
     override fun styleSubtitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "Read the ayah and pick its surah"
         GameStyle.NextAyah -> "Pick the ayah that comes next"
+        GameStyle.AyahPosition -> "Read the ayah and pick where it starts in the Madinah mushaf"
     }
 
     override fun gameModeTitle(mode: GameMode) = when (mode) {
@@ -393,6 +401,7 @@ object EnglishStrings : Strings {
     override val creditsQuranText = "Quran text"
     override val creditsRecitations = "Recitations"
     override val creditsMutashabihat = "Mutashabihat"
+    override val creditsMushafLayout = "Ayah positions in the mushaf"
     override val creditsTanzil = "Tanzil Project"
     override val creditsAswaatulQurraa = "Aswaatul Qurraa"
     override val creditsDeveloper = "Developer"
@@ -406,6 +415,7 @@ object EnglishStrings : Strings {
     override fun points(score: Int) = "Points: $score"
     override val whichSurah = "Which surah is this ayah from?"
     override val whatIsNextAyah = "What is the next ayah?"
+    override val whereIsAyah = "Where does this ayah start in the mushaf?"
     override val pause = "Pause"
     override val listen = "Listen"
     override val chooseReciter = "Choose reciter"

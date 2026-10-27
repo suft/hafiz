@@ -44,6 +44,7 @@ import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.domain.Levels
+import suft.android.hafiz.domain.MushafCell
 import suft.android.hafiz.domain.QuestionGenerator
 import suft.android.hafiz.ui.i18n.ArabicStrings
 import suft.android.hafiz.ui.theme.HafizTheme
@@ -63,7 +64,8 @@ class QuizContentTest {
     private fun state(style: GameStyle, selected: Int? = null, finished: Boolean = false): QuizUiState {
         val level = Levels.forStyle(style, quran).first { it.surahRange == 0..113 && !it.openings }
         val ayah = quran.surahs[1].firstAyah + 254
-        val question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1)).questionFor(ayah..ayah)
+        val question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1), layout = TestData.mushafLayout)
+            .questionFor(ayah..ayah)
         return QuizUiState(
             level = level,
             number = 1,
@@ -107,7 +109,7 @@ class QuizContentTest {
     private fun assertEverythingReachable(state: QuizUiState) {
         rule.onNodeWithTag(QuizTestTags.PROMPT).assertIsDisplayed().assertHeightIsAtLeast(120.dp)
         state.question!!.reference?.let { rule.onNodeWithText(it).performScrollTo().assertIsDisplayed() }
-        repeat(4) { rule.onNodeWithTag(QuizTestTags.option(it)).performScrollTo().assertIsDisplayed() }
+        state.question.options.indices.forEach { rule.onNodeWithTag(QuizTestTags.option(it)).performScrollTo().assertIsDisplayed() }
     }
 
     @Test
@@ -129,6 +131,22 @@ class QuizContentTest {
         val s = state(GameStyle.GuessSurah)
         show(s, DpSize(320.dp, 568.dp))
         assertEverythingReachable(s)
+    }
+
+    @Test
+    fun positionFits320x568() {
+        val s = state(GameStyle.AyahPosition)
+        show(s, DpSize(320.dp, 568.dp))
+        assertEverythingReachable(s)
+    }
+
+    @Test
+    fun positionGridPutsTheRightPageOnTheRight() {
+        show(state(GameStyle.AyahPosition), DpSize(360.dp, 800.dp))
+        fun bounds(cell: MushafCell) = rule.onNodeWithTag(QuizTestTags.option(cell.ordinal)).getUnclippedBoundsInRoot()
+        assertTrue("right page right of left page", bounds(MushafCell.RightTop).left > bounds(MushafCell.LeftTop).left)
+        assertTrue(bounds(MushafCell.RightTop).top < bounds(MushafCell.RightMiddle).top)
+        assertTrue(bounds(MushafCell.RightMiddle).top < bounds(MushafCell.RightBottom).top)
     }
 
     @Test
@@ -154,7 +172,8 @@ class QuizContentTest {
             fun stateFor(ayah: Int) = QuizUiState(
                 level = level,
                 number = 1,
-                question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1)).questionFor(ayah..ayah),
+                question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1), layout = TestData.mushafLayout)
+                    .questionFor(ayah..ayah),
                 mode = GameMode.Regular,
             )
             var current by mutableStateOf(stateFor(quran.surahs[1].firstAyah + 254)) // 2:255, long
