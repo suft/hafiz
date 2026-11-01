@@ -7,6 +7,8 @@ mistake), so they share each diagram below. Mutashabihat differs in the generato
 Topic overlap comes from `domain/ThemeIndex.kt` (BM25 over the bundled Tanzil text). Mutashabihat now always plays the
 whole Quran, so its "no level filter" step excludes nothing.
 
+Where's the Ayah (`GameStyle.AyahPosition`) has no wrong-option algorithm: its six options are fixed mushaf cells (section 6). Mutashabihat does not offer it (`GameStyle.hasLookAlikes = false`).
+
 ## 1. Shared: choosing the prompt
 
 ```mermaid
@@ -17,15 +19,20 @@ flowchart TD
     D --> E{"Style"}
     E -- "Guess Surah" --> F["Drop ayah 1:1 (the bismillah)"]
     E -- "Next Ayah" --> G["Drop last ayah of each surah"]
-    C --> H["Prompt pool"]
+    E -- "Where's the Ayah" --> O["Keep every ayah"]
+    C --> P{"Where's the Ayah?"}
+    O --> P
+    P -- yes --> Q["Keep only prompts with one possible cell: not on the framed pages 1-2, and no identical copy starting in another cell (2-ayah openings prompt: found in one surah only)"]
+    P -- no --> H["Prompt pool"]
     F --> H
     G --> H
+    Q --> H
     H --> I{"Mutashabihat mode?"}
-    I -- yes --> J["Keep only prompts that have a trap"]
+    I -- yes --> J["Keep only prompts that have a trap; every prompt if none has one"]
     I -- "no: Regular / Survival" --> K["Keep every prompt"]
     J --> L["Shuffled deck: each prompt once, then reshuffle"]
     K --> L
-    L --> M["Skip prompts among the last 20 dealt"]
+    L --> M["Skip prompts among the last 19 dealt (practice round: last questionsPerRound - 1; only the last one if the pool has no more prompts than that)"]
     M --> N["Next prompt"]
 ```
 
@@ -46,7 +53,7 @@ flowchart TD
     D -- yes --> F["Keep level candidates"]
     E --> G["relatedness = word overlap of prompt vs each surah, prompt excluded from its own surah"]
     F --> G
-    G --> H["weight = prompts^0.75 x e^(6 x relatedness - top)"]
+    G --> H["weight = prompts^0.75 x e^(6 x (relatedness - top)), top = highest relatedness among candidates"]
     H --> I["Draw remaining wrong surahs without replacement, 3 minus traps"]
     T2 --> J["Wrong options = trap + weighted draws"]
     I --> J
@@ -81,7 +88,7 @@ flowchart TD
     P["Prompt ayah(s)"] --> A["Answer = the ayah right after the prompt"]
     P --> V["Forbidden texts = answer text + the ayah after every identical copy of the prompt"]
     P --> T["Look-alikes of the answer, plus the ayah after look-alikes of the prompt (slips), strongest first"]
-    V --> F["Filter: not between prompt and answer, text not forbidden, inside the level, distinct text"]
+    V --> F["Filter: not a prompt ayah or the answer, text not forbidden, inside the level, distinct text"]
     T --> F
     F --> T2["Take at most 1 trap"]
     A --> R["Search window = answer +/- 60 ayahs"]
@@ -103,7 +110,7 @@ flowchart TD
     P["Prompt ayah(s), only prompts that have a trap"] --> A["Answer = the ayah right after the prompt"]
     P --> V["Forbidden texts = answer text + the ayah after every identical copy of the prompt"]
     P --> T["Look-alikes of the answer, plus the ayah after look-alikes of the prompt (slips), strongest first"]
-    V --> F["Filter: not between prompt and answer, text not forbidden, distinct text, no level filter"]
+    V --> F["Filter: not a prompt ayah or the answer, text not forbidden, distinct text, no level filter"]
     T --> F
     F --> T2["Take up to 3 traps"]
     A --> R["Search window = answer +/- 60 ayahs"]
@@ -118,11 +125,21 @@ flowchart TD
     X --> Y["Shuffle with the answer, giving 4 options"]
 ```
 
+## 6. Where's the Ayah: Regular and Survival
+
+```mermaid
+flowchart TD
+    P["Prompt ayah(s), only those with one possible cell"] --> A["Cell where the first prompt ayah starts in the Madinah mushaf: right or left page x top, middle or bottom third (lines 1-5, 6-10, 11-15)"]
+    A --> B["Options = the six MushafCell labels in fixed order, not shuffled"]
+    B --> C["Correct option = that cell's position in the order"]
+```
+
 ## Summary
 
 | | Regular / Survival | Mutashabihat |
 |---|---|---|
-| Prompt pool | all prompts | only prompts with a trap |
+| Prompt pool | all prompts | only prompts with a trap (all if none has one) |
 | Trap options | at most 1, from inside the level | up to 3, from the whole Quran |
 | Guess Surah fillers | weighted by length and topic overlap | weighted by length only |
 | Next Ayah fillers | nearby ayahs | nearby ayahs |
+| Where's the Ayah options | six fixed mushaf cells | not offered |
