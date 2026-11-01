@@ -2,6 +2,7 @@ package suft.android.hafiz.domain
 
 import kotlin.math.abs
 import kotlin.math.exp
+import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -35,8 +36,8 @@ data class Question(
  * * Levels with very few surahs/ayahs fall back to a wider pool instead of looping forever.
  * * The same prompt is not dealt again within [RECENT_MEMORY] questions (within a round for practice rounds);
  *   prompts come from a shuffled deck, so every prompt is dealt once before any repeats.
- * * Wrong surahs are drawn from the whole level, weighted by length and by the prompt's words ([pickWrongSurahs]), so no
- *   option stands out by number, length or topic.
+ * * Wrong surahs are drawn from the whole level, weighted by length, the prompt's words, typical ayah length and place
+ *   of revelation ([pickWrongSurahs]), so no option stands out by number, length, topic or Makki/Madani style.
  *
  * In Mutashabihat mode ([trapMode]) prompts are limited to ayahs that have a trap, and the wrong options are
  * mutashabihat: surahs/next ayahs that resemble the right answer. The other modes may be given [mutashabihat] too: they
@@ -178,7 +179,7 @@ class QuestionGenerator(
 
         fun allowed(range: IntRange) = range.filter { it != surah.index && it !in alsoCorrect && it !in traps }
         val candidates = allowed(level.surahRange).takeIf { it.size >= need } ?: allowed(0 until Quran.SURAH_COUNT)
-        val wrong = (traps + pickWrongSurahs(shown, candidates, need)).map { quran.surahs[it].displayName(language) }
+        val wrong = (traps + pickWrongSurahs(shown, surah.index, candidates, need)).map { quran.surahs[it].displayName(language) }
 
         val (options, correct) = shuffleWithCorrect(surah.displayName(language), wrong)
         return Question(
@@ -199,19 +200,40 @@ class QuestionGenerator(
     }
 
     /**
-     * [count] of [candidates], drawn without replacement with weight `prompts^PROMPT_WEIGHT · e^(THEME_WEIGHT · relatedness)`:
-     * the answer is dealt per ayah and is usually the surah sharing most of the prompt's words, so wrong options follow the
-     * same two tendencies and neither length, number nor topic singles the answer out. Mutashabihat mode weights by length
-     * only: its traps are near-copies of the prompt, so topical fillers would leave the answer as the least related option.
+     * ln of the typical ayah length of each surah: the geometric mean of its ayahs' word counts (pause marks and the
+     * sajdah sign are not words). Ayah lengths are skewed, so this tracks the median and ignores a few very long ayahs.
      */
-    private fun pickWrongSurahs(shown: IntRange, candidates: List<Int>, count: Int): List<Int> {
+    private val logAyahWords: DoubleArray by lazy {
+        DoubleArray(Quran.SURAH_COUNT) { s ->
+            val surah = quran.surahs[s]
+            surah.ayahRange.sumOf { ln(ArabicText.equalityKey(quran.text(it)).split(' ').size.toDouble()) } / surah.ayahCount
+        }
+    }
+
+    /**
+     * [count] of [candidates], drawn without replacement with weight
+     * `prompts^PROMPT_WEIGHT · e^(THEME_WEIGHT · relatedness) · e^(-AYAH_LENGTH_WEIGHT · |ln typical ayah length / answer's|)
+     * · SAME_REVELATION_WEIGHT if revealed where the [answer] was`:
+     * the answer is dealt per ayah and is usually the surah sharing most of the prompt's words, and its ayah length and
+     * place of revelation set it apart in style, so wrong options follow the same tendencies and neither length, number,
+     * topic, rhythm nor Makki/Madani singles the answer out. Mutashabihat mode weights by length only: its traps are
+     * near-copies of the prompt, so topical or stylistic fillers would leave the answer as the least related option.
+     */
+    private fun pickWrongSurahs(shown: IntRange, answer: Int, candidates: List<Int>, count: Int): List<Int> {
         if (count <= 0) return emptyList()
         val theme = if (trapMode) 0.0 else THEME_WEIGHT
         val rel = if (theme == 0.0) null else quran.themes.relatedness(shown)
         val top = rel?.let { r -> candidates.maxOf { r[it] } } ?: 0.0
+        val answerPlace = RevelationPlaces.of(answer)
         val pool = candidates.toMutableList()
         val weights = pool.mapTo(ArrayList()) { c ->
-            maxOf(promptsPerSurah[c], 1).toDouble().pow(PROMPT_WEIGHT) * if (rel == null) 1.0 else exp(theme * (rel[c] - top))
+            var w = maxOf(promptsPerSurah[c], 1).toDouble().pow(PROMPT_WEIGHT)
+            if (rel != null) {
+                w *= exp(theme * (rel[c] - top))
+                w *= exp(-AYAH_LENGTH_WEIGHT * abs(logAyahWords[c] - logAyahWords[answer]))
+                if (RevelationPlaces.of(c) == answerPlace) w *= SAME_REVELATION_WEIGHT
+            }
+            w
         }
         return List(count) {
             var r = random.nextDouble() * weights.sum()
@@ -300,6 +322,12 @@ class QuestionGenerator(
 
         /** How strongly wrong options follow the prompt's words (relatedness is ~0..1.5). */
         const val THEME_WEIGHT = 6.0
+
+        /** Per unit of |ln(typical ayah words / answer's)|: a surah with ayahs twice as long as the answer's weighs ~0.35x. */
+        const val AYAH_LENGTH_WEIGHT = 1.5
+
+        /** Factor for a wrong surah revealed in the same place (Makkah/Madinah) as the answer. */
+        const val SAME_REVELATION_WEIGHT = 3.0
 
         const val AYAH_NEIGHBOURHOOD = 8   // original: window of 8 ayahs around the answer
         const val AYAH_SEARCH_RADIUS = 60

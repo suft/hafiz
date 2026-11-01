@@ -53,7 +53,7 @@ flowchart TD
     D -- yes --> F["Keep level candidates"]
     E --> G["relatedness = word overlap of prompt vs each surah, prompt excluded from its own surah"]
     F --> G
-    G --> H["weight = prompts^0.75 x e^(6 x (relatedness - top)), top = highest relatedness among candidates"]
+    G --> H["weight = prompts^0.75 x e^(6 x (relatedness - top)) x e^(-1.5 x |ln(ayah length / answer's)|) x 3 if same place of revelation as the answer; top = highest relatedness among candidates; ayah length = geometric mean of the words per ayah of the surah; place = Makki or Madani"]
     H --> I["Draw remaining wrong surahs without replacement, 3 minus traps"]
     T2 --> J["Wrong options = trap + weighted draws"]
     I --> J
@@ -140,6 +140,6 @@ flowchart TD
 |---|---|---|
 | Prompt pool | all prompts | only prompts with a trap (all if none has one) |
 | Trap options | at most 1, from inside the level | up to 3, from the whole Quran |
-| Guess Surah fillers | weighted by length and topic overlap | weighted by length only |
+| Guess Surah fillers | weighted by surah length, topic overlap, typical ayah length and Makki/Madani place | weighted by surah length only |
 | Next Ayah fillers | nearby ayahs | nearby ayahs |
 | Where's the Ayah options | six fixed mushaf cells | not offered |

@@ -190,6 +190,11 @@ class QuestionCorrectnessTest {
         return if (answer in winners) 1.0 / winners.size else 0.0
     }
 
+    /** ln of the geometric mean of each surah's ayah word counts. */
+    private val logWords: List<Double> by lazy {
+        quran.surahs.map { s -> s.ayahRange.sumOf { kotlin.math.ln(normalised[it].split(' ').size.toDouble()) } / s.ayahCount }
+    }
+
     @Test
     fun guessSurahOptionsGiveNoShortcut() {
         for ((index, light) in listOf(3, 14, 18).flatMap { listOf(it to false, it to true) }) {
@@ -198,7 +203,10 @@ class QuestionCorrectnessTest {
             val count = IntArray(Quran.SURAH_COUNT)
             gen.promptPool.forEach { count[quran.surahOf(it.first).index]++ }
             val rounds = 3000
-            val totals = mutableMapOf("longest" to 0.0, "most related" to 0.0, "least related" to 0.0, "isolated" to 0.0)
+            val totals = mutableMapOf(
+                "longest" to 0.0, "most related" to 0.0, "least related" to 0.0, "isolated" to 0.0,
+                "odd ayah length" to 0.0, "typical ayah length" to 0.0, "odd revelation place" to 0.0,
+            )
             repeat(rounds) {
                 val q = gen.next()
                 val surahs = q.options.map { name -> quran.surahs.first { it.name == name }.index }
@@ -211,6 +219,15 @@ class QuestionCorrectnessTest {
                 add("most related", { rel[it] }, true)
                 add("least related", { rel[it] }, false)
                 add("isolated", { s -> surahs.filter { it != s }.minOf { kotlin.math.abs(it - s) }.toDouble() }, true)
+                fun lengthDeviation(s: Int): Double {
+                    val others = surahs.filter { it != s }
+                    return kotlin.math.abs(logWords[s] - others.map { logWords[it] }.average())
+                }
+                add("odd ayah length", ::lengthDeviation, true)
+                add("typical ayah length", ::lengthDeviation, false)
+                add("odd revelation place", { s ->
+                    if (surahs.filter { it != s }.none { RevelationPlaces.of(it) == RevelationPlaces.of(s) }) 1.0 else 0.0
+                }, true)
             }
             for ((name, total) in totals) {
                 val rate = total / rounds
