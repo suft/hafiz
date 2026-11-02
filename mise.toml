@@ -116,13 +116,13 @@ echo "✓ dist/Hafiz-release.aab"
 '''
 
 [tasks.store-graphics]
-description = "Render the Play Store icon (512x512) and feature graphic (1024x500) into fastlane/metadata/android/ar/images/ (needs ImageMagick 7: magick)"
+description = "Render the Play Store icon (512x512) and feature graphic (1024x500) into fastlane/metadata/android/{en-US,ar}/images/ (needs ImageMagick 7: magick)"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 command -v magick > /dev/null || { echo "ImageMagick 7 (magick) is required" >&2; exit 1; }
 res=app/src/main/res
-out=fastlane/metadata/android/ar/images
+out=fastlane/metadata/android/en-US/images
 mkdir -p "$out"
 # Play icon = the adaptive launcher icon's full 108dp canvas (background colour + foreground); Play applies the mask.
 bg=$(sed -n 's:.*name="ic_launcher_background">\(#[0-9A-Fa-f]*\)<.*:\1:p' "$res/values/colors.xml")
@@ -133,7 +133,10 @@ paper=$(sed -n 's:.*name="window_background">\(#[0-9A-Fa-f]*\)<.*:\1:p' "$res/va
 magick -size 1024x500 "xc:$paper" \
   \( "$res/drawable-nodpi/hafiz.png" -resize 440x440 \) -gravity center -composite \
   -alpha off -strip "PNG24:$out/featureGraphic.png"
-echo "✓ $out/icon.png, $out/featureGraphic.png"
+ar=fastlane/metadata/android/ar/images
+mkdir -p "$ar"
+cp "$out/icon.png" "$out/featureGraphic.png" "$ar/"
+echo "✓ $out/{icon,featureGraphic}.png, $ar/{icon,featureGraphic}.png"
 '''
 
 [tasks.screenshots]
