@@ -1,0 +1,30 @@
+Hafiz is a quiz that tests how well you have memorized the Holy Quran. Read or listen to an ayah, then answer.
+
+THREE QUESTION STYLES
+• Guess the Surah: read or hear an ayah and pick the surah it comes from (20 levels).
+• Next Ayah: pick the ayah that follows the one shown (25 levels).
+• Where's the Ayah?: pick where the ayah starts in the open Madinah mushaf (1405H print): the right or left page, and the top, middle or bottom third (25 levels).
+
+GAME MODES
+• Regular: fixed-length rounds. Reach the mastery score to master each level.
+• Survival: endless questions; the first mistake ends the game.
+• Mutashabihat: questions from the whole Quran whose wrong options are look-alike ayahs and surahs; three mistakes end the game.
+• Makki or Madani: say where each of five surahs was revealed.
+
+Levels run from the short surahs of Juz' 'Amma to the whole Quran. Wrong options are chosen to resemble the right answer, so you have to know the text, not guess from length or style.
+
+LISTEN WHILE YOU PLAY
+• 26 reciters, including Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi and Maher Al-Muaiqly.
+• Recitations are cached on your phone, so ayahs you have heard replay without internet.
+
+TRACK YOUR PROGRESS
+• Accuracy overall and per style, a map of all 114 surahs, and the surahs that need review.
+• Practise a single weak surah with one tap.
+• Day streaks, score trends and your recent rounds.
+
+ALSO
+• Arabic or English interface; the Quran text is always Arabic, set in the Amiri Quran font.
+• Dark theme.
+• No ads, no account, no tracking.
+
+Quran text: Tanzil Project (tanzil.net), unmodified. Recitations: everyayah.com. Mutashabihat data: Aswaatul Qurraa. Mushaf positions: quran.com.
