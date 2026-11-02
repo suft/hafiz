@@ -37,7 +37,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,26 +51,10 @@ import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.theme.LocalQuizColors
 import suft.android.hafiz.ui.theme.TitleFont
 
-/** Old-paper texture from the original app (light theme) or a plain dark surface. */
+/** Plain paper-coloured background (dark surface in the dark theme) behind every screen. */
 @Composable
 fun PaperBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
-    Box(
-        modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-    ) {
-        if (LocalQuizColors.current.paperIsTextured) {
-            Image(
-                painter = painterResource(R.drawable.paper_background),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(0.85f),
-            )
-        }
-        content()
-    }
+    Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) { content() }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

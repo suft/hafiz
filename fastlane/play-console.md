@@ -5,8 +5,6 @@ Everything the Play Console asks for that fastlane metadata (`metadata/android/{
 ## 1. Before the first upload
 
 - [ ] Back up `release.jks` and the keystore password from `keystore.properties` somewhere outside the repo. This is the upload key; losing it means a key-reset request to Google.
-- [ ] Get permission from Aswaatul Qurraa for the mutashabihat data (README §Licences).
-- [ ] Confirm rights to `paper_background.jpg`, which is used in the app and in the feature graphic.
 - [ ] Review the pairs in `tools/mutashabihat_supplement.txt`.
 - [ ] Push the repo to `github.com/suft/hafiz`: `git remote add origin git@github.com:suft/hafiz.git && git push -u origin main`.
 - [ ] Enable Pages: Settings → Pages → Deploy from a branch → `main` / `/docs`.

@@ -60,7 +60,6 @@ data class QuizColors(
     val wrong: Color,
     val wrongContainer: Color,
     val gold: Color,
-    val paperIsTextured: Boolean,
 )
 
 private val LightScheme = lightColorScheme(
@@ -122,7 +121,6 @@ private val LightQuiz = QuizColors(
     wrong = Color(0xFFB3261E),
     wrongContainer = Color(0xFFF9DEDA),
     gold = Color(0xFFC4942E),
-    paperIsTextured = true,
 )
 
 private val DarkQuiz = QuizColors(
@@ -132,7 +130,6 @@ private val DarkQuiz = QuizColors(
     wrong = Color(0xFFFFB4AB),
     wrongContainer = Color(0xFF5C1E19),
     gold = Color(0xFFE3C46F),
-    paperIsTextured = false,
 )
 
 val LocalQuizColors = staticCompositionLocalOf { LightQuiz }

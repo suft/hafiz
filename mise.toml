@@ -128,8 +128,9 @@ mkdir -p "$out"
 bg=$(sed -n 's:.*name="ic_launcher_background">\(#[0-9A-Fa-f]*\)<.*:\1:p' "$res/values/colors.xml")
 magick -size 512x512 "xc:$bg" \( "$res/mipmap-xxxhdpi/ic_launcher_foreground.png" -resize 512x512 \) \
   -composite -strip "PNG32:$out/icon.png"
-# Feature graphic: paper texture cropped to 1024x500 with the Hafiz artwork centred. Play rejects alpha here.
-magick "$res/drawable-nodpi/paper_background.jpg" -resize 1024x -gravity center -extent 1024x500 \
+# Feature graphic: the app's paper colour (window_background) with the Hafiz artwork centred. Play rejects alpha here.
+paper=$(sed -n 's:.*name="window_background">\(#[0-9A-Fa-f]*\)<.*:\1:p' "$res/values/colors.xml")
+magick -size 1024x500 "xc:$paper" \
   \( "$res/drawable-nodpi/hafiz.png" -resize 440x440 \) -gravity center -composite \
   -alpha off -strip "PNG24:$out/featureGraphic.png"
 echo "✓ $out/icon.png, $out/featureGraphic.png"
