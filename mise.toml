@@ -115,6 +115,26 @@ cp app/build/outputs/bundle/release/app-release.aab dist/Hafiz-release.aab
 echo "✓ dist/Hafiz-release.aab"
 '''
 
+[tasks.store-graphics]
+description = "Render the Play Store icon (512x512) and feature graphic (1024x500) into fastlane/metadata/android/ar/images/ (needs ImageMagick 7: magick)"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+command -v magick > /dev/null || { echo "ImageMagick 7 (magick) is required" >&2; exit 1; }
+res=app/src/main/res
+out=fastlane/metadata/android/ar/images
+mkdir -p "$out"
+# Play icon = the adaptive launcher icon's full 108dp canvas (background colour + foreground); Play applies the mask.
+bg=$(sed -n 's:.*name="ic_launcher_background">\(#[0-9A-Fa-f]*\)<.*:\1:p' "$res/values/colors.xml")
+magick -size 512x512 "xc:$bg" \( "$res/mipmap-xxxhdpi/ic_launcher_foreground.png" -resize 512x512 \) \
+  -composite -strip "PNG32:$out/icon.png"
+# Feature graphic: paper texture cropped to 1024x500 with the Hafiz artwork centred. Play rejects alpha here.
+magick "$res/drawable-nodpi/paper_background.jpg" -resize 1024x -gravity center -extent 1024x500 \
+  \( "$res/drawable-nodpi/hafiz.png" -resize 440x440 \) -gravity center -composite \
+  -alpha off -strip "PNG24:$out/featureGraphic.png"
+echo "✓ $out/icon.png, $out/featureGraphic.png"
+'''
+
 [tasks.test]
 description = "Run JVM unit tests (question generator, levels, stats, progress) and the Robolectric UI tests"
 alias = "t"
