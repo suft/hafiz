@@ -1,7 +1,6 @@
-# Hafiz 3.0
+# Hafiz
 
-A Quran memorisation quiz for Android, rewritten from the original *AyahSurah 2.0* APK
-(Java + Android Views, 2013) in **Kotlin + Jetpack Compose**, with a **mise** toolchain.
+A Quran memorisation quiz for Android, written in **Kotlin + Jetpack Compose** with a **mise** toolchain.
 
 | Question style | What you do | Levels | Questions / round (Regular) |
 |---|---|---|---|
@@ -63,36 +62,9 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 
 **Release signing.** A release build needs a real key: run `mise run keystore` once (then back up `release.jks` and its password; both files are git-ignored), or set `HAFIZ_KEYSTORE_FILE`, `HAFIZ_KEYSTORE_PASSWORD`, `HAFIZ_KEY_ALIAS` and `HAFIZ_KEY_PASSWORD`. Without one, `assembleRelease` stops with an explanation instead of silently signing with the public debug key. For a local test build only, set `HAFIZ_ALLOW_DEBUG_SIGNING=1` (CI does); never distribute such an APK.
 
-**Upgrading from the old app.** The package name changed from `zozo.android.ayahsurra` to `suft.android.hafiz`, so this installs as a separate app and does not update the old one. Scores and settings are not carried over. The debug build uses `suft.android.hafiz.debug`.
+**Debug build.** It uses the package name `suft.android.hafiz.debug`, so it installs alongside the release build.
 
 **Android Studio** works too: open the folder and it will use the Gradle wrapper. Run `mise run sdk` first, or let Studio create `local.properties` itself.
-
----
-
-## What changed vs. 2.0
-
-**Rewrite**
-- 100 % Kotlin, a single activity, Jetpack Compose with Material 3, and type-safe Navigation Compose.
-- Media3/ExoPlayer replaces the hand-rolled pool of three `MediaPlayer`s. Each question's ayahs play as a playlist.
-- DataStore (JSON) replaces Java `ObjectOutputStream` files.
-- The quiz logic is plain Kotlin with unit tests. They generate thousands of questions per run across all 45 levels.
-- Removed: the AppBrain ad SDK, the old bit.ly/Play-store promo links, and cleartext HTTP. Audio is HTTPS-only.
-
-**Fixes**
-- **Ambiguous questions removed.** Some ayahs appear in several surahs: «الم» opens six of them. The refrains of الرحمن, القمر and المرسلات are followed by different ayahs each time. The original could offer a second correct answer as a "wrong" option. The generator now excludes these.
-- The two **Minshawi** reciter folders were swapped.
-- Levels with few surahs or ayahs could loop forever while picking wrong answers. The generator now falls back to a wider pool.
-- Audio URLs are formatted with `Locale.ROOT`. An Arabic device locale would otherwise produce Arabic-Indic digits and break the URL.
-- No repeated ayahs within a round. Locked or half-migrated level data is gone: every level is open, as it effectively was in 2.0.
-
-**Improvements**
-- Recitations are **cached on disk** (200 MB LRU). With auto-play on, the next question's audio is prefetched, so replays work offline; with it off nothing is downloaded until you press play.
-- Your reciter and auto-play choices are remembered. Six new reciters: القطامي، الرفاعي، الحذيفي، فارس عباد، محمد أيوب، البدير.
-- Ayah text is set in the **Amiri Quran** font. The next-ayah mode shows ornate ayah numbers ﴿٥﴾. Long answer options are shortened to a distinct opening phrase.
-- New level list with progress bars and a "mastered" mark, a result dialog that shows new records, a "next" button to skip the feedback delay, and resettable statistics.
-- **Statistics screen with three tabs.** Overview shows overall accuracy plus per-mode accuracy, mastered levels and points. Surahs shows a 114-cell accuracy map, the surahs to review and the strongest surahs, with a **Practise** button that starts a 10-question next-ayah round limited to one surah (records answers and history, never a best score). Activity shows day streaks, questions today, completed rounds, correct-answer runs, a score trend chart and the last 20 rounds. Per-mode counts and activity are only tracked from the version that added them.
-- Edge-to-edge layout, dark theme, adaptive and themed launcher icon, and backup rules for scores.
-- **Arabic / English UI.** A selector on the main menu switches labels, digits, surah and level names, reciter names, ayah references and the layout direction (RTL / LTR). The choice is saved. Quran text always stays Arabic. Strings live in `ui/i18n/Strings.kt`; English surah names are quran.com transliterations in `domain/SurahNames.kt`.
 
 ---
 
@@ -112,7 +84,7 @@ app/src/main/
     games/                       Google Play Games leaderboards (dormant until configured)
     ui/                          Compose: home, modes, guide, levels, quiz (+ViewModel), stats, theme
   res/font/                      Amiri, Rakkas, Inter (all OFL)
-  res/drawable-nodpi/            paper texture (from the original app)
+  res/drawable-nodpi/            Hafiz artwork, divider ornament, monochrome icon (own work)
 tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3; --offline only merges the supplement)
 tools/mutashabihat_supplement.txt  hand-curated pairs for the surahs the source does not cover
 tools/check_reciters.py          checks every reciter's files on everyayah.com (also .github/workflows/reciters.yml)
@@ -131,13 +103,13 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 ---
 
 ## Licences & credits
+- **This project's code** is under the [MIT licence](LICENSE). It does not cover the third-party and bundled material below: the Quran text and fonts keep their own licences, the mutashabihat data (`assets/mutashabihat.txt`) is used with its owners' permission and is not licensed for reuse, and `assets/mushaf_layout.txt` is derived from quran.com data.
 - **Quran text:** Tanzil Project, CC BY 3.0. The text must not be modified and the source must be credited with a link; the credits screen (the ⓘ button on the main menu) does this.
 - **Recitations:** streamed from everyayah.com. One clip is truncated on the server and cannot be fixed here: `mahmoud_ali_al_banna_32kbps/012067.mp3` (surah 12, ayah 67). `mise run reciters` (also a weekly GitHub workflow) checks that every reciter has all 6236 files and lists known defects as warnings.
-- **Mutashabihat mode:** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site, so get their permission before publishing. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Mutashabihat mode has traps for them too. Review those pairs before a release.
+- **Mutashabihat mode:** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site; the developer has Team Aswaatul Qurraa's permission to use the data in Hafiz. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Mutashabihat mode has traps for them too. Review those pairs before a release.
 - **Where's the Ayah?:** the page and line where each ayah starts in the Madinah mushaf (1405H print, KFGQPC v1: 604 pages of 15 lines) come from the [quran.com API](https://api.quran.com/api/v4) (`v1_page` / `line_v1` of each ayah's first word); only those two numbers are bundled (`assets/mushaf_layout.txt`) and the credits screen credits the source.
 - **Fonts:** Amiri / Amiri Quran, Rakkas and Inter are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`).
-- **Paper texture** is reused from the original APK. Check that you have the rights to it before publishing.
-- **Launcher icon & loading-screen artwork:** `app/src/main/res/drawable-nodpi/hafiz.png`.
+- **Artwork:** `res/drawable-nodpi/hafiz.png` (launcher icon, loading screen and the Play icon and feature graphic), `divider_ornament.png` and the launcher icons are the developer's own work, all rights reserved; the MIT licence does not cover them.
 
 ### Google Play Games and privacy
 The leaderboards (Google Play Games Services) are dormant until `res/values/games-ids.xml` is filled in; debug builds never use them. Once enabled, the player's scores go to Google through Play Games, and the Play SDK is part of every release build. The privacy policy (`docs/privacy-policy.md`) and the data-safety answers (`fastlane/play-console.md`) describe a release with leaderboards off; update both before releasing with leaderboards enabled.
