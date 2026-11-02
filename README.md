@@ -1,6 +1,10 @@
 # Hafiz
 
 <p align="center">
+  <img src="fastlane/metadata/android/ar/images/featureGraphic.png" width="600" alt="Hafiz">
+</p>
+
+<p align="center">
   <a href="https://github.com/suft/hafiz/actions/workflows/build.yml"><img src="https://github.com/suft/hafiz/actions/workflows/build.yml/badge.svg?branch=main" alt="build"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue" alt="MIT licence"></a>
   <img src="https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 7.0+ (minSdk 24)">
