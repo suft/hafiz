@@ -16,7 +16,7 @@ Run every command from the repo root.
 | `mise run mutashabihat` / `mise run mushaf-layout` | Regenerate the generated assets (python3, network) |
 | `mise run screenshots` | Regenerate the 8 Play/README screenshots on a headless emulator (KVM) |
 
-CI (`.github/workflows/build.yml`) runs test, lint, build and release.
+CI (`.github/workflows/build.yml`) runs test, lint, the debug build and the release bundle; `release.yml` publishes a signed GitHub Release for each `v*` tag.
 
 ## Layout
 

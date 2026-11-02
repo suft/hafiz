@@ -12,7 +12,7 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     env:
-      # CI builds are never published; they sign the release APK with the debug key so it can be built at all.
+      # CI builds are never published; they sign with the debug key so the minified release bundle (R8) is checked.
       HAFIZ_ALLOW_DEBUG_SIGNING: "1"
     steps:
       - uses: actions/checkout@v7
@@ -21,7 +21,7 @@ jobs:
       - run: mise run test
       - run: mise run lint
       - run: mise run build
-      - run: mise run release
+      - run: mise run bundle
       - uses: actions/upload-artifact@v7
         with:
           name: Hafiz-debug
