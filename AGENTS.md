@@ -14,13 +14,14 @@ Run every command from the repo root.
 | `./gradlew :app:testDebugUnitTest --tests 'suft.android.hafiz.domain.QuizLogicTest'` | One test class |
 | `mise run build` | Debug APK → `dist/Hafiz-debug.apk` |
 | `mise run mutashabihat` / `mise run mushaf-layout` | Regenerate the generated assets (python3, network) |
+| `mise run screenshots` | Regenerate the 8 Play/README screenshots on a headless emulator (KVM) |
 
 CI (`.github/workflows/build.yml`) runs test, lint, build and release.
 
 ## Layout
 
 - `app/src/main/java/suft/android/hafiz/domain/`: pure Kotlin with no Android imports. Quran index, levels, game modes, `QuestionGenerator`, `ThemeIndex`, `Mutashabihat`, `MushafLayout`, stats. Keep it Android-free so it stays unit-testable.
-- `data/ProgressRepository.kt`: DataStore (scores, stats, settings). `audio/`: reciters, ExoPlayer, disk cache. `games/`: Play Games leaderboards. `ui/`: Compose screens and ViewModels.
+- `data/ProgressRepository.kt`: DataStore (scores, stats, settings). `audio/`: reciters, ExoPlayer, disk cache. `ui/`: Compose screens and ViewModels.
 - `app/src/test/`: JVM tests on the real bundled Quran text, plus Robolectric UI tests. Load assets through `testing/TestData.kt` (`TestData.quran`, `.mutashabihat`, `.mushafLayout`).
 - `tools/`: python generators and checkers behind the mise tasks.
 
@@ -51,10 +52,10 @@ Update these in the same change as the code. A change is not done while one of t
 
   Edit the affected mermaid diagram(s) and the Summary table; add a section for a new style or mode. Check every number in the doc (weights, window sizes, trap counts) against the code constants.
 - **`README.md`**: when modes, styles, level counts, questions per round, mise tasks, project layout, the test class list, assets, versions or licences change.
-- **`docs/privacy-policy.md`** and the Data safety section of `fastlane/play-console.md`: when data leaving the device changes (new network endpoint, Play Games enabled, new SDK, backup rules).
+- **`docs/privacy-policy.md`** and the Data safety section of `fastlane/play-console.md`: when data leaving the device changes (new network endpoint, new SDK, backup rules).
 - **`fastlane/metadata/android/{ar,en-US}/`**: when modes, styles, level counts or the reciter count change; add `changelogs/<versionCode>.txt` (both locales) for every release.
 - **How-to-play text** in `ui/i18n/Strings.kt` (both `ArabicStrings` and `EnglishStrings`: the `guide*` members and the style/mode titles and subtitles): when the rules a player sees change (modes, levels, mastery, lives).
-- **`app/src/main/res/values/games-ids.xml` setup comment**: when leaderboards change (the boards per mode and style, or how a board's score is computed).
+- **Screenshots** (`fastlane/metadata/android/*/images/phoneScreenshots/`, shown in `README.md`): rerun `mise run screenshots` when the main menu, the quiz screen or Statistics → Surahs visibly change, or when a label in `tools/screenshots.py` changes in `Strings.kt`.
 
 ## Commits
 

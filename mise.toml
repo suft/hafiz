@@ -136,6 +136,11 @@ magick -size 1024x500 "xc:$paper" \
 echo "✓ $out/icon.png, $out/featureGraphic.png"
 '''
 
+[tasks.screenshots]
+description = "Capture the Play/README screenshots (4 Arabic, 4 English, 1080x1920) on a headless emulator into fastlane/metadata/android/{ar,en-US}/images/phoneScreenshots/ (needs python3 and KVM; the first run downloads the emulator and a system image)"
+depends = ["build"]
+run = "python3 tools/screenshots.py"
+
 [tasks.test]
 description = "Run JVM unit tests (question generator, levels, stats, progress) and the Robolectric UI tests"
 alias = "t"

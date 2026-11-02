@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import suft.android.hafiz.data.Progress
 import suft.android.hafiz.domain.GameMode
@@ -169,7 +170,7 @@ private fun LevelRow(level: Level, best: Int, endless: Boolean, onClick: () -> U
 
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("level.${level.index}"),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f),
         ),
