@@ -1,7 +1,7 @@
 # Hafiz
 
 <p align="center">
-  <img src="fastlane/metadata/android/ar/images/featureGraphic.png" width="600" alt="Hafiz">
+  <img src="fastlane/metadata/android/en-US/images/featureGraphic.png" width="600" alt="Hafiz">
 </p>
 
 <p align="center">
@@ -77,7 +77,7 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 | `build` (`b`) | Debug APK → `dist/Hafiz-debug.apk` |
 | `release` | Minified release APK → `dist/Hafiz-release.apk` |
 | `bundle` | Release `.aab` for Google Play |
-| `store-graphics` | Play Store icon and feature graphic → `fastlane/metadata/android/ar/images/` (ImageMagick 7) |
+| `store-graphics` | Play Store icon and feature graphic → `fastlane/metadata/android/{en-US,ar}/images/` (ImageMagick 7) |
 | `screenshots` | Play/README screenshots (4 Arabic, 4 English, 1080×1920) on a headless emulator → `fastlane/metadata/android/{ar,en-US}/images/phoneScreenshots/` (python3, KVM; first run downloads the emulator) |
 | `keystore` | Create `release.jks` + `keystore.properties` for release signing |
 | `mutashabihat` | Regenerate `assets/mutashabihat.txt` from Aswaatul Qurraa (python3) and merge the supplement |
@@ -88,7 +88,7 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 | `install`, `run`, `logcat` | Install on a device via adb, launch it, follow its logs |
 | `clean` | Delete build outputs |
 
-**Release signing.** A release build needs a real key: run `mise run keystore` once (then back up `release.jks` and its password; both files are git-ignored), or set `HAFIZ_KEYSTORE_FILE`, `HAFIZ_KEYSTORE_PASSWORD`, `HAFIZ_KEY_ALIAS` and `HAFIZ_KEY_PASSWORD`. Without one, `assembleRelease` stops with an explanation instead of silently signing with the public debug key. For a local test build only, set `HAFIZ_ALLOW_DEBUG_SIGNING=1` (CI does); never distribute such an APK.
+**Release signing.** A release build needs a real key: run `mise run keystore` once (then back up `release.jks` and its password; both files are git-ignored), or set `HAFIZ_KEYSTORE_FILE`, `HAFIZ_KEYSTORE_PASSWORD`, `HAFIZ_KEY_ALIAS` and `HAFIZ_KEY_PASSWORD`. Without one, `assembleRelease` stops with an explanation instead of silently signing with the public debug key. For a local test build only, set `HAFIZ_ALLOW_DEBUG_SIGNING=1` (CI's build workflow does); never distribute such an APK. Pushing a `v<versionName>` tag runs `.github/workflows/release.yml`, which signs with the `HAFIZ_KEYSTORE_BASE64`/`HAFIZ_KEY*` repository secrets and attaches the APK and AAB to a GitHub Release.
 
 **Debug build.** It uses the package name `suft.android.hafiz.debug`, so it installs alongside the release build.
 
