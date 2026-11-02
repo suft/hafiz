@@ -58,5 +58,5 @@ Update these in the same change as the code. A change is not done while one of t
 
 ## Commits
 
-Use Conventional Commits with a past-tense, capitalised summary, `type(scope): Summary`, and `- ` bullets in the body. Examples from history:
-`feat(modes): Restricted Mutashabihat to the whole Quran without levels`, `docs: Added answer-option algorithm documentation`. Types in use: `feat`, `fix`, `refactor`, `style`, `docs`.
+Use Conventional Commits with an imperative description that starts lowercase, `type(scope): description`, and imperative `- ` bullets in the body. Mark breaking changes with `!` and a `BREAKING CHANGE:` footer. Examples from history:
+`feat(modes): restrict Mutashabihat to the whole Quran without levels`, `docs: add answer-option algorithm documentation`. Types in use: `feat`, `fix`, `refactor`, `style`, `docs`, `chore`, `ci`, `test`.
