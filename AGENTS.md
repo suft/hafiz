@@ -51,6 +51,8 @@ Update these in the same change as the code. A change is not done while one of t
 
   Edit the affected mermaid diagram(s) and the Summary table; add a section for a new style or mode. Check every number in the doc (weights, window sizes, trap counts) against the code constants.
 - **`README.md`**: when modes, styles, level counts, questions per round, mise tasks, project layout, the test class list, assets, versions or licences change.
+- **`docs/privacy-policy.md`** and the Data safety section of `fastlane/play-console.md`: when data leaving the device changes (new network endpoint, Play Games enabled, new SDK, backup rules).
+- **`fastlane/metadata/android/{ar,en-US}/`**: when modes, styles, level counts or the reciter count change; add `changelogs/<versionCode>.txt` (both locales) for every release.
 - **How-to-play text** in `ui/i18n/Strings.kt` (both `ArabicStrings` and `EnglishStrings`: the `guide*` members and the style/mode titles and subtitles): when the rules a player sees change (modes, levels, mastery, lives).
 - **`app/src/main/res/values/games-ids.xml` setup comment**: when leaderboards change (the boards per mode and style, or how a board's score is computed).
 

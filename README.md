@@ -7,7 +7,7 @@ A Quran memorisation quiz for Android, rewritten from the original *AyahSurah 2.
 |---|---|---|---|
 | **آية وسورة** (guess the surah) | Read/hear an ayah and pick the surah it's from | 20 | 20 |
 | **آيات** (next ayah) | Read/hear an ayah and pick the one that follows it | 25 | 10 |
-| **أين الآية؟** (where's the ayah) | Read/hear an ayah and pick where it starts in the Madinah mushaf | 25 | 10 |
+| **أين الآية؟** (where's the ayah) | Read/hear an ayah and pick where it starts in the Madinah mushaf (1405H print) | 25 | 10 |
 
 From the main menu, **Play** opens the **game modes**; pick a mode, then a question style and a level (Mutashabihat has no levels: it always plays the whole Quran). **How to play** explains the styles, modes and levels in the app.
 
@@ -51,6 +51,7 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 | `build` (`b`) | Debug APK → `dist/Hafiz-debug.apk` |
 | `release` | Minified release APK → `dist/Hafiz-release.apk` |
 | `bundle` | Release `.aab` for Google Play |
+| `store-graphics` | Play Store icon and feature graphic → `fastlane/metadata/android/ar/images/` (ImageMagick 7) |
 | `keystore` | Create `release.jks` + `keystore.properties` for release signing |
 | `mutashabihat` | Regenerate `assets/mutashabihat.txt` from Aswaatul Qurraa (python3) and merge the supplement |
 | `mushaf-layout` | Regenerate `assets/mushaf_layout.txt` (the page and line of every ayah in the Madinah mushaf) from quran.com (python3) |
@@ -116,12 +117,14 @@ tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaat
 tools/mutashabihat_supplement.txt  hand-curated pairs for the surahs the source does not cover
 tools/check_reciters.py          checks every reciter's files on everyayah.com (also .github/workflows/reciters.yml)
 tools/mushaf_layout.py           regenerates assets/mushaf_layout.txt from the quran.com API (python3)
+docs/privacy-policy.md            privacy policy (GitHub Pages: https://suft.github.io/hafiz/privacy-policy.html)
+fastlane/                        Play listing text and graphics (metadata/android/{ar,en-US}) and play-console.md (console answers)
 app/src/test/                    JVM tests on the real Quran text (QuizLogicTest, QuestionCorrectnessTest, ProgressTest, ProgressStoreTest, StatsTest, ArabicTextTest, StringsTest)
                                  and Robolectric UI tests (quiz layout/lifecycle, navigation, stats); all run in `mise run test`
 ```
 
 ### Versions
-AGP 9.4.1 · Gradle 9.8.2 · Kotlin 2.4.21 · Compose BOM 2026.09.00 · Media3 1.11.1 · compileSdk 37 · targetSdk 36 · minSdk 24.
+AGP 9.4.1 · Gradle 9.8.2 · Kotlin 2.4.21 · Compose BOM 2026.09.00 · Media3 1.11.1 · compileSdk 37 · targetSdk 37 · minSdk 24.
 
 All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assistant* can bump them.
 
@@ -137,4 +140,4 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 - **Launcher icon & loading-screen artwork:** `app/src/main/res/drawable-nodpi/hafiz.png`.
 
 ### Google Play Games and privacy
-The leaderboards (Google Play Games Services) are dormant until `res/values/games-ids.xml` is filled in; debug builds never use them. Once enabled, the player's scores go to Google through Play Games, and the Play SDK is part of every release build. Publish a privacy policy and fill in Play Console's data-safety form before releasing with leaderboards enabled.
+The leaderboards (Google Play Games Services) are dormant until `res/values/games-ids.xml` is filled in; debug builds never use them. Once enabled, the player's scores go to Google through Play Games, and the Play SDK is part of every release build. The privacy policy (`docs/privacy-policy.md`) and the data-safety answers (`fastlane/play-console.md`) describe a release with leaderboards off; update both before releasing with leaderboards enabled.
