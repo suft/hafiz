@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
-import com.google.android.gms.games.PlayGamesSdk
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import suft.android.hafiz.audio.AudioCache
@@ -26,7 +25,6 @@ import suft.android.hafiz.domain.MushafLayout
 import suft.android.hafiz.domain.Mutashabihat
 import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.domain.QuranXmlParser
-import suft.android.hafiz.games.PlayGames
 
 class HafizApp : Application() {
     lateinit var container: AppContainer
@@ -34,8 +32,6 @@ class HafizApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // The SDK's init provider is removed in the manifest; initialize manually once configured.
-        if (PlayGames.isEnabled(this)) PlayGamesSdk.initialize(this)
         container = AppContainer(this)
     }
 }

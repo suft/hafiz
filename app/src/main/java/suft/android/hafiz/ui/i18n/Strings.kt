@@ -49,9 +49,6 @@ interface Strings {
     val statistics: String
     val statisticsHint: String
     fun statisticsSummary(percent: Int, total: Int): String
-    val leaderboards: String
-    val leaderboardsHint: String
-    val leaderboardsUnavailable: String
     val languageLabel: String
     val credits: String
     val creditsQuranText: String
@@ -212,9 +209,6 @@ object ArabicStrings : Strings {
     override val guideStats = "تعرض «إحصائيات» دقة إجاباتك والسور التي تحتاج إلى مراجعة، ومنها تبدأ جولة مراجعة لسورة واحدة."
     override fun statisticsSummary(percent: Int, total: Int) =
         "دقة إجاباتك ${percent(percent)} في ${questionsCount(total)}"
-    override val leaderboards = "لوحات الصدارة"
-    override val leaderboardsHint = "قارن نتائجك مع اللاعبين على Google Play Games"
-    override val leaderboardsUnavailable = "تعذّر فتح لوحات الصدارة. سجّل الدخول إلى Google Play Games وحاول مرة أخرى."
 
     override val languageLabel = "اللغة"
     override val credits = "شكر وتقدير"
@@ -394,9 +388,6 @@ object EnglishStrings : Strings {
     override val guideStats = "Statistics shows your accuracy and the surahs that need review; start a review round for a single surah from there."
     override fun statisticsSummary(percent: Int, total: Int) =
         "Accuracy ${percent(percent)} across ${questionsCount(total)}"
-    override val leaderboards = "Leaderboards"
-    override val leaderboardsHint = "Compare your scores with other players on Google Play Games"
-    override val leaderboardsUnavailable = "Couldn't open the leaderboards. Sign in to Google Play Games and try again."
 
     override val languageLabel = "Language"
     override val credits = "Credits"

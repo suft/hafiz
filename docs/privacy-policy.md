@@ -18,10 +18,7 @@ When you play an ayah, the app downloads its audio file over HTTPS from [everyay
 Links on the credits screen open in your browser. When you share a result, the text goes only to the app you choose.
 
 ## What the app does not do
-Hafiz has no account, no ads, no analytics, no crash reporting and no tracking. It does not sell or share any data. Its only permission is internet access, used to download recitations.
-
-## Google Play Games
-This version does not use Google Play Games: leaderboards are switched off. If a future version turns them on, this policy will be updated before that version is released.
+Hafiz has no account, no ads, no analytics, no crash reporting and no tracking. It does not sell or share any data. It asks for no sensitive permissions: besides internet access, used to download recitations, it declares only the normal permissions the audio player uses to check the network connection and keep a recitation playing.
 
 ## Children
 Hafiz is not directed at children under 13 and collects no personal information from anyone.
@@ -52,10 +49,7 @@ sufientout@gmail.com
 تُفتح روابط شاشة «شكر وتقدير» في متصفحك. وعند مشاركة نتيجة، يذهب النص إلى التطبيق الذي تختاره فقط.
 
 ## ما لا يفعله التطبيق
-لا يتطلب حافظ حسابًا، ولا يعرض إعلانات، ولا يستخدم أدوات تحليل أو تقارير أعطال أو تتبع، ولا يبيع أي بيانات ولا يشاركها. وإذنه الوحيد هو الوصول إلى الإنترنت لتنزيل التلاوات.
-
-## ألعاب Google Play
-لا يستخدم هذا الإصدار ألعاب Google Play، فلوحات الصدارة معطّلة. وإذا فعّلها إصدار لاحق، فستُحدَّث هذه السياسة قبل إصداره.
+لا يتطلب حافظ حسابًا، ولا يعرض إعلانات، ولا يستخدم أدوات تحليل أو تقارير أعطال أو تتبع، ولا يبيع أي بيانات ولا يشاركها. ولا يطلب أي أذونات حساسة: فإلى جانب الوصول إلى الإنترنت لتنزيل التلاوات، لا يصرّح إلا بالأذونات العادية التي يستخدمها مشغّل الصوت للتحقق من الاتصال بالشبكة ومواصلة تشغيل التلاوة.
 
 ## الأطفال
 حافظ غير موجّه إلى الأطفال دون ١٣ عامًا، ولا يجمع أي معلومات شخصية من أحد.
