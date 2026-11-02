@@ -334,9 +334,11 @@ private fun LanguageOption(language: AppLanguage, selected: Boolean, onClick: ()
     }
 }
 
+private const val PRIVACY_POLICY_URL = "https://suft.github.io/hafiz/privacy-policy.html"
+
 /**
  * Credits the data sources: Tanzil's licence asks for a link; the mutashabihat come from Aswaatul Qurraa;
- * the ayah positions in the mushaf come from quran.com.
+ * the ayah positions in the mushaf come from quran.com; the last entry links the privacy policy.
  */
 @Composable
 private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
@@ -359,6 +361,7 @@ private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
         CreditEntry(strings.creditsMushafLayout, "quran.com", "https://quran.com")
         CreditEntry(strings.creditsInspiredBy, "AlrazyLabs")
         CreditEntry(strings.creditsDeveloper, strings.developerName)
+        CreditEntry(strings.privacyPolicy, "suft.github.io/hafiz", PRIVACY_POLICY_URL)
     }
 }
 

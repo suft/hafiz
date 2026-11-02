@@ -63,6 +63,7 @@ interface Strings {
     val creditsDeveloper: String
     val developerName: String
     val creditsInspiredBy: String
+    val privacyPolicy: String
     fun totalPoints(points: Int): String
     fun masteredCount(mastered: Int, total: Int): String
     val start: String
@@ -162,7 +163,7 @@ object ArabicStrings : Strings {
     override fun styleSubtitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "اقرأ الآية واختر السورة التي وردت فيها"
         GameStyle.NextAyah -> "أكمل التلاوة واختر الآية التالية"
-        GameStyle.AyahPosition -> "اقرأ الآية واختر موضع بدايتها في مصحف المدينة"
+        GameStyle.AyahPosition -> "اقرأ الآية واختر موضع بدايتها في مصحف المدينة (طبعة ${number(1405)}هـ)"
     }
 
     override fun gameModeTitle(mode: GameMode) = when (mode) {
@@ -226,6 +227,7 @@ object ArabicStrings : Strings {
     override val creditsDeveloper = "المطوّر"
     override val developerName = "سفيان طوط"
     override val creditsInspiredBy = "مستوحى من"
+    override val privacyPolicy = "سياسة الخصوصية"
     override fun totalPoints(points: Int) = "مجموع النقاط: ${number(points)}"
     override fun masteredCount(mastered: Int, total: Int) = "${number(mastered)} من ${number(total)} مُتقَنة"
     override val start = "ابدأ"
@@ -343,7 +345,7 @@ object EnglishStrings : Strings {
     override fun styleSubtitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "Read the ayah and pick its surah"
         GameStyle.NextAyah -> "Pick the ayah that comes next"
-        GameStyle.AyahPosition -> "Read the ayah and pick where it starts in the Madinah mushaf"
+        GameStyle.AyahPosition -> "Read the ayah and pick where it starts in the Madinah mushaf (1405H print)"
     }
 
     override fun gameModeTitle(mode: GameMode) = when (mode) {
@@ -407,6 +409,7 @@ object EnglishStrings : Strings {
     override val creditsDeveloper = "Developer"
     override val developerName = "Sufien Tout"
     override val creditsInspiredBy = "Inspired by"
+    override val privacyPolicy = "Privacy policy"
     override fun totalPoints(points: Int) = "Total points: $points"
     override fun masteredCount(mastered: Int, total: Int) = "$mastered of $total mastered"
     override val start = "Start"
