@@ -16,21 +16,13 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Hafiz"
+        android:localeConfig="@xml/locales_config"
         tools:targetApi="37">
-
-        <!-- Play Games Services project (res/values/games-ids.xml). -->
-        <meta-data
-            android:name="com.google.android.gms.games.APP_ID"
-            android:value="@string/game_services_project_id" />
-        <!-- Initialized from HafizApp only when configured (see PlayGames.isEnabled); the SDK's auto-init would run with an empty id. -->
-        <provider
-            android:name="com.google.android.gms.games.provider.PlayGamesInitProvider"
-            android:authorities="${applicationId}.playgamesinitprovider"
-            tools:node="remove" />
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="locale|layoutDirection"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

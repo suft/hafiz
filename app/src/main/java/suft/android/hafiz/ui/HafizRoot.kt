@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -115,11 +116,12 @@ private const val MIN_LOAD_SCREEN_MILLIS = 1_500L
 private var loadScreenStartedAt = 0L
 
 @Composable
-fun HafizRoot(container: AppContainer, onOpenLeaderboards: (suspend () -> Boolean)?) {
+fun HafizRoot(container: AppContainer) {
     val progress by container.progressState.collectAsStateWithLifecycle()
     val loaded = progress
     HafizTheme(language = loaded?.language ?: AppLanguage.Arabic) {
-        PaperBackground {
+        // Exposes Compose test tags as uiautomator resource-ids, which tools/screenshots.py taps.
+        PaperBackground(Modifier.semantics { testTagsAsResourceId = true }) {
             val quran by container.quran.collectAsStateWithLifecycle()
             val loadedQuran = quran
             // The settings read takes milliseconds; render nothing until the language is known, to avoid flashing the wrong one.
@@ -142,7 +144,7 @@ fun HafizRoot(container: AppContainer, onOpenLeaderboards: (suspend () -> Boolea
                     transitionSpec = { fadeIn(tween(300, delayMillis = 150)) togetherWith fadeOut(tween(150)) },
                     label = "load",
                 ) { readyQuran ->
-                    if (readyQuran == null) LoadingScreen() else AppNavHost(container, loaded, readyQuran, onOpenLeaderboards)
+                    if (readyQuran == null) LoadingScreen() else AppNavHost(container, loaded, readyQuran)
                 }
             }
         }
@@ -190,7 +192,6 @@ private fun AppNavHost(
     container: AppContainer,
     progress: Progress,
     quran: Quran,
-    onOpenLeaderboards: (suspend () -> Boolean)?,
 ) {
     val nav = rememberNavController()
     val offset = with(LocalDensity.current) { SharedAxisOffset.roundToPx() }
@@ -215,7 +216,6 @@ private fun AppNavHost(
                 onOpenPlay = { nav.navigateFrom(entry, ModesRoute) },
                 onOpenGuide = { nav.navigateFrom(entry, GuideRoute) },
                 onOpenStats = { nav.navigateFrom(entry, StatsRoute) },
-                onOpenLeaderboards = onOpenLeaderboards,
             )
         }
         composable<ModesRoute> { entry ->

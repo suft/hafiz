@@ -16,8 +16,12 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performScrollToNode
+import android.app.LocaleManager
+import android.os.LocaleList
 import androidx.activity.ComponentActivity
 import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,6 +37,13 @@ import suft.android.hafiz.ui.i18n.EnglishStrings
 class NavigationTest {
 
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
+
+    private val localeManager get() = rule.activity.getSystemService(LocaleManager::class.java)
+
+    @After
+    fun clearAppLocales() {
+        localeManager.applicationLocales = LocaleList.getEmptyLocaleList()
+    }
 
     private fun waitForText(text: String) =
         rule.waitUntil(15_000) { rule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
@@ -140,6 +151,15 @@ class NavigationTest {
         // Closes only after the language has been written and applied.
         rule.waitUntil(5_000) { rule.onAllNodesWithContentDescription("English").fetchSemanticsNodes().isEmpty() }
         rule.onNodeWithContentDescription("${EnglishStrings.languageLabel}: English").assertExists()
+        assertEquals("en", localeManager.applicationLocales.toLanguageTags())
+    }
+
+    @Test
+    fun systemAppLanguageOverridesStoredLanguage() {
+        waitForHome()
+        rule.runOnUiThread { localeManager.applicationLocales = LocaleList.forLanguageTags("en") }
+        rule.activityRule.scenario.recreate()
+        waitForText(EnglishStrings.statistics)
     }
 
     @Test

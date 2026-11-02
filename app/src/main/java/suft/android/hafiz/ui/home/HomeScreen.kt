@@ -1,6 +1,5 @@
 package suft.android.hafiz.ui.home
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -33,7 +32,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -77,6 +75,7 @@ import suft.android.hafiz.ui.components.AppTitle
 import suft.android.hafiz.ui.components.MenuCard
 import suft.android.hafiz.ui.components.OrnamentDivider
 import suft.android.hafiz.ui.i18n.LocalStrings
+import suft.android.hafiz.ui.i18n.SystemAppLanguage
 
 @Composable
 fun HomeScreen(
@@ -85,7 +84,6 @@ fun HomeScreen(
     onOpenPlay: () -> Unit,
     onOpenGuide: () -> Unit,
     onOpenStats: () -> Unit,
-    onOpenLeaderboards: (suspend () -> Boolean)?,
 ) {
     val strings = LocalStrings.current
     val context = LocalContext.current
@@ -146,23 +144,6 @@ fun HomeScreen(
                     badgeLabel = null,
                     onClick = onOpenStats,
                 )
-                if (onOpenLeaderboards != null) {
-                    Spacer(Modifier.height(12.dp))
-                    MenuCard(
-                        icon = Icons.Filled.Leaderboard,
-                        title = strings.leaderboards,
-                        subtitle = strings.leaderboardsHint,
-                        badge = null,
-                        badgeLabel = null,
-                        onClick = {
-                            scope.launch {
-                                if (!onOpenLeaderboards()) {
-                                    Toast.makeText(context, strings.leaderboardsUnavailable, Toast.LENGTH_LONG).show()
-                                }
-                            }
-                        },
-                    )
-                }
             }
         }
 
@@ -188,7 +169,7 @@ fun HomeScreen(
         LanguageOverlay(
             visible = showLanguage,
             selected = strings.language,
-            onSelect = { scope.launch { container.progress.setLanguage(it) } },
+            onSelect = { scope.launch { container.progress.setLanguage(it); SystemAppLanguage.set(context, it) } },
             onClose = { showLanguage = false },
         )
         CreditsOverlay(visible = showCredits, onClose = { showCredits = false })
