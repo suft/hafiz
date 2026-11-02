@@ -15,6 +15,8 @@
   4. Add Android credentials for package suft.android.hafiz with the SHA-1 of the upload key
      (release.jks) and of the Play app-signing key. While the game is unpublished, add test
      accounts as testers.
+  5. Before releasing with leaderboards, update docs/privacy-policy.md and the Data safety answers
+     in fastlane/play-console.md (Play Games sends the player ID and scores to Google).
 -->
 <resources>
     <string name="game_services_project_id" translatable="false"></string>

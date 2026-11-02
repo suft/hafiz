@@ -1,0 +1,80 @@
+# Play Console guide
+
+Everything the Play Console asks for that fastlane metadata (`metadata/android/{ar,en-US}/`) cannot hold. Upload is manual.
+
+## 1. Before the first upload
+
+- [ ] Back up `release.jks` and the keystore password from `keystore.properties` somewhere outside the repo. This is the upload key; losing it means a key-reset request to Google.
+- [ ] Get permission from Aswaatul Qurraa for the mutashabihat data (README §Licences).
+- [ ] Confirm rights to `paper_background.jpg`, which is used in the app and in the feature graphic.
+- [ ] Review the pairs in `tools/mutashabihat_supplement.txt`.
+- [ ] Push the repo to `github.com/suft/hafiz`: `git remote add origin git@github.com:suft/hafiz.git && git push -u origin main`.
+- [ ] Enable Pages: Settings → Pages → Deploy from a branch → `main` / `/docs`.
+- [ ] Check that `https://suft.github.io/hafiz/privacy-policy.html` loads.
+
+## 2. Create the app
+
+- App name: from `title.txt`.
+- Default language: Arabic – `ar`.
+- App or game: **Game**.
+- Free.
+- Accept the declarations.
+
+## 3. App signing
+
+Use Play App Signing with a Google-generated app-signing key. `release.jks` (alias `hafiz`) is the upload key. Keep the app-signing key's SHA-1 (Setup → App signing) for enabling Play Games later.
+
+## 4. Store listing
+
+Grow → Store presence → Main store listing.
+
+- Paste `ar/*` into the default listing. Add the English (United States) translation from `en-US/*`.
+- Category: Game → **Educational**.
+- Contact email `sufientout@gmail.com`; website `https://github.com/suft/hafiz`.
+- Icon and feature graphic: upload `fastlane/metadata/android/ar/images/icon.png` and `featureGraphic.png`. Regenerate them with `mise run store-graphics`.
+- Phone screenshots:
+  - Take 4 on a phone running the release build.
+  - Subjects in order: (1) main menu, (2) a Guess the Surah question, (3) a Where's the Ayah? question, (4) Statistics → Surahs tab.
+  - Take them in the Arabic UI for `ar/images/phoneScreenshots/1.png`…`4.png`, and in the English UI for `en-US/images/phoneScreenshots/1.png`…`4.png`.
+  - Capture with `adb exec-out screencap -p > <path>`.
+  - Play needs 2–8 screenshots, PNG or JPEG, sides 320–3840 px. Follow the console if it says otherwise.
+
+## 5. App content
+
+Policy → App content.
+
+- Privacy policy: `https://suft.github.io/hafiz/privacy-policy.html`.
+- Ads: No.
+- App access: all functionality is available without special access.
+- Content rating (IARC):
+  - Category: Game.
+  - Answer No to violence, fear, sexuality, language, controlled substances, crude humour, gambling and simulated gambling.
+  - Answer No to user interaction or chat, sharing users' location, digital purchases, and unrestricted internet browsing. Sharing a score through Android's share sheet is not in-app user interaction.
+  - Expected result: Everyone / PEGI 3 / USK 0.
+- Target audience: ages 13–15, 16–17 and 18+. Not designed for children, so the Families policy doesn't apply. Appeals to children: No.
+- News app: No. Government app: No. Financial features: none. Health: none.
+
+### Data safety
+
+- "Does your app collect or share any of the required user data types?" **No**. So no data types are declared.
+- Reasons:
+  - Progress and settings never leave the device except through Android's own backup, which Play does not count as developer collection.
+  - Audio requests to everyayah.com fetch public files and carry no user data beyond the IP address inherent to any request.
+  - Play Games is not initialised in this release.
+- Re-answer this before enabling leaderboards. Play Games sends the player ID and game scores to Google, so declare "App activity → Other actions" and "Device or other IDs" as collected, used for app functionality, and encrypted in transit.
+
+## 6. Testing and release
+
+- Run `mise run check && mise run bundle`. Upload `dist/Hafiz-release.aab` to **Internal testing** first and install it from the tester link.
+- Personal developer accounts must run a **Closed testing** track with at least 12 opted-in testers for 14 continuous days before applying for production. Follow whatever Play Console's Dashboard shows.
+- Then go to **Production**. Countries: all. Release notes come from `changelogs/<versionCode>.txt`.
+
+## 7. Every later release
+
+- Bump `versionCode` (+1) and `versionName` in `app/build.gradle.kts`.
+- Add `changelogs/<versionCode>.txt` in both locales.
+- Run `mise run check && mise run bundle`, then upload. Play rejects a reused `versionCode`.
+
+## 8. Enabling leaderboards later
+
+Follow the setup comment in `app/src/main/res/values/games-ids.xml`. First update `docs/privacy-policy.md` (§Google Play Games) and the Data safety answers above.
