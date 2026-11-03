@@ -140,7 +140,7 @@ echo "✓ $out/{icon,featureGraphic}.png, $ar/{icon,featureGraphic}.png"
 '''
 
 [tasks.screenshots]
-description = "Capture the Play/README screenshots (4 Arabic, 4 English, 1080x1920) on a headless emulator into fastlane/metadata/android/{ar,en-US}/images/phoneScreenshots/ (needs python3 and KVM; the first run downloads the emulator and a system image)"
+description = "Capture the Play/README screenshots (6 Arabic, 6 English, 1080x1920) on a headless emulator into fastlane/metadata/android/{ar,en-US}/images/phoneScreenshots/ (needs python3 and KVM; the first run downloads the emulator and a system image)"
 depends = ["build"]
 run = "python3 tools/screenshots.py"
 

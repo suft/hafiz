@@ -78,7 +78,7 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 | `release` | Minified release APK → `dist/Hafiz-release.apk` |
 | `bundle` | Release `.aab` for Google Play |
 | `store-graphics` | Play Store icon and feature graphic → `fastlane/metadata/android/{en-US,ar}/images/` (ImageMagick 7) |
-| `screenshots` | Play/README screenshots (4 Arabic, 4 English, 1080×1920) on a headless emulator → `fastlane/metadata/android/{ar,en-US}/images/phoneScreenshots/` (python3, KVM; first run downloads the emulator) |
+| `screenshots` | Play/README screenshots (6 Arabic, 6 English, 1080×1920: menu, two questions, statistics, load screen, credits) on a headless emulator → `fastlane/metadata/android/{ar,en-US}/images/phoneScreenshots/` (python3, KVM; first run downloads the emulator) |
 | `keystore` | Create `release.jks` + `keystore.properties` for release signing |
 | `mutashabihat` | Regenerate `assets/mutashabihat.txt` from Aswaatul Qurraa (python3) and merge the supplement |
 | `mushaf-layout` | Regenerate `assets/mushaf_layout_v1.txt` and `mushaf_layout_v2.txt` (the page and line of every ayah in the 1405H and 1421H Madinah mushaf prints) from quran.com (python3) |
@@ -113,7 +113,7 @@ app/src/main/
     audio/                       reciters, ExoPlayer wrapper, disk cache
     ui/                          Compose: home, modes, guide, levels, quiz (+ViewModel), stats, theme, icons (HafizIcons)
   res/font/                      Amiri, Rakkas, Inter, IBM Plex Sans Arabic (all OFL)
-  res/drawable/                  Phosphor and Hugeicons vector icons (generated: mise run icons)
+  res/drawable/                  Phosphor and Hugeicons vector icons (generated: mise run icons), the hand-drawn rub el hizb ornament
   res/drawable-nodpi/            Hafiz artwork, monochrome icon (own work)
 tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3; --offline only merges the supplement)
 tools/mutashabihat_supplement.txt  hand-curated pairs for the surahs the source does not cover

@@ -14,7 +14,7 @@ Run every command from the repo root.
 | `./gradlew :app:testDebugUnitTest --tests 'suft.android.hafiz.domain.QuizLogicTest'` | One test class |
 | `mise run build` | Debug APK → `dist/Hafiz-debug.apk` |
 | `mise run mutashabihat` / `mise run mushaf-layout` / `mise run icons` | Regenerate the generated assets (python3, network) |
-| `mise run screenshots` | Regenerate the 8 Play/README screenshots on a headless emulator (KVM) |
+| `mise run screenshots` | Regenerate the 12 Play/README screenshots (6 per locale; README shows the first 4) on a headless emulator (KVM) |
 
 CI (`.github/workflows/build.yml`) runs test, lint, the debug build and the release bundle; `release.yml` publishes a signed GitHub Release for each `v*` tag.
 
@@ -55,7 +55,7 @@ Update these in the same change as the code. A change is not done while one of t
 - **`docs/privacy-policy.md`** and the Data safety section of `fastlane/play-console.md`: when data leaving the device changes (new network endpoint, new SDK, backup rules).
 - **`fastlane/metadata/android/{ar,en-US}/`**: when modes, styles, level counts or the reciter count change; add `changelogs/<versionCode>.txt` (both locales) for every release.
 - **How-to-play text** in `ui/i18n/Strings.kt` (both `ArabicStrings` and `EnglishStrings`: the `guide*` members and the style/mode titles and subtitles): when the rules a player sees change (modes, levels, mastery, lives).
-- **Screenshots** (`fastlane/metadata/android/*/images/phoneScreenshots/`, shown in `README.md`): rerun `mise run screenshots` when the main menu, the quiz screen or Statistics → Surahs visibly change, or when a label in `tools/screenshots.py` changes in `Strings.kt`.
+- **Screenshots** (`fastlane/metadata/android/*/images/phoneScreenshots/`, 1–4 shown in `README.md`): rerun `mise run screenshots` when the main menu, the quiz screen, Statistics → Surahs, the load screen or the Credits overlay visibly change, or when a label in `tools/screenshots.py` changes in `Strings.kt`.
 
 ## Commits
 

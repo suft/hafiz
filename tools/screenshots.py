@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Captures the Play/README screenshots (4 Arabic, 4 English, 1080x1920) on a headless emulator.
+"""Captures the Play/README screenshots (6 Arabic, 6 English, 1080x1920) on a headless emulator.
 
 Boots a dedicated AVD (created on first run), installs dist/Hafiz-debug.apk, seeds the statistics, drives the
 real app through adb + uiautomator and captures with screencap. Output goes to
-fastlane/metadata/android/{ar,en-US}/images/phoneScreenshots/{1..4}.png:
+fastlane/metadata/android/{ar,en-US}/images/phoneScreenshots/{1..6}.png:
 
-  1 main menu, 2 a Guess the Surah question, 3 a Where's the Ayah? question, 4 Statistics -> Surahs tab.
+  1 main menu, 2 a Guess the Surah question, 3 a Where's the Ayah? question, 4 Statistics -> Surahs tab,
+  5 the load screen, 6 the Credits overlay.
 
 Needs KVM, adb/sdkmanager/avdmanager on PATH and ANDROID_HOME set (mise does both). The first run downloads the
 emulator and a system image (about 2 GB) into the SDK. Python 3 standard library only.
@@ -46,14 +47,19 @@ OUT = {
 # Must follow ArabicStrings / EnglishStrings in app/src/main/java/suft/android/hafiz/ui/i18n/Strings.kt.
 LABELS = {
     "ar": {"play": "العب", "regular": "عادي", "guess": "آية وسورة", "position": "أين الآية؟",
-           "stats": "إحصائيات", "surahs": "السور"},
+           "stats": "إحصائيات", "surahs": "السور", "credits": "شكر وتقدير", "sources": "المصادر"},
     "en": {"play": "Play", "regular": "Regular", "guess": "Guess the Surah", "position": "Where's the Ayah?",
-           "stats": "Statistics", "surahs": "Surahs"},
+           "stats": "Statistics", "surahs": "Surahs", "credits": "Credits", "sources": "Sources"},
 }
 LANGUAGE = {"ar": "Arabic", "en": "English"}
 BUILD = ROOT / "build"
 BOOT_TIMEOUT_S = 600
 WAIT_TIMEOUT_S = 30
+# The load screen stays up at least 1.5 s after a process start (MIN_LOAD_SCREEN_MILLIS in HafizRoot.kt) and
+# `am start -W` returns once its first frame is drawn, so a capture that finishes this soon afterwards shows it.
+LOAD_CAPTURE_MAX_S = 1.0
+LOAD_ATTEMPTS = 3
+LOAD_SETTLE_S = 0.4  # lets the spinner sweep out of its start-of-animation dot
 
 
 def fail(message):
@@ -314,22 +320,43 @@ def launch():
     adb("shell", "am", "start", "-W", "-n", ACTIVITY)
 
 
-def shot(lang, n):
-    time.sleep(1)
+def screencap():
     png = adb("exec-out", "screencap", "-p", binary=True)
     width, height = struct.unpack(">II", png[16:24])
     if (width, height) != (WIDTH, HEIGHT):
         fail(f"screenshot is {width}x{height}, expected {WIDTH}x{HEIGHT}")
+    return png
+
+
+def save(lang, n, png):
     path = Path(OUT[lang]) / f"{n}.png"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(png)
     print(f"✓ {path}")
 
 
+def shot(lang, n):
+    time.sleep(1)
+    save(lang, n, screencap())
+
+
+def shot_loading(lang, n):
+    """Cold-starts the app and captures its load screen; retries when the capture came too late."""
+    for _ in range(LOAD_ATTEMPTS):
+        launch()
+        started = time.monotonic()
+        time.sleep(LOAD_SETTLE_S)
+        png = screencap()
+        if time.monotonic() - started <= LOAD_CAPTURE_MAX_S:
+            save(lang, n, png)
+            return
+    fail(f"could not capture the load screen within {LOAD_CAPTURE_MAX_S} s of launch in {LOAD_ATTEMPTS} attempts")
+
+
 def capture(lang):
     label = LABELS[lang]
     seed(lang)
-    adb("shell", "am", "start", "-W", "-n", ACTIVITY)
+    shot_loading(lang, 5)
     wait_for(label["play"])
     shot(lang, 1)
 
@@ -356,6 +383,12 @@ def capture(lang):
     tap(label["surahs"])
     time.sleep(1.5)  # the map lays out after the tab switch
     shot(lang, 4)
+
+    launch()
+    wait_for(label["play"])
+    tap(label["credits"])
+    wait_for(label["sources"])
+    shot(lang, 6)
 
 
 def main():
