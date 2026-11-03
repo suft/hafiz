@@ -10,6 +10,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.Calendar
 import java.util.TimeZone
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,9 +49,18 @@ data class RoundRecord(
 fun localEpochDay(nowMillis: Long = System.currentTimeMillis(), zone: TimeZone = TimeZone.getDefault()): Long =
     Math.floorDiv(nowMillis + zone.getOffset(nowMillis), 86_400_000L)
 
-/** Milliseconds until the next local midnight, in 1..86_400_000. */
-fun millisUntilNextLocalDay(nowMillis: Long = System.currentTimeMillis(), zone: TimeZone = TimeZone.getDefault()): Long =
-    86_400_000L - Math.floorMod(nowMillis + zone.getOffset(nowMillis), 86_400_000L)
+/** Milliseconds until the next local midnight (23 or 25 h across a daylight-saving change). */
+fun millisUntilNextLocalDay(nowMillis: Long = System.currentTimeMillis(), zone: TimeZone = TimeZone.getDefault()): Long {
+    val next = Calendar.getInstance(zone).apply {
+        timeInMillis = nowMillis
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+        add(Calendar.DAY_OF_YEAR, 1)
+    }
+    return next.timeInMillis - nowMillis
+}
 
 /** Everything the app remembers between launches. Stored as JSON via DataStore. */
 @Serializable

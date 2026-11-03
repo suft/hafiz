@@ -48,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -247,10 +248,15 @@ fun hafizCardColors(): CardColors = CardDefaults.cardColors(
 /** True when the system's animation scale is 0 ("Remove animations"). */
 @Composable
 fun rememberReduceMotion(): Boolean {
-    val context = LocalContext.current
-    return remember {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    val resolver = LocalContext.current.contentResolver
+    fun read() = Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    var reduce by remember { mutableStateOf(read()) }
+    // The setting is changed in system settings, which pauses the app; re-read on every resume.
+    LifecycleResumeEffect(Unit) {
+        reduce = read()
+        onPauseOrDispose { }
     }
+    return reduce
 }
 
 /** Shrinks the element slightly while it is pressed and springs it back; off when animations are off. */

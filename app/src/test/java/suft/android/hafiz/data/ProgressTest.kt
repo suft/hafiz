@@ -163,6 +163,12 @@ class ProgressTest {
     }
 
     @Test
+    fun nextLocalDayHonoursDaylightSaving() {
+        // 2026-03-29 00:30 CET; clocks spring forward at 02:00, so local midnight is 22.5 h away, not 23.5 h.
+        assertEquals(81_000_000L, millisUntilNextLocalDay(1_774_740_600_000L, TimeZone.getTimeZone("Europe/Berlin")))
+    }
+
+    @Test
     fun forwardSkewedClockRecovers() {
         // A clock that was wrong (far in the future) once must not freeze today's counters and streak.
         var p = Progress()
