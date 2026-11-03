@@ -66,6 +66,13 @@ interface Strings {
     val developerName: String
     val creditsInspiredBy: String
     val privacyPolicy: String
+    val creditsSourcesHeading: String
+    val creditsPeopleHeading: String
+    val creditsLegalHeading: String
+    val creditsTanzilLicence: String
+    val creditsMushafEditions: String
+    val opensInBrowser: String
+    fun versionLabel(version: String): String
     fun totalPoints(points: Int): String
     fun masteredCount(mastered: Int, total: Int): String
     val start: String
@@ -238,6 +245,14 @@ object ArabicStrings : Strings {
     override val developerName = "سفيان طوط"
     override val creditsInspiredBy = "مستوحى من"
     override val privacyPolicy = "سياسة الخصوصية"
+    override val creditsSourcesHeading = "المصادر"
+    override val creditsPeopleHeading = "الأشخاص"
+    override val creditsLegalHeading = "قانوني"
+    override val creditsTanzilLicence = "ترخيص CC BY 3.0، والنص مستخدم دون تعديل"
+    override val creditsMushafEditions get() = "طبعتا ${number(MushafEdition.V1.hijriYear)}هـ و${number(MushafEdition.V2.hijriYear)}هـ"
+    override val opensInBrowser = "يفتح في المتصفح"
+    override fun versionLabel(version: String) =
+        "الإصدار ${version.map { if (it in '0'..'9') '٠' + (it - '0') else it }.joinToString("")}"
     override fun totalPoints(points: Int) = "مجموع النقاط: ${number(points)}"
     override fun masteredCount(mastered: Int, total: Int) = "${number(mastered)} من ${number(total)} مُتقَنة"
     override val start = "ابدأ"
@@ -429,6 +444,13 @@ object EnglishStrings : Strings {
     override val developerName = "Sufien Tout"
     override val creditsInspiredBy = "Inspired by"
     override val privacyPolicy = "Privacy policy"
+    override val creditsSourcesHeading = "Sources"
+    override val creditsPeopleHeading = "People"
+    override val creditsLegalHeading = "Legal"
+    override val creditsTanzilLicence = "CC BY 3.0, used unmodified"
+    override val creditsMushafEditions get() = "${number(MushafEdition.V1.hijriYear)}H and ${number(MushafEdition.V2.hijriYear)}H prints"
+    override val opensInBrowser = "Opens in your browser"
+    override fun versionLabel(version: String) = "Version $version"
     override fun totalPoints(points: Int) = "Total points: $points"
     override fun masteredCount(mastered: Int, total: Int) = "$mastered of $total mastered"
     override val start = "Start"

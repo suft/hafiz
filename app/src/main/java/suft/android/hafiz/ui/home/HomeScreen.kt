@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -28,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Insights
@@ -42,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -52,17 +55,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -346,12 +344,17 @@ private fun EditionOption(edition: MushafEdition, selected: Boolean, onClick: ()
 private const val PRIVACY_POLICY_URL = "https://suft.github.io/hafiz/privacy-policy.html"
 
 /**
- * Credits the data sources: Tanzil's licence asks for a link; the mutashabihat come from Aswaatul Qurraa;
- * the ayah positions in the mushaf come from quran.com; the last entry links the privacy policy.
+ * Credits as cards in three groups: the sources (Tanzil's licence asks for a link; the mutashabihat come from
+ * Aswaatul Qurraa; the ayah positions of both mushaf prints come from quran.com), the people, and the privacy
+ * policy. A card with a link is one tap target that opens it in the browser.
  */
 @Composable
 private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
     val strings = LocalStrings.current
+    val context = LocalContext.current
+    val version = remember(context) {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()
+    }
     FullScreenOverlay(visible, onClose, closeAlignment = AbsoluteAlignment.TopLeft) {
         Icon(
             Icons.Filled.Info,
@@ -360,33 +363,108 @@ private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
             tint = MaterialTheme.colorScheme.primary,
         )
         Text(strings.credits, style = MaterialTheme.typography.headlineSmall)
-        CreditEntry(strings.creditsQuranText, strings.creditsTanzil, "https://tanzil.net")
-        CreditEntry(strings.creditsRecitations, "everyayah.com", "https://everyayah.com")
-        CreditEntry(
-            strings.creditsMutashabihat,
-            strings.creditsAswaatulQurraa,
-            "https://www.aswaatulqurraa.com/mutashabihat/",
-        )
-        CreditEntry(strings.creditsMushafLayout, "quran.com", "https://quran.com")
-        CreditEntry(strings.creditsInspiredBy, "AlrazyLabs")
-        CreditEntry(strings.creditsDeveloper, strings.developerName)
-        CreditEntry(strings.privacyPolicy, "suft.github.io/hafiz", PRIVACY_POLICY_URL)
+        if (!version.isNullOrBlank()) {
+            Text(
+                "${strings.appName} · ${strings.versionLabel(version)}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        CreditGroup(strings.creditsSourcesHeading) {
+            CreditCard(
+                strings.creditsQuranText,
+                strings.creditsTanzil,
+                note = strings.creditsTanzilLicence,
+                url = "https://tanzil.net",
+            )
+            CreditCard(strings.creditsRecitations, "everyayah.com", url = "https://everyayah.com")
+            CreditCard(
+                strings.creditsMutashabihat,
+                strings.creditsAswaatulQurraa,
+                url = "https://www.aswaatulqurraa.com/mutashabihat/",
+            )
+            CreditCard(
+                strings.creditsMushafLayout,
+                "quran.com",
+                note = strings.creditsMushafEditions,
+                url = "https://quran.com",
+            )
+        }
+        CreditGroup(strings.creditsPeopleHeading) {
+            CreditCard(strings.creditsInspiredBy, "AlrazyLabs")
+            CreditCard(strings.creditsDeveloper, strings.developerName)
+        }
+        CreditGroup(strings.creditsLegalHeading) {
+            CreditCard(strings.privacyPolicy, "suft.github.io/hafiz", url = PRIVACY_POLICY_URL)
+        }
     }
 }
 
+/** A heading above its cards. */
 @Composable
-private fun CreditEntry(label: String, source: String, url: String? = null) {
-    val linkStyle = TextLinkStyles(
-        SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline),
-    )
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(
-            text = buildAnnotatedString {
-                if (url != null) withLink(LinkAnnotation.Url(url, linkStyle)) { append(source) } else append(source)
-            },
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-        )
+private fun CreditGroup(heading: String, cards: @Composable ColumnScope.() -> Unit) {
+    Column(
+        Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(heading, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+        cards()
+    }
+}
+
+/** One credit: label, source and an optional note, centred; with a [url] the whole card opens it. */
+@Composable
+private fun CreditCard(label: String, source: String, note: String? = null, url: String? = null) {
+    val strings = LocalStrings.current
+    val uriHandler = LocalUriHandler.current
+    val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(16.dp)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clip(shape)
+            .then(
+                if (url == null) {
+                    Modifier
+                } else {
+                    Modifier.clickable(onClickLabel = strings.opensInBrowser, role = Role.Button) { uriHandler.openUri(url) }
+                },
+            ),
+        shape = shape,
+        color = scheme.surfaceContainerLowest,
+        border = BorderStroke(1.dp, scheme.outlineVariant),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Column(
+                Modifier.padding(horizontal = 44.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(label, style = MaterialTheme.typography.labelLarge, color = scheme.onSurfaceVariant)
+                Text(
+                    source,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (url != null) scheme.primary else scheme.onSurface,
+                    textAlign = TextAlign.Center,
+                )
+                if (note != null) {
+                    Text(
+                        note,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+            if (url != null) {
+                Icon(
+                    Icons.AutoMirrored.Filled.OpenInNew,
+                    contentDescription = null,
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 14.dp).size(20.dp),
+                    tint = scheme.primary,
+                )
+            }
+        }
     }
 }

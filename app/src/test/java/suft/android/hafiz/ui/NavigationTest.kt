@@ -4,6 +4,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -173,8 +175,10 @@ class NavigationTest {
     fun creditsOverlayShowsTanzilAndCloses() {
         waitForHome()
         rule.onNodeWithContentDescription(ArabicStrings.credits).performClick()
-        rule.onNodeWithText(ArabicStrings.creditsTanzil).assertIsDisplayed()
-        rule.onNodeWithText("AlrazyLabs").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText(ArabicStrings.creditsTanzil).assertIsDisplayed().assertHasClickAction()
+        rule.onNodeWithText(ArabicStrings.creditsTanzilLicence).assertIsDisplayed()
+        rule.onNodeWithText(ArabicStrings.creditsMushafEditions).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("AlrazyLabs").performScrollTo().assertIsDisplayed().assertHasNoClickAction()
         rule.onNodeWithText(ArabicStrings.developerName).performScrollTo().assertIsDisplayed()
         rule.onNodeWithContentDescription(ArabicStrings.back).performClick()
         rule.waitUntil(5_000) { rule.onAllNodesWithText(ArabicStrings.creditsTanzil).fetchSemanticsNodes().isEmpty() }
