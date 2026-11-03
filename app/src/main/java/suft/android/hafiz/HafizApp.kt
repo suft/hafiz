@@ -9,8 +9,11 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
@@ -50,17 +53,24 @@ class AppContainer(
             CoroutineExceptionHandler { _, e -> Log.e("Hafiz", "Background task failed", e) },
     )
 
+    private val _assetsFailed = MutableStateFlow(false)
+
+    /** True once a bundled asset failed to parse: the app shows an error instead of loading forever. */
+    val assetsFailed: StateFlow<Boolean> = _assetsFailed.asStateFlow()
+
     /** Parsed once, off the main thread, at startup (`null` while loading). */
     val quran: StateFlow<Quran?> = flow<Quran?> {
         emit(appContext.assets.open(QURAN_ASSET).let(QuranXmlParser::parse))
     }
         .flowOn(Dispatchers.IO)
+        .catch { e -> assetFailed(e) }
         .stateIn(appScope, SharingStarted.Eagerly, null)
 
     /** Similar-ayah pairs used for wrong options (Mutashabihat mode fully, the other modes for one option), parsed once the Quran is loaded (`null` until then). */
     val mutashabihat: StateFlow<Mutashabihat?> = quran.filterNotNull()
         .map<Quran, Mutashabihat?> { q -> appContext.assets.open(MUTASHABIHAT_ASSET).use { Mutashabihat.parse(it, q) } }
         .flowOn(Dispatchers.IO)
+        .catch { e -> assetFailed(e) }
         .stateIn(appScope, SharingStarted.Eagerly, null)
 
     /** Both editions' layouts (Where's the Ayah? questions), parsed once the Quran is loaded (`null` until then). */
@@ -69,7 +79,13 @@ class AppContainer(
             MushafEdition.entries.associateWith { e -> appContext.assets.open(e.asset).use { MushafLayout.parse(it, q) } }
         }
         .flowOn(Dispatchers.IO)
+        .catch { e -> assetFailed(e) }
         .stateIn(appScope, SharingStarted.Eagerly, null)
+
+    private fun assetFailed(e: Throwable) {
+        Log.e("Hafiz", "Bundled asset failed to load", e)
+        _assetsFailed.value = true
+    }
 
     val progress = ProgressRepository(createProgressStore(progressFile))
 

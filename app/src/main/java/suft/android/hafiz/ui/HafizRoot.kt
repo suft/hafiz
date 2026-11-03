@@ -124,6 +124,7 @@ fun HafizRoot(container: AppContainer) {
         AppBackground(Modifier.semantics { testTagsAsResourceId = true }) {
             val quran by container.quran.collectAsStateWithLifecycle()
             val loadedQuran = quran
+            val assetsFailed by container.assetsFailed.collectAsStateWithLifecycle()
             // The settings read takes milliseconds; render nothing until the language is known, to avoid flashing the wrong one.
             if (loaded != null) {
                 val remaining = remember {
@@ -138,13 +139,13 @@ fun HafizRoot(container: AppContainer) {
                     }
                 }
                 AnimatedContent(
-                    targetState = loadedQuran?.takeIf { minShown },
+                    targetState = loadedQuran?.takeIf { minShown && !assetsFailed },
                     contentKey = { it != null },
                     // Fade the load screen out before the menu fades in: both are transparent over the same app background.
                     transitionSpec = { fadeIn(tween(300, delayMillis = 150)) togetherWith fadeOut(tween(150)) },
                     label = "load",
                 ) { readyQuran ->
-                    if (readyQuran == null) LoadingScreen() else AppNavHost(container, loaded, readyQuran)
+                    if (readyQuran == null) LoadingScreen(failed = assetsFailed) else AppNavHost(container, loaded, readyQuran)
                 }
             }
         }
@@ -307,7 +308,7 @@ private fun AppNavHost(
 }
 
 @Composable
-private fun LoadingScreen() {
+private fun LoadingScreen(failed: Boolean) {
     val strings = LocalStrings.current
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
@@ -335,9 +336,18 @@ private fun LoadingScreen() {
             tint = MaterialTheme.colorScheme.tertiary,
         )
         Spacer(Modifier.height(24.dp))
-        CircularProgressIndicator(
-            modifier = Modifier.size(28.dp).semantics { contentDescription = strings.loadingQuran },
-            strokeWidth = 3.dp,
-        )
+        if (failed) {
+            Text(
+                text = strings.loadFailed,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+            )
+        } else {
+            CircularProgressIndicator(
+                modifier = Modifier.size(28.dp).semantics { contentDescription = strings.loadingQuran },
+                strokeWidth = 3.dp,
+            )
+        }
     }
 }
