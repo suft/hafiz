@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -12,6 +13,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLooper
 import suft.android.hafiz.AppContainer
 import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.GameMode
@@ -70,5 +72,22 @@ class QuizViewModelTest {
         vm.select(q.correctOption)
         store.clear()
         awaitProgress(container) { it.roundsCompleted == 1 && it.recentRounds.size == 1 }
+    }
+
+    @Test
+    fun autoAdvanceResumesAfterScreenReaderTurnsOff() {
+        val container = testContainer(tmp)
+        val level = Levels.forStyle(GameStyle.GuessSurah, quran)[0]
+        val (_, vm) = start(container, level, GameMode.Regular)
+        vm.setForeground(true)
+
+        // TalkBack was on: the answer stays until "Next"; turning it off must not strand the round.
+        vm.setAutoAdvance(false)
+        vm.select(vm.state.value.question!!.correctOption)
+        vm.setAutoAdvance(true)
+
+        // The feedback delay runs on the main looper's clock, which only moves when told to.
+        ShadowLooper.idleMainLooper(5, TimeUnit.SECONDS)
+        idleMainUntil { vm.state.value.number == 2 }
     }
 }

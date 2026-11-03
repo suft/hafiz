@@ -11,7 +11,7 @@ import androidx.media3.datasource.cache.SimpleCache
 import java.io.File
 
 /**
- * Disk cache for recitations, so an ayah heard once replays instantly and offline.
+ * Disk cache for recitations, so an ayah heard once replays instantly and, until Android or the user clears the cache, offline.
  * Must be a process-wide singleton (SimpleCache locks its directory).
  */
 @OptIn(UnstableApi::class)

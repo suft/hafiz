@@ -76,6 +76,11 @@ class RecitationPlayer(
         player.addListener(object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) = updateStatus()
 
+            // Idle releases audio focus, so other apps' audio resumes; play() restarts from the first ayah.
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_ENDED) player.stop()
+            }
+
             override fun onPlayerError(error: PlaybackException) {
                 loadedUrls = emptyList()
                 player.stop()
@@ -122,6 +127,13 @@ class RecitationPlayer(
         player.stop()
         player.clearMediaItems()
         loadedUrls = emptyList()
+        updateStatus()
+    }
+
+    /** Stops playback and releases audio focus but keeps the ayahs loaded; the next [play] of the same urls starts from the first one. */
+    fun halt() {
+        trimJob?.cancel()
+        player.stop()
         updateStatus()
     }
 

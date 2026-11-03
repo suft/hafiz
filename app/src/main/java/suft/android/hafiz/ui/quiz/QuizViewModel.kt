@@ -152,8 +152,8 @@ class QuizViewModel(
     }
 
     private fun scheduleAdvance(ms: Long) {
-        if (!autoAdvance) return
         pendingAdvanceMs = ms
+        if (!autoAdvance) return
         if (foreground) startAdvanceTimer(ms) else advancePending = true
     }
 
@@ -166,10 +166,15 @@ class QuizViewModel(
     }
 
     fun setAutoAdvance(enabled: Boolean) {
+        val was = autoAdvance
         autoAdvance = enabled
         if (!enabled) {
             advanceJob?.cancel()
             advancePending = false
+        } else if (!was) {
+            // An answer given while auto-advance was off (TalkBack) still moves on once it is back on.
+            val s = _state.value
+            if (s.answered && !s.finished) scheduleAdvance(pendingAdvanceMs)
         }
     }
 
@@ -252,7 +257,7 @@ class QuizViewModel(
         foreground = value
         if (!value) {
             resumeOnForeground = playback.value == PlaybackStatus.Playing || playback.value == PlaybackStatus.Buffering
-            player.pause()
+            player.halt()
             if (advanceJob?.isActive == true) {
                 advanceJob?.cancel()
                 advancePending = true
