@@ -4,8 +4,10 @@ How `QuestionGenerator` (`app/src/main/java/suft/android/hafiz/domain/QuestionGe
 Regular and Survival build options the same way; they differ only in how the game ends (a fixed round versus the first
 mistake), so they share each diagram below. Mutashabihat differs in the generator itself (`trapMode`), so it has its own.
 
-Topic overlap comes from `domain/ThemeIndex.kt` (BM25 over the bundled Tanzil text). Mutashabihat now always plays the
-whole Quran, so its "no level filter" step excludes nothing.
+Topic overlap comes from `domain/ThemeIndex.kt` (BM25 over the bundled Tanzil text). Words are folded (marks dropped,
+alef/ya/ta marbuta/hamza-seat variants unified); a leading و or ف is dropped only when the rest is itself a word of the
+Quran, then a leading ال/لل/بال/كال/فال/وال. Mutashabihat now always plays the whole Quran, so its "no level filter" step
+excludes nothing.
 
 Where's the Ayah (`GameStyle.AyahPosition`) has no wrong-option algorithm: its six options are fixed mushaf cells (section 6). Mutashabihat does not offer it (`GameStyle.hasLookAlikes = false`).
 
@@ -86,7 +88,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     P["Prompt ayah(s)"] --> A["Answer = the ayah right after the prompt"]
-    P --> V["Forbidden texts = answer text + the ayah after every identical copy of the prompt"]
+    P --> V["Forbidden texts = the prompt's own text + answer text + the ayah after every identical copy of the prompt"]
     P --> T["Look-alikes of the answer, plus the ayah after look-alikes of the prompt (slips), strongest first"]
     V --> F["Filter: not a prompt ayah or the answer, text not forbidden, inside the level, distinct text"]
     T --> F
@@ -108,7 +110,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     P["Prompt ayah(s), only prompts that have a trap"] --> A["Answer = the ayah right after the prompt"]
-    P --> V["Forbidden texts = answer text + the ayah after every identical copy of the prompt"]
+    P --> V["Forbidden texts = the prompt's own text + answer text + the ayah after every identical copy of the prompt"]
     P --> T["Look-alikes of the answer, plus the ayah after look-alikes of the prompt (slips), strongest first"]
     V --> F["Filter: not a prompt ayah or the answer, text not forbidden, distinct text, no level filter"]
     T --> F

@@ -122,15 +122,15 @@ tools/mushaf_layout.py           regenerates assets/mushaf_layout_v1.txt and mus
 tools/icons.py                   regenerates res/drawable/ph_*.xml and hi_*.xml from the pinned Iconify packages (python3)
 tools/screenshots.py             captures the Play/README screenshots on an emulator (mise run screenshots)
 docs/privacy-policy.md            privacy policy (GitHub Pages: https://suft.github.io/hafiz/privacy-policy.html)
-fastlane/                        Play listing text and graphics (metadata/android/{ar,en-US}) and play-console.md (console answers)
-app/src/test/                    JVM tests on the real Quran text (QuizLogicTest, QuestionCorrectnessTest, ProgressTest, ProgressStoreTest, StatsTest, ArabicTextTest, StringsTest)
-                                 and Robolectric UI tests (quiz layout/lifecycle, navigation, stats); all run in `mise run test`
+fastlane/                        Play listing text and graphics (metadata/android/<locale>, 7 locales) and play-console.md (console answers)
+app/src/test/                    JVM tests on the real Quran text (QuizLogicTest, QuestionCorrectnessTest, MushafLayoutTest, RevelationQuizTest, StatsTest, ProgressTest, ProgressStoreTest, StringsTest)
+                                 and Robolectric UI tests (QuizContentTest, QuizLifecycleTest, QuizViewModelTest, RevelationViewModelTest, NavigationTest, SurahsTabTest); all run in `mise run test`
 ```
 
 ### Versions
 AGP 9.4.1 · Gradle 9.8.2 · Kotlin 2.4.21 · Compose BOM 2026.09.00 · Media3 1.11.1 · compileSdk 37 · targetSdk 37 · minSdk 24.
 
-All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assistant* can bump them.
+All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assistant* can bump them. Dependency checksums are verified against `gradle/verification-metadata.xml`; after changing a version, run `./gradlew --write-verification-metadata sha256 :app:testDebugUnitTest :app:lintDebug :app:assembleDebug` and commit the updated file.
 
 ---
 

@@ -28,7 +28,7 @@ CI (`.github/workflows/build.yml`) runs test, lint, the debug build and the rele
 ## Code style
 
 - Follow `.editorconfig`: UTF-8 and LF; 4-space indent; Kotlin max line 120 with trailing commas allowed; 2-space indent for TOML, XML and YAML.
-- Dependency versions live only in `gradle/libs.versions.toml`.
+- Dependency versions live only in `gradle/libs.versions.toml`; after changing one, refresh `gradle/verification-metadata.xml` with the command in README → Versions.
 - UI text: every non-Quran string goes through the `Strings` interface in `ui/i18n/Strings.kt`. Add each new member to every language object (`ArabicStrings`, `EnglishStrings`, `GermanStrings`, `SpanishStrings`, `FrenchStrings`, `ItalianStrings`, `PortugueseStrings`, one file each in `ui/i18n/`), and format numbers with `number()` (Arabic-Indic digits in Arabic). Every non-Arabic language takes the Latin path: LTR, Inter, ASCII digits, transliterated surah and reciter names. Quran text always stays Arabic.
 
 ## Data and licences
@@ -53,7 +53,7 @@ Update these in the same change as the code. A change is not done while one of t
   Edit the affected mermaid diagram(s) and the Summary table; add a section for a new style or mode. Check every number in the doc (weights, window sizes, trap counts) against the code constants.
 - **`README.md`**: when modes, styles, level counts, questions per round, mise tasks, project layout, the test class list, assets, versions or licences change.
 - **`docs/privacy-policy.md`** and the Data safety section of `fastlane/play-console.md`: when data leaving the device changes (new network endpoint, new SDK, backup rules).
-- **`fastlane/metadata/android/{ar,en-US}/`**: when modes, styles, level counts or the reciter count change; add `changelogs/<versionCode>.txt` (both locales) for every release.
+- **`fastlane/metadata/android/*/`** (ar, en-US, de-DE, es-ES, fr-FR, it-IT, pt-BR): when modes, styles, level counts or the reciter count change; add `changelogs/<versionCode>.txt` (every locale) for every release.
 - **How-to-play text** in `ui/i18n/Strings.kt` (every language object: the `guide*` members and the style/mode titles and subtitles): when the rules a player sees change (modes, levels, mastery, lives).
 - **Screenshots** (`fastlane/metadata/android/*/images/phoneScreenshots/`, 1–4 shown in `README.md`): rerun `mise run screenshots` when the main menu, the quiz screen, Statistics → Surahs, the load screen or the Credits overlay visibly change, or when a label in `tools/screenshots.py` changes in the `*Strings.kt` files.
 
