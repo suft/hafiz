@@ -42,6 +42,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -100,6 +101,7 @@ import suft.android.hafiz.AppContainer
 import suft.android.hafiz.audio.PlaybackStatus
 import suft.android.hafiz.audio.Reciter
 import suft.android.hafiz.audio.Reciters
+import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.ArabicText
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
@@ -138,7 +140,12 @@ fun QuizScreen(
     onMainMenu: () -> Unit,
 ) {
     val strings = LocalStrings.current
-    val vm: QuizViewModel = viewModel { QuizViewModel(container, quran, level, mode, strings.language) }
+    // A per-app language change from system settings does not recreate the activity (see `MainActivity`), so the key
+    // starts a fresh round labelled in the new language. The previous ViewModel stays halted in this entry's store
+    // until the screen is left, when its `onCleared` records the abandoned round as any exit would.
+    val vm: QuizViewModel = viewModel(key = "quiz-${strings.language.name}") {
+        QuizViewModel(container, quran, level, mode, strings.language)
+    }
     val state by vm.state.collectAsStateWithLifecycle()
     val playback by vm.playback.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
@@ -232,6 +239,9 @@ internal fun QuizContent(
             val q = state.question
             val reduce = rememberReduceMotion()
             val haptics = LocalHapticFeedback.current
+            // One scroll state for the options pane, so it starts at the top on every question.
+            val optionsScroll = rememberScrollState()
+            LaunchedEffect(state.number) { optionsScroll.scrollTo(0) }
             if (q != null) {
                 // Room for the snackbar, so the last option can be scrolled above it.
                 val snackbarSpace = if (snackbar.currentSnackbarData != null) 80.dp else 0.dp
@@ -296,7 +306,7 @@ internal fun QuizContent(
                         Column(Modifier.weight(1f).fillMaxHeight()) {
                             audio()
                             Spacer(Modifier.height(8.dp))
-                            Column(Modifier.weight(1f).fillMaxWidth().indicatedVerticalScroll(rememberScrollState()).padding(end = 8.dp)) {
+                            Column(Modifier.weight(1f).fillMaxWidth().indicatedVerticalScroll(optionsScroll).padding(end = 8.dp)) {
                                 options()
                                 Spacer(Modifier.height(4.dp + snackbarSpace))
                             }
@@ -338,13 +348,17 @@ internal fun QuizContent(
                                         Modifier.heightIn(max = optionsMaxHeight)
                                     },
                                 )
-                                .indicatedVerticalScroll(rememberScrollState())
+                                .indicatedVerticalScroll(optionsScroll)
                                 .padding(end = 8.dp),
                         ) {
                             options()
                             Spacer(Modifier.height(4.dp + snackbarSpace))
                         }
                     }
+                }
+            } else {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(Modifier.semantics { contentDescription = strings.loadingQuran })
                 }
             }
         }
@@ -532,7 +546,11 @@ private fun PromptBody(q: Question) {
             Spacer(Modifier.height(10.dp))
             Text(
                 it,
-                style = MaterialTheme.typography.titleSmall.copy(fontFamily = NaskhFont),
+                style = if (strings.language == AppLanguage.Arabic) {
+                    MaterialTheme.typography.titleSmall.copy(fontFamily = NaskhFont)
+                } else {
+                    MaterialTheme.typography.titleSmall
+                },
                 color = MaterialTheme.colorScheme.primary,
             )
         }
@@ -715,7 +733,7 @@ internal fun OptionButton(
             .fillMaxWidth()
             .heightIn(min = 56.dp)
             .pressScale(source)
-            .alpha(if (state == OptionState.Dimmed) 0.45f else 1f),
+            .alpha(if (state == OptionState.Dimmed) 0.7f else 1f),
         shape = RoundedCornerShape(18.dp),
         border = when (state) {
             OptionState.Correct -> BorderStroke(2.dp, quizColors.correct)
@@ -826,7 +844,10 @@ private fun ResultDialog(
             )
         },
         text = {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 Text(
                     state.level.name(strings.language),
                     style = MaterialTheme.typography.titleMedium,
@@ -855,7 +876,7 @@ private fun ResultDialog(
                 if (state.mode.showsLongestStreak) {
                     Text(strings.longestStreak(state.bestStreak), style = MaterialTheme.typography.bodyMedium)
                 }
-                if (state.isNewRecord && state.previousBest > 0) {
+                if (!practice && state.isNewRecord && state.previousBest > 0) {
                     Spacer(Modifier.height(4.dp))
                     Text(
                         strings.newRecord(state.previousBest),
@@ -863,19 +884,25 @@ private fun ResultDialog(
                         color = MaterialTheme.colorScheme.tertiary,
                     )
                 }
-            }
-        },
-        // One column of full-width buttons: four buttons in two cramped rows wrapped badly at large font sizes.
-        confirmButton = {
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) { Text(strings.retry) }
-                OutlinedButton(onClick = onShare, modifier = Modifier.fillMaxWidth()) { Text(strings.shareResult) }
-                TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-                    Text(if (practice) strings.statistics else strings.levelsList)
+                Spacer(Modifier.height(16.dp))
+                // One column of full-width buttons: four buttons in two cramped rows wrapped badly at large font sizes.
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = onRestart, modifier = Modifier.fillMaxWidth()) { Text(strings.retry) }
+                    OutlinedButton(onClick = onShare, modifier = Modifier.fillMaxWidth()) { Text(strings.shareResult) }
+                    TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            when {
+                                practice -> strings.statistics
+                                state.mode.wholeQuranOnly -> strings.chooseStyle
+                                else -> strings.levelsList
+                            },
+                        )
+                    }
+                    TextButton(onClick = onMainMenu, modifier = Modifier.fillMaxWidth()) { Text(strings.mainMenu) }
                 }
-                TextButton(onClick = onMainMenu, modifier = Modifier.fillMaxWidth()) { Text(strings.mainMenu) }
             }
         },
+        confirmButton = {},
     )
 }
 

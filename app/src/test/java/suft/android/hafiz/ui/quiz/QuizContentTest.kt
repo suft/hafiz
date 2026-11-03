@@ -16,6 +16,7 @@ import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
@@ -156,7 +157,7 @@ class QuizContentTest {
         assertEverythingReachable(s)
         val promptBottom = rule.onNodeWithTag(QuizTestTags.PROMPT).getUnclippedBoundsInRoot().bottom
         val optionTop = rule.onNodeWithTag(QuizTestTags.option(0)).getUnclippedBoundsInRoot().top
-        assertTrue("options start below the prompt ($optionTop >= $promptBottom)", optionTop < promptBottom)
+        assertTrue("options pane sits beside the prompt ($optionTop < $promptBottom)", optionTop < promptBottom)
     }
 
     @Test
@@ -215,5 +216,49 @@ class QuizContentTest {
             SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite) and
                 hasContentDescription(ArabicStrings.correctAnswer, substring = true),
         ).onFirst().assertExists()
+    }
+
+    @Test
+    fun optionsScrollResetsOnNextQuestion() {
+        var current by mutableStateOf(state(GameStyle.NextAyah))
+        rule.setContent {
+            HafizTheme(AppLanguage.Arabic, darkTheme = false) {
+                val override = DeviceConfigurationOverride.ForcedSize(DpSize(360.dp, 640.dp))
+                    .then(DeviceConfigurationOverride.FontScale(2f))
+                DeviceConfigurationOverride(override) { Content(current) }
+            }
+        }
+        rule.onNodeWithTag(QuizTestTags.option(3)).performScrollTo()
+        rule.onNodeWithTag(QuizTestTags.option(0)).assertIsNotDisplayed() // precondition: the pane really scrolled
+
+        current = state(GameStyle.NextAyah).copy(number = 2)
+        rule.waitForIdle()
+
+        rule.onNodeWithTag(QuizTestTags.option(0)).assertIsDisplayed()
+    }
+
+    @Test
+    @Config(qualifiers = "w640dp-h360dp-land")
+    fun resultDialogButtonsReachableInLandscape() {
+        show(state(GameStyle.NextAyah, selected = 0, finished = true), DpSize(640.dp, 360.dp))
+        listOf(ArabicStrings.retry, ArabicStrings.shareResult, ArabicStrings.levelsList, ArabicStrings.mainMenu).forEach {
+            rule.onNodeWithText(it).performScrollTo().assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun mutashabihatResultOffersStyles() {
+        show(state(GameStyle.GuessSurah, selected = 0, finished = true).copy(mode = GameMode.Mutashabihat))
+        rule.onNodeWithText(ArabicStrings.chooseStyle).assertExists()
+    }
+
+    @Test
+    fun practiceRoundShowsNoRecord() {
+        show(
+            state(GameStyle.GuessSurah, selected = 0, finished = true)
+                .copy(level = Levels.surahPractice(102, quran), score = 2, previousBest = 1),
+        )
+        rule.onNodeWithText(ArabicStrings.mainMenu).assertExists() // the result dialog is up
+        rule.onNodeWithText(ArabicStrings.newRecord(1)).assertDoesNotExist()
     }
 }
