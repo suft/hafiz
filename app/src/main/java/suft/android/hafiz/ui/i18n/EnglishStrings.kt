@@ -13,6 +13,7 @@ object EnglishStrings : Strings {
     override val appName = "Hafiz"
     override val back = "Back"
     override val loadingQuran = "Loading the Quran…"
+    override val loadFailed = "Hafiz could not load its data. Please reinstall the app."
     override val tagline = "Test your memorization of the Holy Quran"
     override fun styleTitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "Guess the Surah"
@@ -75,6 +76,7 @@ object EnglishStrings : Strings {
             "${styleTitle(GameStyle.AyahPosition)}: the ${mushafEditionName(MushafEdition.V1)}, the default, or the " +
             "${mushafEditionName(MushafEdition.V2)}. Some ayahs start in a different place in each print; " +
             "scores are shared by both."
+    override val guideRevelationSource = "Answers follow the Madinah Mushaf, as on quran.com. Scholars differ on a few surahs."
     override fun statisticsSummary(percent: Int, total: Int) =
         "Accuracy ${percent(percent)} across ${questionsCount(total)}"
 
@@ -100,7 +102,7 @@ object EnglishStrings : Strings {
     override val creditsSourcesHeading = "Sources"
     override val creditsPeopleHeading = "People"
     override val creditsLegalHeading = "Legal"
-    override val creditsTanzilLicence = "CC BY 3.0, used unmodified"
+    override val creditsTanzilLicence = "CC BY 3.0, used unmodified (answer options hide the sajdah sign ۩)"
     override val creditsMushafEditions get() = "${number(MushafEdition.V1.hijriYear)}H and ${number(MushafEdition.V2.hijriYear)}H prints"
     override val creditsIcons = "Icons"
     override val creditsIconsLicence = "MIT licence"

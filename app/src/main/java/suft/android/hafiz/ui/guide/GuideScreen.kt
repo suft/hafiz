@@ -75,7 +75,13 @@ fun GuideScreen(onBack: () -> Unit) {
                             GuideEntry(mode.icon, strings.gameModeTitle(mode), strings.gameModeSubtitle(mode))
                         }
                     }
-                    GuideCard { GuideEntry(RevelationIcon, strings.revelationTitle, strings.revelationSubtitle) }
+                    GuideCard {
+                        GuideEntry(
+                            RevelationIcon,
+                            strings.revelationTitle,
+                            "${strings.revelationSubtitle}\n${strings.guideRevelationSource}",
+                        )
+                    }
                 }
 
                 GuideSection(strings.guideLevelsHeading) {

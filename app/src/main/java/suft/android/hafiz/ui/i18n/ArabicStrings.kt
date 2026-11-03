@@ -13,6 +13,7 @@ object ArabicStrings : Strings {
     override val appName = "حافظ"
     override val back = "رجوع"
     override val loadingQuran = "جارٍ تحميل المصحف…"
+    override val loadFailed = "تعذّر تحميل بيانات التطبيق. يُرجى إعادة تثبيته."
     override val tagline = "مسابقة لاختبار حفظك للقرآن الكريم"
     override fun styleTitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "آية وسورة"
@@ -74,6 +75,7 @@ object ArabicStrings : Strings {
         get() = "زر الإعدادات أعلى القائمة الرئيسية يغيّر لغة التطبيق والمصحف الذي تعتمده " +
             "«${styleTitle(GameStyle.AyahPosition)}»: ${mushafEditionName(MushafEdition.V1)} وهي الافتراضية، أو " +
             "${mushafEditionName(MushafEdition.V2)}. تبدأ بعض الآيات في موضع مختلف في كل طبعة، والنتائج مشتركة بين الطبعتين."
+    override val guideRevelationSource = "الإجابات وفق مصحف المدينة النبوية كما في quran.com، وقد اختلف العلماء في بعض السور."
     override fun statisticsSummary(percent: Int, total: Int) =
         "دقة إجاباتك ${percent(percent)} في ${questionsCount(total)}"
 
@@ -99,7 +101,7 @@ object ArabicStrings : Strings {
     override val creditsSourcesHeading = "المصادر"
     override val creditsPeopleHeading = "الأشخاص"
     override val creditsLegalHeading = "قانوني"
-    override val creditsTanzilLicence = "ترخيص CC BY 3.0، والنص مستخدم دون تعديل"
+    override val creditsTanzilLicence = "ترخيص CC BY 3.0، والنص مستخدم دون تعديل (تُخفى علامة السجدة ۩ في الخيارات)"
     override val creditsMushafEditions get() = "طبعتا ${number(MushafEdition.V1.hijriYear)}هـ و${number(MushafEdition.V2.hijriYear)}هـ"
     override val creditsIcons = "الأيقونات"
     override val creditsIconsLicence = "ترخيص MIT"
@@ -176,12 +178,13 @@ object ArabicStrings : Strings {
     override val scoreTrend = "تطور النتائج"
     override val recentRounds = "آخر الجولات المكتملة"
     override val noRoundsYet = "أكمل جولة لتظهر نتائجك هنا."
-    override fun daysAgo(days: Int) = when (days) {
-        0 -> "اليوم"
-        1 -> "أمس"
-        2 -> "منذ يومين"
-        in 3..10 -> "منذ ${number(days)} أيام"
-        else -> "منذ ${number(days)} يوماً"
+    override fun daysAgo(days: Int) = when {
+        days == 0 -> "اليوم"
+        days == 1 -> "أمس"
+        days == 2 -> "منذ يومين"
+        days % 100 in 3..10 -> "منذ ${number(days)} أيام"
+        days % 100 in 11..99 -> "منذ ${number(days)} يوماً"
+        else -> "منذ ${number(days)} يوم"
     }
     override fun questionsCount(n: Int) = when {
         n == 1 -> "سؤال واحد"

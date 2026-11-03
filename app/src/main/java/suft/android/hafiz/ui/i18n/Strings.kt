@@ -17,6 +17,7 @@ interface Strings {
     val appName: String
     val back: String
     val loadingQuran: String
+    val loadFailed: String
     val tagline: String
     fun styleTitle(style: GameStyle): String
     fun styleSubtitle(style: GameStyle): String
@@ -48,6 +49,7 @@ interface Strings {
     val guideStatsHeading: String
     val guideStats: String
     val guideSettings: String
+    val guideRevelationSource: String
     val statistics: String
     val statisticsHint: String
     fun statisticsSummary(percent: Int, total: Int): String

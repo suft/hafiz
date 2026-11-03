@@ -13,6 +13,7 @@ object PortugueseStrings : Strings {
     override val appName = "Hafiz"
     override val back = "Voltar"
     override val loadingQuran = "Carregando o Alcorão…"
+    override val loadFailed = "O Hafiz não conseguiu carregar seus dados. Reinstale o app."
     override val tagline = "Teste sua memorização do Sagrado Alcorão"
     override fun styleTitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "Adivinhe a surata"
@@ -45,7 +46,8 @@ object PortugueseStrings : Strings {
     override fun livesLeft(n: Int) = "Vidas restantes: $n"
     override val gameOver = "Fim de jogo"
     override fun survivalResult(score: Int) = "Acertos seguidos: $score"
-    override fun livesResult(score: Int, answered: Int) = "$score acertos em ${questionsCount(answered)}"
+    override fun livesResult(score: Int, answered: Int) =
+        "$score ${if (score == 1) "acerto" else "acertos"} em ${questionsCount(answered)}"
     override fun longestStreak(n: Int) = "Maior sequência: $n"
     override fun bestScore(n: Int) = "Melhor pontuação: $n"
     override fun gamesPlayed(n: Int) = "Partidas jogadas: $n"
@@ -78,6 +80,8 @@ object PortugueseStrings : Strings {
             "${styleTitle(GameStyle.AyahPosition)}: a ${mushafEditionName(MushafEdition.V1)}, a padrão, ou a " +
             "${mushafEditionName(MushafEdition.V2)}. Alguns versículos começam em lugares diferentes em cada edição; " +
             "as pontuações são compartilhadas entre as duas."
+    override val guideRevelationSource =
+        "As respostas seguem o Mushaf de Medina, como no quran.com. Os sábios divergem sobre algumas suratas."
     override fun statisticsSummary(percent: Int, total: Int) =
         "Precisão de ${percent(percent)} em ${questionsCount(total)}"
 
@@ -103,7 +107,8 @@ object PortugueseStrings : Strings {
     override val creditsSourcesHeading = "Fontes"
     override val creditsPeopleHeading = "Pessoas"
     override val creditsLegalHeading = "Legal"
-    override val creditsTanzilLicence = "CC BY 3.0, usado sem modificações"
+    override val creditsTanzilLicence =
+        "CC BY 3.0, usado sem modificações (as opções de resposta ocultam o sinal de prostração ۩)"
     override val creditsMushafEditions
         get() = "Edições de ${number(MushafEdition.V1.hijriYear)} H e ${number(MushafEdition.V2.hijriYear)} H"
     override val creditsIcons = "Ícones"
@@ -160,7 +165,8 @@ object PortugueseStrings : Strings {
     override fun correctAnswers(n: Int) = "Respostas corretas: $n"
     override fun wrongAnswers(n: Int) = "Respostas erradas: $n"
     override fun rankedSurah(rank: Int, name: String) = "$rank. Surata $name"
-    override fun surahCounts(correct: Int, wrong: Int) = "$correct certas · $wrong erradas"
+    override fun surahCounts(correct: Int, wrong: Int) =
+        "$correct ${if (correct == 1) "certa" else "certas"} · $wrong ${if (wrong == 1) "errada" else "erradas"}"
     override val tabOverview = "Resumo"
     override val tabSurahs = "Suratas"
     override val tabActivity = "Atividade"

@@ -13,9 +13,10 @@ object FrenchStrings : Strings {
     override val appName = "Hafiz"
     override val back = "Retour"
     override val loadingQuran = "Chargement du Coran…"
+    override val loadFailed = "Hafiz n’a pas pu charger ses données. Veuillez réinstaller l’application."
     override val tagline = "Testez votre mémorisation du saint Coran"
     override fun styleTitle(style: GameStyle) = when (style) {
-        GameStyle.GuessSurah -> "Devine la sourate"
+        GameStyle.GuessSurah -> "Devinez la sourate"
         GameStyle.NextAyah -> "Verset suivant"
         GameStyle.AyahPosition -> "Où est le verset\u202F?"
     }
@@ -45,7 +46,8 @@ object FrenchStrings : Strings {
     override fun livesLeft(n: Int) = "Vies restantes\u00A0: $n"
     override val gameOver = "Partie terminée"
     override fun survivalResult(score: Int) = "Bonnes réponses d’affilée\u00A0: $score"
-    override fun livesResult(score: Int, answered: Int) = "$score bonnes réponses sur ${questionsCount(answered)}"
+    override fun livesResult(score: Int, answered: Int) =
+        "$score ${if (score <= 1) "bonne réponse" else "bonnes réponses"} sur ${questionsCount(answered)}"
     override fun longestStreak(n: Int) = "Plus longue série\u00A0: $n"
     override fun bestScore(n: Int) = "Meilleur score\u00A0: $n"
     override fun gamesPlayed(n: Int) = "Parties jouées\u00A0: $n"
@@ -81,6 +83,8 @@ object FrenchStrings : Strings {
             "${styleTitle(GameStyle.AyahPosition)}\u00A0: l’${mushafEditionName(MushafEdition.V1)}, par défaut, ou l’" +
             "${mushafEditionName(MushafEdition.V2)}. Certains versets commencent à un endroit différent selon l’édition\u00A0; " +
             "les scores sont communs aux deux."
+    override val guideRevelationSource =
+        "Les réponses suivent le Mushaf de Médine, comme sur quran.com. Les savants divergent sur quelques sourates."
     override fun statisticsSummary(percent: Int, total: Int) =
         "Précision ${percent(percent)} sur ${questionsCount(total)}"
 
@@ -106,7 +110,8 @@ object FrenchStrings : Strings {
     override val creditsSourcesHeading = "Sources"
     override val creditsPeopleHeading = "Personnes"
     override val creditsLegalHeading = "Mentions légales"
-    override val creditsTanzilLicence = "CC BY 3.0, utilisé sans modification"
+    override val creditsTanzilLicence =
+        "CC BY 3.0, utilisé sans modification (les réponses proposées masquent le signe de prosternation ۩)"
     override val creditsMushafEditions
         get() = "Éditions de ${number(MushafEdition.V1.hijriYear)} H et ${number(MushafEdition.V2.hijriYear)} H"
     override val creditsIcons = "Icônes"
@@ -164,7 +169,8 @@ object FrenchStrings : Strings {
     override fun correctAnswers(n: Int) = "Bonnes réponses\u00A0: $n"
     override fun wrongAnswers(n: Int) = "Mauvaises réponses\u00A0: $n"
     override fun rankedSurah(rank: Int, name: String) = "$rank. Sourate $name"
-    override fun surahCounts(correct: Int, wrong: Int) = "$correct bonnes · $wrong mauvaises"
+    override fun surahCounts(correct: Int, wrong: Int) =
+        "$correct ${if (correct <= 1) "bonne" else "bonnes"} · $wrong ${if (wrong <= 1) "mauvaise" else "mauvaises"}"
     override val tabOverview = "Aperçu"
     override val tabSurahs = "Sourates"
     override val tabActivity = "Activité"
@@ -173,7 +179,8 @@ object FrenchStrings : Strings {
         "La précision par type de question compte les réponses données depuis cette mise à jour\u00A0; " +
             "les plus anciennes ne figurent que dans la précision globale."
     override val surahMap = "Carte des sourates"
-    override fun surahsPractised(n: Int, total: Int) = "$n sourates travaillées sur $total"
+    override fun surahsPractised(n: Int, total: Int) =
+        "$n ${if (n <= 1) "sourate travaillée" else "sourates travaillées"} sur $total"
     override val tierNotPractised = "Non travaillée"
     override val tierWeak = "À réviser"
     override val tierFair = "Bien"
@@ -199,7 +206,7 @@ object FrenchStrings : Strings {
     override fun surahCell(name: String, tier: String, percent: Int?) =
         "Sourate $name, $tier" + (percent?.let { ", ${percent(it)}" } ?: "")
     override fun scoreTrendDescription(first: Int, last: Int) =
-        "Évolution du score\u00A0: de ${percent(first)} à la plus ancienne manche à ${percent(last)} à la dernière"
+        "Évolution du score\u00A0: de ${percent(first)} dans la plus ancienne manche à ${percent(last)} dans la plus récente"
     override val notMastered = "non maîtrisé"
     override val levelsList = "Niveaux"
     override val revelationTitle = "Mecquoise ou médinoise"
