@@ -229,11 +229,14 @@ class QuizLogicTest {
 
     @Test
     fun themeIndexRelatesTheSameStory() {
-        assertEquals("فرعون", ThemeIndex.normalise("وَفِرْعَوْنَ"))
-        assertEquals("كهف", ThemeIndex.normalise("الْكَهْفِ"))
-        assertEquals("رقيم", ThemeIndex.normalise("وَالرَّقِيمِ"))
-        assertEquals("لله", ThemeIndex.normalise("لِلَّهِ"))
-        assertEquals("", ThemeIndex.normalise("ۚ"))
+        val vocab = ThemeIndex.vocabulary(quran)
+        assertEquals("فرعون", ThemeIndex.normalise("وَفِرْعَوْنَ", vocab))
+        assertEquals("فرعون", ThemeIndex.normalise("فِرْعَوْنَ", vocab)) // the bare form: the ف is part of the word
+        assertEquals("فتنه", ThemeIndex.normalise("فِتْنَةٌ", vocab))
+        assertEquals("كهف", ThemeIndex.normalise("الْكَهْفِ", vocab))
+        assertEquals("رقيم", ThemeIndex.normalise("وَالرَّقِيمِ", vocab))
+        assertEquals("لله", ThemeIndex.normalise("لِلَّهِ", vocab))
+        assertEquals("", ThemeIndex.normalise("ۚ", vocab))
 
         // 20:24 («اذهب إلى فرعون إنه طغى»): An-Nazi'at 79:17 repeats it; Taha itself is scored without the prompt.
         val taha = ayah(20, 24)

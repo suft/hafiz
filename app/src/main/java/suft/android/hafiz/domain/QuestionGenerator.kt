@@ -163,9 +163,9 @@ class QuestionGenerator(
             .mapTo(mutableSetOf()) { quran.key(it + 1) }
             .apply { add(quran.key(shown.last + 1)) }
 
-    /** A wrong next-ayah option may not lie between the prompt and the answer, nor repeat the text of any valid answer. */
+    /** A wrong next-ayah option may not lie between the prompt and the answer, nor repeat the text of the prompt or of any valid answer. */
     private fun wrongNextAyahFilter(shown: IntRange): (Int) -> Boolean {
-        val forbidden = validAnswerKeys(shown)
+        val forbidden = validAnswerKeys(shown) + shown.map(quran::key)
         return { g -> g !in shown.first..shown.last + 1 && quran.key(g) !in forbidden }
     }
 

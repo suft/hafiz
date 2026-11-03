@@ -96,6 +96,7 @@ class QuestionCorrectnessTest {
                     labels.forEachIndexed { i, label ->
                         if (i == q.correctOption) return@forEachIndexed
                         assertFalse("$where: «${q.options[i]}» is also a valid next ayah", label in valid)
+                        assertFalse("$where: «${q.options[i]}» repeats the prompt", label in p.map { normalised[it] })
                     }
                 }
             }
