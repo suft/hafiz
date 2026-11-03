@@ -209,7 +209,8 @@ def setup_device():
     ):
         sh(f"am broadcast -a com.android.systemui.demo {extra}")
     for attempt in range(5):
-        installed = run(["adb", "-s", SERIAL, "install", "-r", APK])
+        # -d: the persistent AVD may hold a build with a higher versionCode than the one being captured.
+        installed = run(["adb", "-s", SERIAL, "install", "-r", "-d", APK])
         if installed.returncode == 0:
             break
         time.sleep(3)
