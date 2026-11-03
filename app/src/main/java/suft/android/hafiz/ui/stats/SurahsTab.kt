@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,6 +39,8 @@ import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.domain.Score
 import suft.android.hafiz.domain.Stats
 import suft.android.hafiz.domain.SurahTier
+import suft.android.hafiz.ui.components.RoundedProgressBar
+import suft.android.hafiz.ui.components.hafizCardColors
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.theme.LocalQuizColors
 
@@ -126,7 +127,7 @@ internal fun SurahsTab(
 }
 
 private const val MAP_COLUMNS = 10
-private val CellShape = RoundedCornerShape(6.dp)
+private val CellShape = RoundedCornerShape(8.dp)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -142,7 +143,7 @@ private fun SurahMap(
     val scheme = MaterialTheme.colorScheme
 
     fun tierColor(tier: SurahTier): Color = when (tier) {
-        SurahTier.NotPractised -> scheme.surfaceContainerLowest.copy(alpha = 0.55f)
+        SurahTier.NotPractised -> scheme.surfaceContainerHigh
         SurahTier.Weak -> quizColors.wrong.copy(alpha = 0.30f)
         SurahTier.Fair -> quizColors.gold.copy(alpha = 0.40f)
         SurahTier.Strong -> quizColors.correct.copy(alpha = 0.35f)
@@ -161,10 +162,10 @@ private fun SurahMap(
                             SurahTier.Fair -> strings.tierFair
                             SurahTier.Strong -> strings.tierStrong
                         }
-                        val border = when {
-                            selected == i -> Modifier.border(2.dp, scheme.primary, CellShape)
-                            tier == SurahTier.NotPractised -> Modifier.border(1.dp, scheme.outlineVariant, CellShape)
-                            else -> Modifier
+                        val border = if (selected == i) {
+                            Modifier.border(2.dp, scheme.primary, CellShape)
+                        } else {
+                            Modifier
                         }
                         Box(
                             modifier = Modifier
@@ -196,7 +197,7 @@ private fun SurahMap(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            LegendEntry(tierColor(SurahTier.NotPractised), strings.tierNotPractised, outlined = true)
+            LegendEntry(tierColor(SurahTier.NotPractised), strings.tierNotPractised)
             LegendEntry(tierColor(SurahTier.Weak), strings.tierWeak)
             LegendEntry(tierColor(SurahTier.Fair), strings.tierFair)
             LegendEntry(tierColor(SurahTier.Strong), strings.tierStrong)
@@ -206,10 +207,7 @@ private fun SurahMap(
             val score = scores[index]
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = scheme.surfaceContainerLowest.copy(alpha = 0.92f),
-                    contentColor = scheme.onSurface,
-                ),
+                colors = hafizCardColors(),
             ) {
                 Row(
                     modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
@@ -238,16 +236,13 @@ private fun SurahMap(
 }
 
 @Composable
-internal fun LegendEntry(color: Color, label: String, outlined: Boolean = false) {
+internal fun LegendEntry(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(
             Modifier
                 .size(12.dp)
                 .clip(CellShape)
-                .background(color)
-                .then(
-                    if (outlined) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, CellShape) else Modifier,
-                ),
+                .background(color),
         )
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
     }
@@ -259,13 +254,11 @@ private fun SurahRow(rank: Int, name: String, score: Score, highlight: Boolean, 
     val strings = LocalStrings.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (highlight) {
-                quizColors.wrongContainer.copy(alpha = 0.9f)
-            } else {
-                MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f)
-            },
-        ),
+        colors = if (highlight) {
+            CardDefaults.cardColors(containerColor = quizColors.wrongContainer.copy(alpha = 0.9f))
+        } else {
+            hafizCardColors()
+        },
     ) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -281,9 +274,8 @@ private fun SurahRow(rank: Int, name: String, score: Score, highlight: Boolean, 
                 )
             }
             Spacer(Modifier.height(6.dp))
-            LinearProgressIndicator(
+            RoundedProgressBar(
                 progress = { score.accuracy.toFloat() },
-                modifier = Modifier.fillMaxWidth(),
                 color = quizColors.correct,
                 trackColor = quizColors.wrong.copy(alpha = 0.35f),
             )

@@ -38,6 +38,7 @@ import suft.android.hafiz.domain.Level
 import suft.android.hafiz.domain.Levels
 import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.domain.RevelationQuiz
+import suft.android.hafiz.ui.components.hafizCardColors
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.theme.LocalQuizColors
 
@@ -155,9 +156,7 @@ private fun ScoreTrendChart(rounds: List<LevelRound>) {
     val description = strings.scoreTrendDescription(percentOf(rounds.first().record), percentOf(rounds.last().record))
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = scheme.surfaceContainerLowest.copy(alpha = 0.92f),
-        ),
+        colors = hafizCardColors(),
     ) {
         Canvas(
             Modifier
@@ -242,9 +241,7 @@ private fun RoundRow(round: ResolvedRound, today: Long) {
     }
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f),
-        ),
+        colors = hafizCardColors(),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

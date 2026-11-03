@@ -5,7 +5,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,6 +15,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,9 +39,13 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +64,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -69,8 +78,9 @@ import suft.android.hafiz.data.Progress
 import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.MushafEdition
 import suft.android.hafiz.ui.components.AppTitle
-import suft.android.hafiz.ui.components.MenuCard
-import suft.android.hafiz.ui.components.OrnamentDivider
+import suft.android.hafiz.ui.components.hafizCardColors
+import suft.android.hafiz.ui.components.pressScale
+import suft.android.hafiz.ui.components.rememberToday
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.i18n.SystemAppLanguage
 
@@ -87,6 +97,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var showCredits by rememberSaveable { mutableStateOf(false) }
+    val today = rememberToday()
 
     Box(Modifier.fillMaxSize()) {
         BoxWithConstraints(
@@ -103,44 +114,52 @@ fun HomeScreen(
                     .padding(horizontal = 20.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(56.dp))
                 AppTitle()
-                Spacer(Modifier.height(12.dp))
-                OrnamentDivider()
-                Spacer(Modifier.height(16.dp))
+                Text(
+                    strings.tagline,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(28.dp))
 
-                MenuCard(
-                    icon = Icons.Filled.PlayArrow,
-                    title = strings.play,
-                    subtitle = strings.playHint,
-                    badge = null,
-                    badgeLabel = null,
-                    onClick = onOpenPlay,
-                )
-                Spacer(Modifier.height(12.dp))
-                MenuCard(
-                    icon = Icons.AutoMirrored.Filled.Help,
-                    title = strings.howToPlay,
-                    subtitle = strings.howToPlayHint,
-                    badge = null,
-                    badgeLabel = null,
-                    onClick = onOpenGuide,
-                )
+                HomeHero(progress, today, onOpenPlay)
                 Spacer(Modifier.height(12.dp))
 
                 val overall = progress.overall
-                MenuCard(
-                    icon = Icons.Filled.Insights,
-                    title = strings.statistics,
-                    subtitle = if (overall.total == 0) {
-                        strings.statisticsHint
-                    } else {
-                        strings.statisticsSummary(overall.percent, overall.total)
-                    },
-                    badge = null,
-                    badgeLabel = null,
-                    onClick = onOpenStats,
-                )
+                val guideTitle = strings.howToPlay
+                val statsSubtitle = if (overall.total == 0) {
+                    strings.statisticsHint
+                } else {
+                    strings.statisticsSummary(overall.percent, overall.total)
+                }
+                if (LocalDensity.current.fontScale >= 1.5f) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        HomeTile(
+                            Icons.AutoMirrored.Filled.Help, guideTitle, strings.howToPlayHint, onOpenGuide,
+                            Modifier.fillMaxWidth(),
+                        )
+                        HomeTile(
+                            Icons.Filled.Insights, strings.statistics, statsSubtitle, onOpenStats,
+                            Modifier.fillMaxWidth(),
+                        )
+                    }
+                } else {
+                    Row(
+                        Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        HomeTile(
+                            Icons.AutoMirrored.Filled.Help, guideTitle, strings.howToPlayHint, onOpenGuide,
+                            Modifier.weight(1f).fillMaxHeight(),
+                        )
+                        HomeTile(
+                            Icons.Filled.Insights, strings.statistics, statsSubtitle, onOpenStats,
+                            Modifier.weight(1f).fillMaxHeight(),
+                        )
+                    }
+                }
             }
         }
 
@@ -152,14 +171,14 @@ fun HomeScreen(
                     onClick = { showCredits = true },
                     modifier = Modifier.align(Alignment.TopStart),
                 ) {
-                    Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 CornerButton(
                     strings.settings,
                     onClick = { showSettings = true },
                     modifier = Modifier.align(Alignment.TopEnd),
                 ) {
-                    Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -172,6 +191,102 @@ fun HomeScreen(
             onClose = { showSettings = false },
         )
         CreditsOverlay(visible = showCredits, onClose = { showCredits = false })
+    }
+}
+
+/** The Play entry: a large primary-coloured card with today's numbers once there are any. */
+@Composable
+private fun HomeHero(progress: Progress, today: Long, onClick: () -> Unit) {
+    val strings = LocalStrings.current
+    val scheme = MaterialTheme.colorScheme
+    val source = remember { MutableInteractionSource() }
+    Card(
+        onClick = onClick,
+        interactionSource = source,
+        modifier = Modifier.fillMaxWidth().pressScale(source),
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(containerColor = scheme.primary, contentColor = scheme.onPrimary),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(strings.play, style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        strings.playHint,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = LocalContentColor.current.copy(alpha = 0.85f),
+                    )
+                }
+                Box(Modifier.size(56.dp).background(scheme.onPrimary, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(32.dp), tint = scheme.primary)
+                }
+            }
+            if (progress.overall.total > 0) {
+                Spacer(Modifier.height(16.dp))
+                val stats = listOf(
+                    strings.number(progress.currentDayStreak(today)) to strings.currentStreak,
+                    strings.number(progress.answersToday(today)) to strings.questionsToday,
+                    strings.percent(progress.overall.percent) to strings.accuracy,
+                )
+                if (LocalDensity.current.fontScale >= 1.5f) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        stats.forEach { (value, label) -> HeroStat(value, label, Modifier.fillMaxWidth()) }
+                    }
+                } else {
+                    Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        stats.forEach { (value, label) -> HeroStat(value, label, Modifier.weight(1f).fillMaxHeight()) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** One number and its label on a translucent pill inside [HomeHero]. */
+@Composable
+private fun HeroStat(value: String, label: String, modifier: Modifier) {
+    val onPrimary = MaterialTheme.colorScheme.onPrimary
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = onPrimary.copy(alpha = 0.12f),
+        contentColor = onPrimary,
+    ) {
+        Column(Modifier.padding(horizontal = 8.dp, vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(value, style = MaterialTheme.typography.titleLarge)
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = onPrimary.copy(alpha = 0.85f),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+            )
+        }
+    }
+}
+
+/** A small secondary entry on the main menu: icon, title and one line of hint. */
+@Composable
+private fun HomeTile(icon: ImageVector, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    val source = remember { MutableInteractionSource() }
+    Card(
+        onClick = onClick,
+        interactionSource = source,
+        modifier = modifier.pressScale(source),
+        colors = hafizCardColors(),
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(
+                Modifier.size(40.dp).background(scheme.primaryContainer, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, tint = scheme.onPrimaryContainer)
+            }
+            Text(title, style = MaterialTheme.typography.titleLarge)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
+        }
     }
 }
 
@@ -197,13 +312,13 @@ private fun CornerButton(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    val source = remember { MutableInteractionSource() }
     Surface(
         onClick = onClick,
-        modifier = modifier.size(48.dp),
+        interactionSource = source,
+        modifier = modifier.size(48.dp).pressScale(source),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.85f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = 2.dp,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Box(Modifier.semantics { contentDescription = description }, contentAlignment = Alignment.Center) {
             content()
@@ -294,15 +409,23 @@ private fun SettingsOverlay(
 private fun LanguageOption(language: AppLanguage, selected: Boolean, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(24.dp)
+    val source = remember { MutableInteractionSource() }
     Surface(
         modifier = Modifier
             .size(112.dp)
+            .pressScale(source)
             .clip(shape)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .selectable(
+                selected = selected,
+                interactionSource = source,
+                indication = ripple(),
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
             .semantics { contentDescription = language.endonym },
         shape = shape,
-        color = if (selected) scheme.primaryContainer else scheme.surfaceContainerLowest,
-        border = BorderStroke(if (selected) 3.dp else 1.dp, if (selected) scheme.primary else scheme.outlineVariant),
+        color = if (selected) scheme.primaryContainer else scheme.surfaceContainerLow,
+        border = if (selected) BorderStroke(2.dp, scheme.primary) else null,
     ) {
         Box(contentAlignment = Alignment.Center) {
             // Sized in dp so a large system font cannot push the flag out of its tile.
@@ -320,15 +443,23 @@ private fun EditionOption(edition: MushafEdition, selected: Boolean, onClick: ()
     val strings = LocalStrings.current
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(16.dp)
+    val source = remember { MutableInteractionSource() }
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
+            .pressScale(source)
             .clip(shape)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
+            .selectable(
+                selected = selected,
+                interactionSource = source,
+                indication = ripple(),
+                role = Role.RadioButton,
+                onClick = onClick,
+            ),
         shape = shape,
-        color = if (selected) scheme.primaryContainer else scheme.surfaceContainerLowest,
-        border = BorderStroke(if (selected) 3.dp else 1.dp, if (selected) scheme.primary else scheme.outlineVariant),
+        color = if (selected) scheme.primaryContainer else scheme.surfaceContainerLow,
+        border = if (selected) BorderStroke(2.dp, scheme.primary) else null,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
@@ -420,21 +551,27 @@ private fun CreditCard(label: String, source: String, note: String? = null, url:
     val uriHandler = LocalUriHandler.current
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(16.dp)
+    val interaction = remember { MutableInteractionSource() }
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
+            .then(if (url == null) Modifier else Modifier.pressScale(interaction))
             .clip(shape)
             .then(
                 if (url == null) {
                     Modifier
                 } else {
-                    Modifier.clickable(onClickLabel = strings.opensInBrowser, role = Role.Button) { uriHandler.openUri(url) }
+                    Modifier.clickable(
+                        interactionSource = interaction,
+                        indication = ripple(),
+                        onClickLabel = strings.opensInBrowser,
+                        role = Role.Button,
+                    ) { uriHandler.openUri(url) }
                 },
             ),
         shape = shape,
-        color = scheme.surfaceContainerLowest,
-        border = BorderStroke(1.dp, scheme.outlineVariant),
+        color = scheme.surfaceContainerLow,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Column(

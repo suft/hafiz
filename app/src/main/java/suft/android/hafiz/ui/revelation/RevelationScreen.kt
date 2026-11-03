@@ -1,6 +1,8 @@
 package suft.android.hafiz.ui.revelation
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,15 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -35,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
@@ -49,11 +49,17 @@ import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.domain.RevelationPlace
 import suft.android.hafiz.domain.RevelationQuiz
 import suft.android.hafiz.ui.components.AppTopBar
+import suft.android.hafiz.ui.components.RoundedProgressBar
+import suft.android.hafiz.ui.components.animatedCount
+import suft.android.hafiz.ui.components.questionSwap
+import suft.android.hafiz.ui.components.rememberReduceMotion
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.quiz.OptionButton
+import suft.android.hafiz.ui.quiz.PointsChip
+import suft.android.hafiz.ui.quiz.TrophyBadge
+import suft.android.hafiz.ui.quiz.answer
 import suft.android.hafiz.ui.quiz.OptionState
 import suft.android.hafiz.ui.quiz.rememberTouchExplorationEnabled
-import suft.android.hafiz.ui.theme.LocalQuizColors
 import suft.android.hafiz.ui.theme.NaskhFont
 
 /** The Makki-or-Madani game: five surahs, answer where each was revealed. */
@@ -62,6 +68,7 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
     val vm: RevelationViewModel = viewModel { RevelationViewModel(container) }
     val state by vm.state.collectAsStateWithLifecycle()
     val strings = LocalStrings.current
+    val haptics = LocalHapticFeedback.current
     val touchExploration = rememberTouchExplorationEnabled()
     LaunchedEffect(touchExploration) { vm.setAutoAdvance(!touchExploration) }
 
@@ -101,63 +108,84 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
                             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
                         }
                     }
-                    Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.secondaryContainer) {
-                        Text(
-                            strings.points(state.score),
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        )
-                    }
+                    PointsChip(state.score)
                 }
                 Spacer(Modifier.height(8.dp))
-                LinearProgressIndicator(
-                    progress = { (state.current + if (state.answered) 1 else 0).toFloat() / state.total },
-                    modifier = Modifier.fillMaxWidth(),
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                val reduce = rememberReduceMotion()
+                val animated by animateFloatAsState(
+                    (state.current + if (state.answered) 1 else 0).toFloat() / state.total,
+                    tween(if (reduce) 0 else 400),
+                    label = "progress",
                 )
+                RoundedProgressBar(progress = { animated }, height = 8.dp)
                 Spacer(Modifier.height(10.dp))
                 Surface(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.95f),
-                    border = BorderStroke(1.5.dp, LocalQuizColors.current.gold.copy(alpha = 0.7f)),
-                    shadowElevation = 1.dp,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Text(
-                            strings.revelationQuestion,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.secondary,
-                        )
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            strings.revelationSurah(quran.surahs[state.question.surahIndex].displayName(strings.language)),
-                            style = MaterialTheme.typography.headlineMedium.copy(fontFamily = NaskhFont),
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center,
-                        )
+                    Box(Modifier.fillMaxWidth().heightIn(min = 160.dp), contentAlignment = Alignment.Center) {
+                        AnimatedContent(
+                            targetState = state.current,
+                            transitionSpec = { questionSwap(reduce) },
+                            contentAlignment = Alignment.Center,
+                            label = "surah",
+                        ) { index ->
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                Text(
+                                    strings.revelationQuestion,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                Text(
+                                    strings.revelationSurah(
+                                        quran.surahs[state.questions[index].surahIndex].displayName(strings.language),
+                                    ),
+                                    style = MaterialTheme.typography.headlineMedium.copy(fontFamily = NaskhFont),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+                        }
                     }
                 }
                 Spacer(Modifier.height(16.dp))
-                listOf(RevelationPlace.Makkah to strings.makki, RevelationPlace.Madinah to strings.madani)
-                    .forEachIndexed { i, (place, text) ->
-                        if (i > 0) Spacer(Modifier.height(8.dp))
-                        OptionButton(
-                            text = text,
-                            quranText = false,
-                            state = when {
-                                state.selected == null -> OptionState.Open
-                                place == state.question.place -> OptionState.Correct
-                                place == state.selected -> OptionState.Wrong
-                                else -> OptionState.Dimmed
-                            },
-                            onClick = { vm.select(place) },
-                        )
+                AnimatedContent(
+                    targetState = state.current to state.selected,
+                    modifier = Modifier.fillMaxWidth(),
+                    contentKey = { it.first },
+                    transitionSpec = { questionSwap(reduce) },
+                    label = "options",
+                ) { (index, selected) ->
+                    val answer = state.questions[index].place
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(RevelationPlace.Makkah to strings.makki, RevelationPlace.Madinah to strings.madani)
+                            .forEachIndexed { i, (place, text) ->
+                                OptionButton(
+                                    text = text,
+                                    quranText = false,
+                                    state = when {
+                                        selected == null -> OptionState.Open
+                                        place == answer -> OptionState.Correct
+                                        place == selected -> OptionState.Wrong
+                                        else -> OptionState.Dimmed
+                                    },
+                                    onClick = {
+                                        if (state.selected == null && !state.finished) {
+                                            haptics.answer(place == state.question.place)
+                                        }
+                                        vm.select(place)
+                                    },
+                                    marker = strings.optionMarker(i),
+                                )
+                            }
                     }
+                }
             }
         }
     }
@@ -172,7 +200,7 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
             // Back and the system gesture close the dialog like the title-bar back arrow; a tap outside must not.
             onDismissRequest = onBack,
             properties = DialogProperties(dismissOnClickOutside = false),
-            icon = { Icon(Icons.Filled.EmojiEvents, contentDescription = null, tint = LocalQuizColors.current.gold) },
+            icon = { TrophyBadge() },
             title = { Text(strings.resultTitle, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
             text = {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -182,10 +210,13 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.height(8.dp))
+                    val finalScore = "${strings.number(state.score)} / ${strings.number(state.total)}"
                     Text(
-                        "${strings.number(state.score)} / ${strings.number(state.total)}",
+                        "${strings.number(animatedCount(state.score))} / ${strings.number(state.total)}",
                         style = MaterialTheme.typography.displaySmall,
                         color = MaterialTheme.colorScheme.primary,
+                        // TalkBack reads the final score, not a number partway through the count-up.
+                        modifier = Modifier.semantics { contentDescription = finalScore },
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
@@ -194,7 +225,7 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
                         Text(
                             strings.newRecord(state.previousBest),
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.secondary,
+                            color = MaterialTheme.colorScheme.tertiary,
                         )
                     }
                 }

@@ -15,10 +15,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -27,15 +25,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.LifecycleResumeEffect
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import suft.android.hafiz.AppContainer
 import suft.android.hafiz.data.Progress
-import suft.android.hafiz.data.localEpochDay
-import suft.android.hafiz.data.millisUntilNextLocalDay
 import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.ui.components.AppTopBar
+import suft.android.hafiz.ui.components.rememberToday
 import suft.android.hafiz.ui.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,29 +90,12 @@ fun StatsScreen(container: AppContainer, progress: Progress, quran: Quran, onBac
     }
 }
 
-/** Local epoch day that updates at midnight and whenever the screen resumes. */
-@Composable
-private fun rememberToday(): Long {
-    var today by remember { mutableLongStateOf(localEpochDay()) }
-    LifecycleResumeEffect(Unit) {
-        today = localEpochDay()
-        onPauseOrDispose { }
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(millisUntilNextLocalDay() + 1_000)
-            today = localEpochDay()
-        }
-    }
-    return today
-}
-
 @Composable
 internal fun SectionHeader(text: String) {
     Text(
         text,
         style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.primary,
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.padding(top = 8.dp),
     )
 }

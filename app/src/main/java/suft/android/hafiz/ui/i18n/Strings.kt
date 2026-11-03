@@ -82,6 +82,8 @@ interface Strings {
     val whichSurah: String
     val whatIsNextAyah: String
     val whereIsAyah: String
+    /** Letter shown on an answer tile: أ ب ج د in Arabic, A B C D in English. */
+    fun optionMarker(index: Int): String
     val pause: String
     val listen: String
     val chooseReciter: String
@@ -262,6 +264,7 @@ object ArabicStrings : Strings {
     override val whichSurah = "من أي سورة هذه الآية؟"
     override val whatIsNextAyah = "ما الآية التالية؟"
     override val whereIsAyah = "أين تبدأ هذه الآية في المصحف؟"
+    override fun optionMarker(index: Int) = listOf("أ", "ب", "ج", "د")[index]
     override val pause = "إيقاف مؤقت"
     override val listen = "استمع"
     override val chooseReciter = "اختر القارئ"
@@ -460,6 +463,7 @@ object EnglishStrings : Strings {
     override val whichSurah = "Which surah is this ayah from?"
     override val whatIsNextAyah = "What is the next ayah?"
     override val whereIsAyah = "Where does this ayah start in the mushaf?"
+    override fun optionMarker(index: Int) = listOf("A", "B", "C", "D")[index]
     override val pause = "Pause"
     override val listen = "Listen"
     override val chooseReciter = "Choose reciter"

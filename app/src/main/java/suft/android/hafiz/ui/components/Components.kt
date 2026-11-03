@@ -1,17 +1,27 @@
 package suft.android.hafiz.ui.components
 
-import androidx.compose.ui.unit.Dp
+import android.provider.Settings
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,36 +32,59 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import kotlinx.coroutines.delay
 import suft.android.hafiz.R
+import suft.android.hafiz.data.localEpochDay
+import suft.android.hafiz.data.millisUntilNextLocalDay
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.theme.LocalQuizColors
 import suft.android.hafiz.ui.theme.TitleFont
+import kotlin.math.roundToInt
 
-/** Plain paper-coloured background (dark surface in the dark theme) behind every screen. */
+/** Plain background colour behind every screen. */
 @Composable
 fun PaperBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) { content() }
@@ -95,13 +128,13 @@ fun MenuCard(
 ) {
     // With a large system font the trailing badge squeezes the title into one-word lines; put it under the text.
     val largeText = LocalDensity.current.fontScale >= 1.5f
+    val source = remember { MutableInteractionSource() }
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f),
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        interactionSource = source,
+        modifier = Modifier.fillMaxWidth().pressScale(source),
+        colors = hafizCardColors(),
+        shape = MaterialTheme.shapes.large,
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -110,14 +143,14 @@ fun MenuCard(
         ) {
             Box(
                 Modifier
-                    .size(52.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    .size(48.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(14.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
             }
             Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (largeText && badge != null) {
                     Text(
@@ -134,6 +167,13 @@ fun MenuCard(
                         Text(badgeLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+            }
+            if (badge == null) {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -198,3 +238,95 @@ fun Modifier.indicatedVerticalScroll(state: ScrollState, inset: Dp = 2.dp): Modi
         }
         .verticalScroll(state)
 }
+
+/** Card colours for every card-like surface: white in light, a step above the background in dark. */
+@Composable
+fun hafizCardColors(): CardColors = CardDefaults.cardColors(
+    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    contentColor = MaterialTheme.colorScheme.onSurface,
+)
+
+/** True when the system's animation scale is 0 ("Remove animations"). */
+@Composable
+fun rememberReduceMotion(): Boolean {
+    val context = LocalContext.current
+    return remember {
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
+}
+
+/** Shrinks the element slightly while it is pressed and springs it back; off when animations are off. */
+@Composable
+fun Modifier.pressScale(interactionSource: InteractionSource): Modifier {
+    val pressed by interactionSource.collectIsPressedAsState()
+    val reduce = rememberReduceMotion()
+    val scale by animateFloatAsState(
+        if (pressed && !reduce) 0.97f else 1f,
+        spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        label = "pressScale",
+    )
+    return graphicsLayer {
+        scaleX = scale
+        scaleY = scale
+    }
+}
+
+/** A determinate progress bar with rounded ends and no end-of-track dot. */
+@Composable
+fun RoundedProgressBar(
+    progress: () -> Float,
+    modifier: Modifier = Modifier,
+    height: Dp = 6.dp,
+    color: Color = MaterialTheme.colorScheme.primary,
+    trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+) = LinearProgressIndicator(
+    progress = progress,
+    modifier = modifier.fillMaxWidth().height(height),
+    color = color,
+    trackColor = trackColor,
+    strokeCap = StrokeCap.Round,
+    gapSize = 0.dp,
+    drawStopIndicator = {},
+)
+
+/** Local epoch day that updates at midnight and whenever the screen resumes. */
+@Composable
+fun rememberToday(): Long {
+    var today by remember { mutableLongStateOf(localEpochDay()) }
+    LifecycleResumeEffect(Unit) {
+        today = localEpochDay()
+        onPauseOrDispose { }
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(millisUntilNextLocalDay() + 1_000)
+            today = localEpochDay()
+        }
+    }
+    return today
+}
+
+/** Counts from 0 up to [target] when first shown (and between later targets); snaps when animations are off. */
+@Composable
+fun animatedCount(target: Int): Int {
+    val reduce = rememberReduceMotion()
+    val value = remember { Animatable(if (reduce) target.toFloat() else 0f) }
+    LaunchedEffect(target) {
+        if (reduce) {
+            value.snapTo(target.toFloat())
+        } else {
+            value.animateTo(target.toFloat(), tween(700, easing = FastOutSlowInEasing))
+        }
+    }
+    return value.value.roundToInt()
+}
+
+/** The transition between questions: the new content fades and slides up in, the old one fades out quickly. */
+fun <S> AnimatedContentTransitionScope<S>.questionSwap(reduceMotion: Boolean): ContentTransform =
+    if (reduceMotion) {
+        EnterTransition.None togetherWith ExitTransition.None
+    } else {
+        (fadeIn(tween(220, delayMillis = 90)) + slideInVertically(tween(300, easing = FastOutSlowInEasing)) { it / 10 })
+            .togetherWith(fadeOut(tween(90)))
+            .using(SizeTransform(clip = false))
+    }

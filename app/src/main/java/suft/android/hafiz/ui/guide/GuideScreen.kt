@@ -11,15 +11,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.heading
@@ -36,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.ui.components.AppTopBar
+import suft.android.hafiz.ui.components.hafizCardColors
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.modes.RevelationIcon
 import suft.android.hafiz.ui.modes.icon
@@ -154,10 +157,14 @@ private fun GuideSection(title: String, content: @Composable ColumnScope.() -> U
             Text(
                 title,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.semantics { heading() },
             )
-            HorizontalDivider(thickness = 2.dp, color = LocalQuizColors.current.gold, modifier = Modifier.widthIn(max = 72.dp))
+            HorizontalDivider(
+                thickness = 3.dp,
+                color = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.width(32.dp).clip(CircleShape),
+            )
         }
         content()
     }
@@ -167,10 +174,7 @@ private fun GuideSection(title: String, content: @Composable ColumnScope.() -> U
 private fun GuideCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f),
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = hafizCardColors(),
         content = content,
     )
 }
@@ -185,7 +189,7 @@ private fun GuideEntry(icon: ImageVector, title: String, body: String) {
     ) {
         IconBadge(icon)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -196,7 +200,7 @@ private fun IconBadge(icon: ImageVector) {
     Box(
         Modifier
             .size(44.dp)
-            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(14.dp)),
         contentAlignment = Alignment.Center,
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)

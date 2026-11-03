@@ -1,6 +1,7 @@
 package suft.android.hafiz.ui.levels
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,14 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,6 +43,9 @@ import suft.android.hafiz.domain.Level
 import suft.android.hafiz.domain.Levels
 import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.ui.components.AppTopBar
+import suft.android.hafiz.ui.components.RoundedProgressBar
+import suft.android.hafiz.ui.components.hafizCardColors
+import suft.android.hafiz.ui.components.pressScale
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.theme.LocalQuizColors
 
@@ -138,9 +141,11 @@ private fun Summary(subtitle: String, points: Int, maxPoints: Int, mastered: Int
                 )
             }
             Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
+            RoundedProgressBar(
                 progress = { if (maxPoints == 0) 0f else points.toFloat() / maxPoints },
-                modifier = Modifier.fillMaxWidth(),
+                height = 8.dp,
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
             )
         }
     }
@@ -168,12 +173,12 @@ private fun LevelRow(level: Level, best: Int, endless: Boolean, onClick: () -> U
     val quizColors = LocalQuizColors.current
     val strings = LocalStrings.current
 
+    val source = remember { MutableInteractionSource() }
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().testTag("level.${level.index}"),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f),
-        ),
+        interactionSource = source,
+        modifier = Modifier.fillMaxWidth().testTag("level.${level.index}").pressScale(source),
+        colors = hafizCardColors(),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -185,7 +190,7 @@ private fun LevelRow(level: Level, best: Int, endless: Boolean, onClick: () -> U
                     .size(40.dp)
                     .background(
                         if (mastered) quizColors.correctContainer else MaterialTheme.colorScheme.secondaryContainer,
-                        CircleShape,
+                        RoundedCornerShape(12.dp),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -203,11 +208,9 @@ private fun LevelRow(level: Level, best: Int, endless: Boolean, onClick: () -> U
                 Text(level.name(strings.language), style = MaterialTheme.typography.titleMedium)
                 if (!endless) {
                     Spacer(Modifier.height(6.dp))
-                    LinearProgressIndicator(
+                    RoundedProgressBar(
                         progress = { best.toFloat() / questions },
-                        modifier = Modifier.fillMaxWidth(),
                         color = if (mastered) quizColors.correct else MaterialTheme.colorScheme.secondary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     )
                 }
             }

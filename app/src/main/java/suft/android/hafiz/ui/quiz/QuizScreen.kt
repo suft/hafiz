@@ -2,15 +2,25 @@ package suft.android.hafiz.ui.quiz
 
 import android.content.Context
 import android.content.Intent
-import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,26 +40,29 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -74,10 +87,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -105,7 +122,12 @@ import suft.android.hafiz.domain.PageThird
 import suft.android.hafiz.domain.Question
 import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.ui.components.AppTopBar
+import suft.android.hafiz.ui.components.RoundedProgressBar
+import suft.android.hafiz.ui.components.animatedCount
 import suft.android.hafiz.ui.components.indicatedVerticalScroll
+import suft.android.hafiz.ui.components.pressScale
+import suft.android.hafiz.ui.components.questionSwap
+import suft.android.hafiz.ui.components.rememberReduceMotion
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.i18n.Strings
 import suft.android.hafiz.ui.theme.LocalQuizColors
@@ -219,6 +241,8 @@ internal fun QuizContent(
             contentAlignment = Alignment.TopCenter,
         ) {
             val q = state.question
+            val reduce = rememberReduceMotion()
+            val haptics = LocalHapticFeedback.current
             if (q != null) {
                 // Room for the snackbar, so the last option can be scrolled above it.
                 val snackbarSpace = if (snackbar.currentSnackbarData != null) 80.dp else 0.dp
@@ -232,20 +256,38 @@ internal fun QuizContent(
                         onAutoPlay = onAutoPlay,
                     )
                 }
+                val select: (Int) -> Unit = { i ->
+                    // Fired on the tap rather than from an effect on `selected`, so recreation never replays it.
+                    if (state.selected == null && !state.finished) haptics.answer(i == q.correctOption)
+                    onSelect(i)
+                }
                 val options: @Composable () -> Unit = {
-                    if (q.style == GameStyle.AyahPosition) {
-                        PositionGrid(q, state.selected, onSelect)
-                        Spacer(Modifier.height(8.dp))
-                    } else {
-                        q.options.forEachIndexed { i, text ->
-                            OptionButton(
-                                text = text,
-                                quranText = q.style == GameStyle.NextAyah,
-                                state = optionState(i, q, state.selected),
-                                onClick = { onSelect(i) },
-                                modifier = Modifier.testTag(QuizTestTags.option(i)),
-                            )
-                            Spacer(Modifier.height(8.dp))
+                    // Keyed by the question number, so selecting an answer or swapping the prompt within a question
+                    // does not animate; the outgoing options keep their own selection and stay disabled while they fade.
+                    AnimatedContent(
+                        targetState = OptionsSlot(state.number, q, state.selected),
+                        modifier = Modifier.fillMaxWidth(),
+                        contentKey = { it.number },
+                        transitionSpec = { questionSwap(reduce) },
+                        label = "options",
+                    ) { slot ->
+                        Column(Modifier.fillMaxWidth()) {
+                            if (slot.question.style == GameStyle.AyahPosition) {
+                                PositionGrid(slot.question, slot.selected, select)
+                                Spacer(Modifier.height(8.dp))
+                            } else {
+                                slot.question.options.forEachIndexed { i, text ->
+                                    OptionButton(
+                                        text = text,
+                                        quranText = slot.question.style == GameStyle.NextAyah,
+                                        state = optionState(i, slot.question, slot.selected),
+                                        onClick = { select(i) },
+                                        marker = strings.optionMarker(i),
+                                        modifier = Modifier.testTag(QuizTestTags.option(i)),
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                }
+                            }
                         }
                     }
                 }
@@ -260,7 +302,7 @@ internal fun QuizContent(
                         Column(Modifier.weight(1f).fillMaxHeight()) {
                             ProgressHeader(state, onNext = onNext)
                             Spacer(Modifier.height(10.dp))
-                            PromptCard(q, Modifier.weight(1f).padding(bottom = 8.dp).testTag(QuizTestTags.PROMPT))
+                            PromptCard(q, state.number, Modifier.weight(1f).padding(bottom = 8.dp).testTag(QuizTestTags.PROMPT))
                         }
                         Column(Modifier.weight(1f).fillMaxHeight()) {
                             audio()
@@ -286,6 +328,7 @@ internal fun QuizContent(
                         Spacer(Modifier.height(10.dp))
                         PromptCard(
                             q,
+                            state.number,
                             Modifier
                                 .weight(1f)
                                 .heightIn(min = 120.dp)
@@ -328,6 +371,11 @@ internal fun QuizContent(
         )
     }
 }
+
+private data class OptionsSlot(val number: Int, val question: Question, val selected: Int?)
+
+internal fun HapticFeedback.answer(correct: Boolean) =
+    performHapticFeedback(if (correct) HapticFeedbackType.Confirm else HapticFeedbackType.Reject)
 
 // ---------------------------------------------------------------- header
 
@@ -387,33 +435,76 @@ private fun ProgressHeader(state: QuizUiState, onNext: () -> Unit) {
                 }
             }
         }
-        Surface(
-            shape = RoundedCornerShape(50),
-            color = MaterialTheme.colorScheme.secondaryContainer,
-        ) {
-            Text(
-                strings.points(state.score),
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            )
-        }
+        PointsChip(state.score)
     }
     Spacer(Modifier.height(8.dp))
     if (!state.mode.endless) {
+        val reduce = rememberReduceMotion()
         val done = state.number - 1 + if (state.answered) 1 else 0
-        LinearProgressIndicator(
-            progress = { done.toFloat() / state.total },
-            modifier = Modifier.fillMaxWidth(),
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        val animated by animateFloatAsState(
+            done.toFloat() / state.total,
+            tween(if (reduce) 0 else 400),
+            label = "progress",
         )
+        RoundedProgressBar(progress = { animated }, height = 8.dp)
+    }
+}
+
+/** The running score in a gold-tinted pill; the number rolls up when it changes. */
+@Composable
+internal fun PointsChip(score: Int) {
+    val strings = LocalStrings.current
+    val reduce = rememberReduceMotion()
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+    ) {
+        Row(
+            Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(Icons.Filled.Star, contentDescription = null, modifier = Modifier.size(16.dp))
+            AnimatedContent(
+                targetState = score,
+                transitionSpec = {
+                    if (reduce) {
+                        EnterTransition.None togetherWith ExitTransition.None
+                    } else {
+                        (slideInVertically { it } + fadeIn()) togetherWith (slideOutVertically { -it } + fadeOut())
+                    }
+                },
+                label = "points",
+            ) { Text(strings.points(it), style = MaterialTheme.typography.labelLarge) }
+        }
     }
 }
 
 // ---------------------------------------------------------------- prompt
 
 @Composable
-private fun PromptCard(q: Question, modifier: Modifier = Modifier) {
-    val quizColors = LocalQuizColors.current
+private fun PromptCard(q: Question, number: Int, modifier: Modifier = Modifier) {
+    val reduce = rememberReduceMotion()
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            AnimatedContent(
+                targetState = number to q,
+                contentKey = { it.first },
+                transitionSpec = { questionSwap(reduce) },
+                contentAlignment = Alignment.Center,
+                label = "prompt",
+            ) { (_, shown) -> PromptBody(shown) }
+        }
+    }
+}
+
+@Composable
+private fun PromptBody(q: Question) {
     val strings = LocalStrings.current
     val prompt = formatPrompt(q)
     val size = when {
@@ -422,48 +513,39 @@ private fun PromptCard(q: Question, modifier: Modifier = Modifier) {
         prompt.length < 450 -> 21
         else -> 19
     }
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.95f),
-        border = BorderStroke(1.5.dp, quizColors.gold.copy(alpha = 0.7f)),
-        shadowElevation = 1.dp,
+    // Each question gets its own scroll state, so it starts at the top.
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .indicatedVerticalScroll(rememberScrollState(), inset = 8.dp)
+            .padding(horizontal = 18.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .indicatedVerticalScroll(rememberScrollState(), inset = 8.dp)
-                    .padding(horizontal = 18.dp, vertical = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = when (q.style) {
-                        GameStyle.GuessSurah -> strings.whichSurah
-                        GameStyle.AyahPosition -> strings.whereIsAyah
-                        GameStyle.NextAyah -> strings.whatIsNextAyah
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary,
-                )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = prompt,
-                    style = quranTextStyle(size),
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                q.reference?.let {
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.titleSmall.copy(fontFamily = NaskhFont),
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
+        Text(
+            text = when (q.style) {
+                GameStyle.GuessSurah -> strings.whichSurah
+                GameStyle.AyahPosition -> strings.whereIsAyah
+                GameStyle.NextAyah -> strings.whatIsNextAyah
+            },
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = prompt,
+            style = quranTextStyle(size),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        q.reference?.let {
+            Spacer(Modifier.height(10.dp))
+            Text(
+                it,
+                style = MaterialTheme.typography.titleSmall.copy(fontFamily = NaskhFont),
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }
@@ -488,62 +570,69 @@ private fun AudioBar(
     onAutoPlay: (Boolean) -> Unit,
 ) {
     val strings = LocalStrings.current
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(contentAlignment = Alignment.Center) {
-            FilledTonalIconButton(onClick = onToggle) {
-                Icon(
-                    if (status == PlaybackStatus.Playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (status == PlaybackStatus.Playing) strings.pause else strings.listen,
-                )
-            }
-            if (status == PlaybackStatus.Buffering) {
-                CircularProgressIndicator(Modifier.size(44.dp), strokeWidth = 2.dp)
-            }
-        }
-        Spacer(Modifier.width(4.dp))
-
-        var menuOpen by remember { mutableStateOf(false) }
-        Box(Modifier.weight(1f)) {
-            TextButton(onClick = { menuOpen = true }) {
-                // A long name shortens; the arrow that shows this is a menu always stays.
-                Text(
-                    reciter.name(strings.language),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                Icon(Icons.Filled.ArrowDropDown, contentDescription = strings.chooseReciter)
-            }
-            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                Reciters.all.forEach { r ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                r.name(strings.language),
-                                fontWeight = if (r == reciter) FontWeight.Bold else FontWeight.Normal,
-                                color = if (r == reciter) MaterialTheme.colorScheme.primary else Color.Unspecified,
-                            )
-                        },
-                        onClick = {
-                            menuOpen = false
-                            onReciter(r)
-                        },
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Row(Modifier.heightIn(min = 56.dp).padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(contentAlignment = Alignment.Center) {
+                FilledIconButton(onClick = onToggle) {
+                    Icon(
+                        if (status == PlaybackStatus.Playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (status == PlaybackStatus.Playing) strings.pause else strings.listen,
                     )
                 }
+                if (status == PlaybackStatus.Buffering) {
+                    CircularProgressIndicator(Modifier.size(44.dp), strokeWidth = 2.dp)
+                }
             }
-        }
-
-        // The label is part of the switch, so a screen reader announces "Auto, switch, on".
-        Row(
-            Modifier
-                .heightIn(min = 48.dp)
-                .toggleable(value = autoPlay, role = Role.Switch, onValueChange = onAutoPlay),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(strings.autoPlay, style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.width(4.dp))
-            Switch(checked = autoPlay, onCheckedChange = null)
+
+            var menuOpen by remember { mutableStateOf(false) }
+            Box(Modifier.weight(1f)) {
+                TextButton(onClick = { menuOpen = true }) {
+                    // A long name shortens; the arrow that shows this is a menu always stays.
+                    Text(
+                        reciter.name(strings.language),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    Icon(Icons.Filled.ArrowDropDown, contentDescription = strings.chooseReciter)
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    Reciters.all.forEach { r ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    r.name(strings.language),
+                                    fontWeight = if (r == reciter) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (r == reciter) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                                )
+                            },
+                            onClick = {
+                                menuOpen = false
+                                onReciter(r)
+                            },
+                        )
+                    }
+                }
+            }
+
+            // The label is part of the switch, so a screen reader announces "Auto, switch, on".
+            Row(
+                Modifier
+                    .heightIn(min = 48.dp)
+                    .toggleable(value = autoPlay, role = Role.Switch, onValueChange = onAutoPlay)
+                    .padding(end = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(strings.autoPlay, style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.width(4.dp))
+                Switch(checked = autoPlay, onCheckedChange = null)
+            }
         }
     }
 }
@@ -579,6 +668,7 @@ private fun PositionGrid(q: Question, selected: Int?, onSelect: (Int) -> Unit) {
                                 quranText = false,
                                 state = optionState(i, q, selected),
                                 onClick = { onSelect(i) },
+                                marker = null,
                                 modifier = Modifier.weight(1f).fillMaxHeight().testTag(QuizTestTags.option(i)),
                             )
                         }
@@ -595,28 +685,23 @@ internal fun OptionButton(
     quranText: Boolean,
     state: OptionState,
     onClick: () -> Unit,
+    marker: String?,
     modifier: Modifier = Modifier,
 ) {
     val quizColors = LocalQuizColors.current
     val strings = LocalStrings.current
+    val scheme = MaterialTheme.colorScheme
+    val source = remember { MutableInteractionSource() }
     val container by animateColorAsState(
         when (state) {
             OptionState.Correct -> quizColors.correctContainer
             OptionState.Wrong -> quizColors.wrongContainer
-            else -> MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.92f)
+            else -> scheme.surfaceContainerLow
         },
         label = "optionContainer",
     )
-    val borderColor = when (state) {
-        OptionState.Correct -> quizColors.correct
-        OptionState.Wrong -> quizColors.wrong
-        else -> MaterialTheme.colorScheme.outline
-    }
     // The original blinked the correct answer; a gentle pulse does the same job, unless animations are off.
-    val context = LocalContext.current
-    val reduceMotion = remember {
-        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-    }
+    val reduceMotion = rememberReduceMotion()
     val pulse: State<Float>? = if (state == OptionState.Correct && !reduceMotion) {
         rememberInfiniteTransition(label = "pulse").animateFloat(
             initialValue = 1f,
@@ -627,22 +712,60 @@ internal fun OptionButton(
     } else {
         null
     }
-    OutlinedButton(
+    Button(
         onClick = onClick,
         enabled = state == OptionState.Open,
+        interactionSource = source,
         modifier = modifier
             .fillMaxWidth()
-            .alpha(if (state == OptionState.Dimmed) 0.5f else 1f),
-        shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(if (state == OptionState.Open || state == OptionState.Dimmed) 1.dp else 2.dp, borderColor),
-        colors = ButtonDefaults.outlinedButtonColors(
+            .heightIn(min = 56.dp)
+            .pressScale(source)
+            .alpha(if (state == OptionState.Dimmed) 0.45f else 1f),
+        shape = RoundedCornerShape(18.dp),
+        border = when (state) {
+            OptionState.Correct -> BorderStroke(2.dp, quizColors.correct)
+            OptionState.Wrong -> BorderStroke(2.dp, quizColors.wrong)
+            else -> null
+        },
+        colors = ButtonDefaults.buttonColors(
             containerColor = container,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            contentColor = scheme.onSurface,
             disabledContainerColor = container,
-            disabledContentColor = MaterialTheme.colorScheme.onSurface,
+            disabledContentColor = scheme.onSurface,
         ),
-        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
     ) {
+        if (marker != null) {
+            val slotColor = when (state) {
+                OptionState.Correct -> quizColors.correct
+                OptionState.Wrong -> quizColors.wrong
+                else -> scheme.surfaceContainerHigh
+            }
+            Box(Modifier.size(32.dp).background(slotColor, CircleShape), contentAlignment = Alignment.Center) {
+                when (state) {
+                    OptionState.Correct -> Icon(
+                        Icons.Filled.Check,
+                        contentDescription = strings.correctAnswer,
+                        modifier = Modifier.size(20.dp),
+                        tint = quizColors.onCorrect,
+                    )
+                    OptionState.Wrong -> Icon(
+                        Icons.Filled.Close,
+                        contentDescription = strings.wrongAnswer,
+                        modifier = Modifier.size(20.dp),
+                        tint = scheme.onError,
+                    )
+                    // Screen readers read only the option text, not the letter.
+                    else -> Text(
+                        marker,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = scheme.onSurfaceVariant,
+                        modifier = Modifier.clearAndSetSemantics {},
+                    )
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+        }
         Text(
             text = text,
             style = if (quranText) {
@@ -655,10 +778,12 @@ internal fun OptionButton(
                 .weight(1f)
                 .graphicsLayer { alpha = pulse?.value ?: 1f },
         )
-        when (state) {
-            OptionState.Correct -> Icon(Icons.Filled.CheckCircle, contentDescription = strings.correctAnswer, tint = quizColors.correct)
-            OptionState.Wrong -> Icon(Icons.Filled.Cancel, contentDescription = strings.wrongAnswer, tint = quizColors.wrong)
-            else -> Unit
+        if (marker == null) {
+            when (state) {
+                OptionState.Correct -> Icon(Icons.Filled.CheckCircle, contentDescription = strings.correctAnswer, tint = quizColors.correct)
+                OptionState.Wrong -> Icon(Icons.Filled.Cancel, contentDescription = strings.wrongAnswer, tint = quizColors.wrong)
+                else -> Unit
+            }
         }
     }
 }
@@ -689,7 +814,7 @@ private fun ResultDialog(
         // Back and the system gesture close the dialog like the title-bar back arrow; a tap outside must not.
         onDismissRequest = onBack,
         properties = DialogProperties(dismissOnClickOutside = false),
-        icon = { Icon(Icons.Filled.EmojiEvents, contentDescription = null, tint = LocalQuizColors.current.gold) },
+        icon = { TrophyBadge() },
         title = {
             Text(
                 if (endless) strings.gameOver else strings.resultTitle,
@@ -712,10 +837,15 @@ private fun ResultDialog(
                     )
                 }
                 Spacer(Modifier.height(8.dp))
+                val finalScore =
+                    if (endless) strings.number(state.score) else "${strings.number(state.score)} / ${strings.number(state.total)}"
+                val shownScore = animatedCount(state.score)
                 Text(
-                    if (endless) strings.number(state.score) else "${strings.number(state.score)} / ${strings.number(state.total)}",
+                    if (endless) strings.number(shownScore) else "${strings.number(shownScore)} / ${strings.number(state.total)}",
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.primary,
+                    // TalkBack reads the final score, not a number partway through the count-up.
+                    modifier = Modifier.semantics { contentDescription = finalScore },
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
@@ -727,7 +857,7 @@ private fun ResultDialog(
                     Text(
                         strings.newRecord(state.previousBest),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.secondary,
+                        color = MaterialTheme.colorScheme.tertiary,
                     )
                 }
             }
@@ -744,6 +874,22 @@ private fun ResultDialog(
             }
         },
     )
+}
+
+/** The result dialogs' trophy in a gold-tinted circle. */
+@Composable
+internal fun TrophyBadge() {
+    Box(
+        Modifier.size(64.dp).background(MaterialTheme.colorScheme.tertiaryContainer, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Icons.Filled.EmojiEvents,
+            contentDescription = null,
+            modifier = Modifier.size(32.dp),
+            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+        )
+    }
 }
 
 private fun shareScore(context: Context, state: QuizUiState, strings: Strings) {
