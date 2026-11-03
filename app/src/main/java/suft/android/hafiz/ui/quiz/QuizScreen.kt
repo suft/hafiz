@@ -42,19 +42,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -86,6 +73,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -130,6 +118,7 @@ import suft.android.hafiz.ui.components.questionSwap
 import suft.android.hafiz.ui.components.rememberReduceMotion
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.i18n.Strings
+import suft.android.hafiz.ui.icons.HafizIcons
 import suft.android.hafiz.ui.theme.LocalQuizColors
 import suft.android.hafiz.ui.theme.NaskhFont
 import suft.android.hafiz.ui.theme.quranTextStyle
@@ -282,7 +271,7 @@ internal fun QuizContent(
                                         quranText = slot.question.style == GameStyle.NextAyah,
                                         state = optionState(i, slot.question, slot.selected),
                                         onClick = { select(i) },
-                                        marker = strings.optionMarker(i),
+                                        marker = OptionMarker.Letter(strings.optionMarker(i)),
                                         modifier = Modifier.testTag(QuizTestTags.option(i)),
                                     )
                                     Spacer(Modifier.height(8.dp))
@@ -405,7 +394,7 @@ private fun ProgressHeader(state: QuizUiState, onNext: () -> Unit) {
                 Text(strings.next)
                 Spacer(Modifier.width(4.dp))
                 // Auto-mirrored: points left (forward) in RTL.
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(HafizIcons.Forward, contentDescription = null, modifier = Modifier.size(18.dp))
             }
         }
         if (state.mode.endless) {
@@ -419,14 +408,14 @@ private fun ProgressHeader(state: QuizUiState, onNext: () -> Unit) {
                 repeat(state.mode.lives!!) { i ->
                     if (i < livesLeft) {
                         Icon(
-                            Icons.Filled.Favorite,
+                            HafizIcons.LifeFull,
                             contentDescription = null,
                             tint = LocalQuizColors.current.wrong,
                             modifier = Modifier.size(20.dp),
                         )
                     } else {
                         Icon(
-                            Icons.Filled.FavoriteBorder,
+                            HafizIcons.LifeLost,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp),
@@ -465,7 +454,7 @@ internal fun PointsChip(score: Int) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(Icons.Filled.Star, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(HafizIcons.Points, contentDescription = null, modifier = Modifier.size(16.dp))
             AnimatedContent(
                 targetState = score,
                 transitionSpec = {
@@ -579,7 +568,7 @@ private fun AudioBar(
             Box(contentAlignment = Alignment.Center) {
                 FilledIconButton(onClick = onToggle) {
                     Icon(
-                        if (status == PlaybackStatus.Playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        if (status == PlaybackStatus.Playing) HafizIcons.Pause else HafizIcons.Play,
                         contentDescription = if (status == PlaybackStatus.Playing) strings.pause else strings.listen,
                     )
                 }
@@ -600,7 +589,7 @@ private fun AudioBar(
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    Icon(Icons.Filled.ArrowDropDown, contentDescription = strings.chooseReciter)
+                    Icon(HafizIcons.Dropdown, contentDescription = strings.chooseReciter)
                 }
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                     Reciters.all.forEach { r ->
@@ -679,13 +668,19 @@ private fun PositionGrid(q: Question, selected: Int?, onSelect: (Int) -> Unit) {
     }
 }
 
+/** What the leading slot of an answer tile shows while the question is open. */
+internal sealed interface OptionMarker {
+    data class Letter(val text: String) : OptionMarker
+    data class Glyph(val icon: ImageVector) : OptionMarker
+}
+
 @Composable
 internal fun OptionButton(
     text: String,
     quranText: Boolean,
     state: OptionState,
     onClick: () -> Unit,
-    marker: String?,
+    marker: OptionMarker?,
     modifier: Modifier = Modifier,
 ) {
     val quizColors = LocalQuizColors.current
@@ -744,24 +739,32 @@ internal fun OptionButton(
             Box(Modifier.size(32.dp).background(slotColor, CircleShape), contentAlignment = Alignment.Center) {
                 when (state) {
                     OptionState.Correct -> Icon(
-                        Icons.Filled.Check,
+                        HafizIcons.Check,
                         contentDescription = strings.correctAnswer,
                         modifier = Modifier.size(20.dp),
                         tint = quizColors.onCorrect,
                     )
                     OptionState.Wrong -> Icon(
-                        Icons.Filled.Close,
+                        HafizIcons.Close,
                         contentDescription = strings.wrongAnswer,
                         modifier = Modifier.size(20.dp),
                         tint = scheme.onError,
                     )
-                    // Screen readers read only the option text, not the letter.
-                    else -> Text(
-                        marker,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = scheme.onSurfaceVariant,
-                        modifier = Modifier.clearAndSetSemantics {},
-                    )
+                    else -> when (marker) {
+                        // Screen readers read only the option text, not the marker.
+                        is OptionMarker.Letter -> Text(
+                            marker.text,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = scheme.onSurfaceVariant,
+                            modifier = Modifier.clearAndSetSemantics {},
+                        )
+                        is OptionMarker.Glyph -> Icon(
+                            marker.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = scheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
             Spacer(Modifier.width(10.dp))
@@ -780,8 +783,8 @@ internal fun OptionButton(
         )
         if (marker == null) {
             when (state) {
-                OptionState.Correct -> Icon(Icons.Filled.CheckCircle, contentDescription = strings.correctAnswer, tint = quizColors.correct)
-                OptionState.Wrong -> Icon(Icons.Filled.Cancel, contentDescription = strings.wrongAnswer, tint = quizColors.wrong)
+                OptionState.Correct -> Icon(HafizIcons.CheckCircle, contentDescription = strings.correctAnswer, tint = quizColors.correct)
+                OptionState.Wrong -> Icon(HafizIcons.CrossCircle, contentDescription = strings.wrongAnswer, tint = quizColors.wrong)
                 else -> Unit
             }
         }
@@ -884,7 +887,7 @@ internal fun TrophyBadge() {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Icons.Filled.EmojiEvents,
+            HafizIcons.Trophy,
             contentDescription = null,
             modifier = Modifier.size(32.dp),
             tint = MaterialTheme.colorScheme.onTertiaryContainer,

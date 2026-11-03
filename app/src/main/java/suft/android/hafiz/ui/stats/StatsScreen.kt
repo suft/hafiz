@@ -2,8 +2,6 @@ package suft.android.hafiz.ui.stats
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,6 +30,7 @@ import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.ui.components.AppTopBar
 import suft.android.hafiz.ui.components.rememberToday
 import suft.android.hafiz.ui.i18n.LocalStrings
+import suft.android.hafiz.ui.icons.HafizIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +51,7 @@ fun StatsScreen(container: AppContainer, progress: Progress, quran: Quran, onBac
                 actions = {
                     if (progress.afterStatisticsReset() != progress) {
                         IconButton(onClick = { confirmReset = true }) {
-                            Icon(Icons.Filled.DeleteSweep, contentDescription = strings.clearStatistics)
+                            Icon(HafizIcons.ClearStats, contentDescription = strings.clearStatistics)
                         }
                     }
                 },

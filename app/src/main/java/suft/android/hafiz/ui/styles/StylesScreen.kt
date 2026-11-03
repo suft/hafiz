@@ -9,10 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.AutoStories
-import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +27,7 @@ import suft.android.hafiz.domain.Quran
 import suft.android.hafiz.ui.components.AppTopBar
 import suft.android.hafiz.ui.components.MenuCard
 import suft.android.hafiz.ui.i18n.LocalStrings
+import suft.android.hafiz.ui.icons.HafizIcons
 
 /** Second step of Play: pick the question style for the chosen [mode]. */
 @Composable
@@ -86,8 +83,8 @@ fun StylesScreen(
 
 /** The icon that stands for a question style on the Styles and How to play screens. */
 val GameStyle.icon: ImageVector
-    get() = when (this) {
-        GameStyle.GuessSurah -> Icons.Filled.Quiz
-        GameStyle.NextAyah -> Icons.AutoMirrored.Filled.MenuBook
-        GameStyle.AyahPosition -> Icons.Filled.AutoStories
+    @Composable get() = when (this) {
+        GameStyle.GuessSurah -> HafizIcons.StyleGuessSurah
+        GameStyle.NextAyah -> HafizIcons.StyleNextAyah
+        GameStyle.AyahPosition -> HafizIcons.StylePosition
     }

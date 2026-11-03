@@ -9,11 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.Mosque
-import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -31,6 +26,7 @@ import suft.android.hafiz.domain.RevelationQuiz
 import suft.android.hafiz.ui.components.AppTopBar
 import suft.android.hafiz.ui.components.MenuCard
 import suft.android.hafiz.ui.i18n.LocalStrings
+import suft.android.hafiz.ui.icons.HafizIcons
 
 /** First step of Play: pick the game mode. */
 @Composable
@@ -94,11 +90,11 @@ fun ModesScreen(
 
 /** The icon that stands for a game mode on the Play and How to play screens. */
 val GameMode.icon: ImageVector
-    get() = when (this) {
-        GameMode.Regular -> Icons.Filled.Flag
-        GameMode.Survival -> Icons.Filled.LocalFireDepartment
-        GameMode.Mutashabihat -> Icons.Filled.Psychology
+    @Composable get() = when (this) {
+        GameMode.Regular -> HafizIcons.ModeRegular
+        GameMode.Survival -> HafizIcons.ModeSurvival
+        GameMode.Mutashabihat -> HafizIcons.ModeMutashabihat
     }
 
 /** The icon of the Makki-or-Madani game on the Play and How to play screens. */
-val RevelationIcon: ImageVector get() = Icons.Filled.Mosque
+val RevelationIcon: ImageVector @Composable get() = HafizIcons.Mosque

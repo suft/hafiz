@@ -233,7 +233,7 @@ fun HafizTheme(
             shapes = HafizShapes,
             typography = remember(language) { typography(language) },
         ) {
-            // The paper background is not a Surface, so without this text defaults to black, unreadable in dark mode.
+            // The app background is not a Surface, so without this text defaults to black, unreadable in dark mode.
             CompositionLocalProvider(LocalContentColor provides scheme.onBackground, content = content)
         }
     }

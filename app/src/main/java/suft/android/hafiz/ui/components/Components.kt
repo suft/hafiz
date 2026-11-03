@@ -16,7 +16,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.InteractionSource
@@ -34,9 +33,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -61,14 +57,11 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -76,17 +69,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.delay
-import suft.android.hafiz.R
 import suft.android.hafiz.data.localEpochDay
 import suft.android.hafiz.data.millisUntilNextLocalDay
 import suft.android.hafiz.ui.i18n.LocalStrings
-import suft.android.hafiz.ui.theme.LocalQuizColors
+import suft.android.hafiz.ui.icons.HafizIcons
 import suft.android.hafiz.ui.theme.TitleFont
 import kotlin.math.roundToInt
 
 /** Plain background colour behind every screen. */
 @Composable
-fun PaperBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+fun AppBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) { content() }
 }
 
@@ -104,7 +96,7 @@ fun AppTopBar(
         navigationIcon = {
             if (onBack != null) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = LocalStrings.current.back)
+                    Icon(HafizIcons.Back, contentDescription = LocalStrings.current.back)
                 }
             }
         },
@@ -170,29 +162,12 @@ fun MenuCard(
             }
             if (badge == null) {
                 Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    HafizIcons.Chevron,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
-    }
-}
-
-/** The gold ornamental rule from the original main menu. */
-@Composable
-fun OrnamentDivider(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Image(
-            painter = painterResource(R.drawable.divider_ornament),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            colorFilter = ColorFilter.tint(LocalQuizColors.current.gold),
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .height(18.dp)
-                .padding(vertical = 2.dp),
-        )
     }
 }
 

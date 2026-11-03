@@ -16,10 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,6 +36,7 @@ import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.ui.components.AppTopBar
 import suft.android.hafiz.ui.components.hafizCardColors
 import suft.android.hafiz.ui.i18n.LocalStrings
+import suft.android.hafiz.ui.icons.HafizIcons
 import suft.android.hafiz.ui.modes.RevelationIcon
 import suft.android.hafiz.ui.modes.icon
 import suft.android.hafiz.ui.styles.icon
@@ -96,7 +93,7 @@ fun GuideScreen(onBack: () -> Unit) {
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
                                 Icon(
-                                    Icons.Filled.CheckCircle,
+                                    HafizIcons.CheckCircle,
                                     contentDescription = null,
                                     tint = quizColors.correct,
                                     modifier = Modifier.size(24.dp),
@@ -118,7 +115,7 @@ fun GuideScreen(onBack: () -> Unit) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                         ) {
-                            IconBadge(Icons.Filled.Insights)
+                            IconBadge(HafizIcons.Statistics)
                             Text(
                                 strings.guideStats,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -135,7 +132,7 @@ fun GuideScreen(onBack: () -> Unit) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                         ) {
-                            IconBadge(Icons.Filled.Settings)
+                            IconBadge(HafizIcons.Settings)
                             Text(
                                 strings.guideSettings,
                                 style = MaterialTheme.typography.bodyMedium,

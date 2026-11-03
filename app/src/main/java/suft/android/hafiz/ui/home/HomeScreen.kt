@@ -31,14 +31,6 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -69,6 +61,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -83,6 +76,9 @@ import suft.android.hafiz.ui.components.pressScale
 import suft.android.hafiz.ui.components.rememberToday
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.i18n.SystemAppLanguage
+import suft.android.hafiz.ui.icons.HafizIcons
+import suft.android.hafiz.ui.theme.InterFont
+import suft.android.hafiz.ui.theme.NaskhFont
 
 @Composable
 fun HomeScreen(
@@ -137,11 +133,11 @@ fun HomeScreen(
                 if (LocalDensity.current.fontScale >= 1.5f) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         HomeTile(
-                            Icons.AutoMirrored.Filled.Help, guideTitle, strings.howToPlayHint, onOpenGuide,
+                            HafizIcons.Help, guideTitle, strings.howToPlayHint, onOpenGuide,
                             Modifier.fillMaxWidth(),
                         )
                         HomeTile(
-                            Icons.Filled.Insights, strings.statistics, statsSubtitle, onOpenStats,
+                            HafizIcons.Statistics, strings.statistics, statsSubtitle, onOpenStats,
                             Modifier.fillMaxWidth(),
                         )
                     }
@@ -151,11 +147,11 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         HomeTile(
-                            Icons.AutoMirrored.Filled.Help, guideTitle, strings.howToPlayHint, onOpenGuide,
+                            HafizIcons.Help, guideTitle, strings.howToPlayHint, onOpenGuide,
                             Modifier.weight(1f).fillMaxHeight(),
                         )
                         HomeTile(
-                            Icons.Filled.Insights, strings.statistics, statsSubtitle, onOpenStats,
+                            HafizIcons.Statistics, strings.statistics, statsSubtitle, onOpenStats,
                             Modifier.weight(1f).fillMaxHeight(),
                         )
                     }
@@ -171,14 +167,14 @@ fun HomeScreen(
                     onClick = { showCredits = true },
                     modifier = Modifier.align(Alignment.TopStart),
                 ) {
-                    Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(HafizIcons.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 CornerButton(
                     strings.settings,
                     onClick = { showSettings = true },
                     modifier = Modifier.align(Alignment.TopEnd),
                 ) {
-                    Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(HafizIcons.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -218,7 +214,7 @@ private fun HomeHero(progress: Progress, today: Long, onClick: () -> Unit) {
                     )
                 }
                 Box(Modifier.size(56.dp).background(scheme.onPrimary, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(32.dp), tint = scheme.primary)
+                    Icon(HafizIcons.Play, contentDescription = null, modifier = Modifier.size(32.dp), tint = scheme.primary)
                 }
             }
             if (progress.overall.total > 0) {
@@ -290,18 +286,11 @@ private fun HomeTile(icon: ImageVector, title: String, subtitle: String, onClick
     }
 }
 
-/** Endonyms: they do not change with the UI language. */
+/** Endonyms, shown on the language tiles and read by TalkBack: they do not change with the UI language. */
 private val AppLanguage.endonym: String
     get() = when (this) {
         AppLanguage.Arabic -> "العربية"
         AppLanguage.English -> "English"
-    }
-
-/** What the language button and picker show; TalkBack reads the [endonym] instead. */
-private val AppLanguage.flag: String
-    get() = when (this) {
-        AppLanguage.Arabic -> "\uD83C\uDDF8\uD83C\uDDE6" // 🇸🇦
-        AppLanguage.English -> "\uD83C\uDDEC\uD83C\uDDE7" // 🇬🇧
     }
 
 /** 48 dp round button pinned to a top corner of the main menu. */
@@ -352,7 +341,7 @@ private fun FullScreenOverlay(
                 )
                 // Declared last so it stays on top: a content column taller than the screen would otherwise swallow its taps.
                 IconButton(onClick = onClose, modifier = Modifier.align(closeAlignment).padding(8.dp)) {
-                    Icon(Icons.Filled.Close, contentDescription = strings.back)
+                    Icon(HafizIcons.Close, contentDescription = strings.back)
                 }
             }
         }
@@ -360,8 +349,8 @@ private fun FullScreenOverlay(
 }
 
 /**
- * Full-screen, opaque settings page: the app language (flags only, forced LTR so they keep their places when the
- * language switches; TalkBack reads the endonyms) and the mushaf edition that Where's the Ayah? uses. Choices apply
+ * Full-screen, opaque settings page: the app language (each language's own name, forced LTR so the tiles keep their
+ * places when the language switches) and the mushaf edition that Where's the Ayah? uses. Choices apply
  * immediately and the page stays open until × or Back.
  */
 @Composable
@@ -377,7 +366,7 @@ private fun SettingsOverlay(
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
     FullScreenOverlay(visible, onClose, closeAlignment = AbsoluteAlignment.TopRight) {
         Icon(
-            Icons.Filled.Settings,
+            HafizIcons.Settings,
             contentDescription = null,
             modifier = Modifier.size(40.dp),
             tint = MaterialTheme.colorScheme.primary,
@@ -428,10 +417,13 @@ private fun LanguageOption(language: AppLanguage, selected: Boolean, onClick: ()
         border = if (selected) BorderStroke(2.dp, scheme.primary) else null,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            // Sized in dp so a large system font cannot push the flag out of its tile.
+            // Sized in dp so a large system font cannot push the name out of its tile.
             Text(
-                language.flag,
-                fontSize = with(LocalDensity.current) { 56.dp.toSp() },
+                language.endonym,
+                fontSize = with(LocalDensity.current) { 22.dp.toSp() },
+                fontFamily = if (language == AppLanguage.Arabic) NaskhFont else InterFont,
+                fontWeight = FontWeight.Bold,
+                color = if (selected) scheme.onPrimaryContainer else scheme.onSurface,
                 modifier = Modifier.clearAndSetSemantics {},
             )
         }
@@ -488,7 +480,7 @@ private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
     }
     FullScreenOverlay(visible, onClose, closeAlignment = AbsoluteAlignment.TopLeft) {
         Icon(
-            Icons.Filled.Info,
+            HafizIcons.Info,
             contentDescription = null,
             modifier = Modifier.size(40.dp),
             tint = MaterialTheme.colorScheme.primary,
@@ -596,7 +588,7 @@ private fun CreditCard(label: String, source: String, note: String? = null, url:
             }
             if (url != null) {
                 Icon(
-                    Icons.AutoMirrored.Filled.OpenInNew,
+                    HafizIcons.OpenExternal,
                     contentDescription = null,
                     modifier = Modifier.align(Alignment.CenterEnd).padding(end = 14.dp).size(20.dp),
                     tint = scheme.primary,

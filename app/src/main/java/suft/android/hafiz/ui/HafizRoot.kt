@@ -35,12 +35,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -59,9 +61,8 @@ import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.domain.Levels
 import suft.android.hafiz.domain.Quran
+import suft.android.hafiz.ui.components.AppBackground
 import suft.android.hafiz.ui.components.AppTitle
-import suft.android.hafiz.ui.components.OrnamentDivider
-import suft.android.hafiz.ui.components.PaperBackground
 import suft.android.hafiz.ui.guide.GuideScreen
 import suft.android.hafiz.ui.home.HomeScreen
 import suft.android.hafiz.ui.levels.LevelsScreen
@@ -72,6 +73,7 @@ import suft.android.hafiz.ui.stats.StatsScreen
 import suft.android.hafiz.ui.styles.StylesScreen
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.theme.HafizTheme
+import suft.android.hafiz.ui.theme.NaskhFont
 
 // ---------------------------------------------------------------- routes
 
@@ -121,7 +123,7 @@ fun HafizRoot(container: AppContainer) {
     val loaded = progress
     HafizTheme(language = loaded?.language ?: AppLanguage.Arabic) {
         // Exposes Compose test tags as uiautomator resource-ids, which tools/screenshots.py taps.
-        PaperBackground(Modifier.semantics { testTagsAsResourceId = true }) {
+        AppBackground(Modifier.semantics { testTagsAsResourceId = true }) {
             val quran by container.quran.collectAsStateWithLifecycle()
             val loadedQuran = quran
             // The settings read takes milliseconds; render nothing until the language is known, to avoid flashing the wrong one.
@@ -140,7 +142,7 @@ fun HafizRoot(container: AppContainer) {
                 AnimatedContent(
                     targetState = loadedQuran?.takeIf { minShown },
                     contentKey = { it != null },
-                    // Fade the load screen out before the menu fades in: both are transparent over the same paper.
+                    // Fade the load screen out before the menu fades in: both are transparent over the same app background.
                     transitionSpec = { fadeIn(tween(300, delayMillis = 150)) togetherWith fadeOut(tween(150)) },
                     label = "load",
                 ) { readyQuran ->
@@ -166,7 +168,7 @@ private fun NavController.popFrom(entry: NavBackStackEntry) {
 
 // ---------------------------------------------------------------- transitions
 
-// Material "shared axis X". The screens are transparent over one paper background, so the outgoing screen fades
+// Material "shared axis X". The screens are transparent over one app background, so the outgoing screen fades
 // out in the first 90 ms before the incoming one fades in (they never overlap); both drift 30 dp along the reading
 // direction. Predictive back scrubs the same transition.
 private const val SHARED_AXIS_MILLIS = 300
@@ -328,7 +330,13 @@ private fun LoadingScreen() {
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(12.dp))
-        OrnamentDivider()
+        Text(
+            "۞",
+            fontFamily = NaskhFont,
+            fontSize = 28.sp,
+            color = MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
         Spacer(Modifier.height(24.dp))
         CircularProgressIndicator(
             modifier = Modifier.size(28.dp).semantics { contentDescription = strings.loadingQuran },

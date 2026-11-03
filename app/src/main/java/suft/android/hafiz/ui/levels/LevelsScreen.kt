@@ -19,9 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -47,6 +44,7 @@ import suft.android.hafiz.ui.components.RoundedProgressBar
 import suft.android.hafiz.ui.components.hafizCardColors
 import suft.android.hafiz.ui.components.pressScale
 import suft.android.hafiz.ui.i18n.LocalStrings
+import suft.android.hafiz.ui.icons.HafizIcons
 import suft.android.hafiz.ui.theme.LocalQuizColors
 
 @Composable
@@ -195,7 +193,7 @@ private fun LevelRow(level: Level, best: Int, endless: Boolean, onClick: () -> U
                 contentAlignment = Alignment.Center,
             ) {
                 if (mastered) {
-                    Icon(Icons.Filled.CheckCircle, contentDescription = strings.mastered, tint = quizColors.correct)
+                    Icon(HafizIcons.CheckCircle, contentDescription = strings.mastered, tint = quizColors.correct)
                 } else {
                     Text(
                         strings.number(level.index + 1),
@@ -225,7 +223,7 @@ private fun LevelRow(level: Level, best: Int, endless: Boolean, onClick: () -> U
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Icon(Icons.Filled.PlayArrow, contentDescription = strings.start, tint = MaterialTheme.colorScheme.primary)
+            Icon(HafizIcons.Play, contentDescription = strings.start, tint = MaterialTheme.colorScheme.primary)
         }
     }
 }

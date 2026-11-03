@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -54,7 +52,9 @@ import suft.android.hafiz.ui.components.animatedCount
 import suft.android.hafiz.ui.components.questionSwap
 import suft.android.hafiz.ui.components.rememberReduceMotion
 import suft.android.hafiz.ui.i18n.LocalStrings
+import suft.android.hafiz.ui.icons.HafizIcons
 import suft.android.hafiz.ui.quiz.OptionButton
+import suft.android.hafiz.ui.quiz.OptionMarker
 import suft.android.hafiz.ui.quiz.PointsChip
 import suft.android.hafiz.ui.quiz.TrophyBadge
 import suft.android.hafiz.ui.quiz.answer
@@ -105,7 +105,7 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
                             Text(strings.next)
                             Spacer(Modifier.width(4.dp))
                             // Auto-mirrored: points left (forward) in RTL.
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Icon(HafizIcons.Forward, contentDescription = null, modifier = Modifier.size(18.dp))
                         }
                     }
                     PointsChip(state.score)
@@ -165,7 +165,7 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
                     val answer = state.questions[index].place
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(RevelationPlace.Makkah to strings.makki, RevelationPlace.Madinah to strings.madani)
-                            .forEachIndexed { i, (place, text) ->
+                            .forEach { (place, text) ->
                                 OptionButton(
                                     text = text,
                                     quranText = false,
@@ -181,7 +181,9 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
                                         }
                                         vm.select(place)
                                     },
-                                    marker = strings.optionMarker(i),
+                                    marker = OptionMarker.Glyph(
+                                        if (place == RevelationPlace.Makkah) HafizIcons.Kaaba else HafizIcons.ProphetsMosque,
+                                    ),
                                 )
                             }
                     }
