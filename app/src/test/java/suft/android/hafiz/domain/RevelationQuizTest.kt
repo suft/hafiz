@@ -9,7 +9,11 @@ class RevelationQuizTest {
 
     @Test
     fun placesMatchQuranCom() {
-        assertEquals(28, (0 until Quran.SURAH_COUNT).count { RevelationPlaces.of(it) == RevelationPlace.Madinah })
+        val madinah = (1..Quran.SURAH_COUNT).filter { RevelationPlaces.of(it - 1) == RevelationPlace.Madinah }.toSet()
+        assertEquals(
+            setOf(2, 3, 4, 5, 8, 9, 13, 22, 24, 33, 47, 48, 49, 55, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 76, 98, 99, 110),
+            madinah,
+        )
         assertEquals(RevelationPlace.Makkah, RevelationPlaces.of(0)) // Al-Fatihah
         assertEquals(RevelationPlace.Madinah, RevelationPlaces.of(1)) // Al-Baqarah
         assertEquals(RevelationPlace.Madinah, RevelationPlaces.of(109)) // An-Nasr

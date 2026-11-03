@@ -45,6 +45,12 @@ class RevelationViewModel(
     /** Off with a screen reader: the answer stays on screen until the user taps "Next". */
     private var autoAdvance = true
 
+    // The feedback timer runs only while the screen is in the foreground (not in the background, not behind another
+    // screen); a skipped one is started again by [setForeground].
+    private var foreground = false
+    private var advancePending = false
+    private var pendingAdvanceMs = 0L
+
     init {
         viewModelScope.launch {
             val best = container.progress.progress.first().best(RevelationQuiz.LEVEL_ID)
@@ -68,13 +74,22 @@ class RevelationViewModel(
     }
 
     fun setAutoAdvance(enabled: Boolean) {
+        val was = autoAdvance
         autoAdvance = enabled
-        if (!enabled) advanceJob?.cancel()
+        if (!enabled) {
+            advanceJob?.cancel()
+            advancePending = false
+        } else if (!was) {
+            // An answer given while auto-advance was off (TalkBack) still moves on once it is back on.
+            val s = _state.value
+            if (s.answered && !s.finished) scheduleAdvance(pendingAdvanceMs)
+        }
     }
 
     fun restart() {
         if (!_state.value.finished) return
         advanceJob?.cancel()
+        advancePending = false
         _state.update {
             it.copy(
                 questions = RevelationQuiz.deal(random),
@@ -88,7 +103,12 @@ class RevelationViewModel(
     }
 
     private fun scheduleAdvance(ms: Long) {
+        pendingAdvanceMs = ms
         if (!autoAdvance) return
+        if (foreground) startAdvanceTimer(ms) else advancePending = true
+    }
+
+    private fun startAdvanceTimer(ms: Long) {
         advanceJob?.cancel()
         advanceJob = viewModelScope.launch {
             delay(ms)
@@ -96,7 +116,24 @@ class RevelationViewModel(
         }
     }
 
+    /** Called as the screen enters or leaves the resumed state; the feedback timer runs only while it is resumed. */
+    fun setForeground(value: Boolean) {
+        if (foreground == value) return
+        foreground = value
+        if (!value) {
+            if (advanceJob?.isActive == true) {
+                advanceJob?.cancel()
+                advancePending = true
+            }
+        } else if (advancePending) {
+            advancePending = false
+            // The user gets the full feedback time again.
+            startAdvanceTimer(pendingAdvanceMs)
+        }
+    }
+
     private fun advance() {
+        advancePending = false
         val s = _state.value
         if (s.finished) return
         if (s.current + 1 >= s.total) {

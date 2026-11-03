@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -14,8 +15,10 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLooper
 import suft.android.hafiz.AppContainer
 import suft.android.hafiz.testing.awaitProgress
+import suft.android.hafiz.testing.idleMainUntil
 import suft.android.hafiz.testing.testContainer
 
 @RunWith(RobolectricTestRunner::class)
@@ -65,5 +68,21 @@ class RevelationViewModelTest {
         vm.select(vm.state.value.question.place)
         store.clear()
         awaitProgress(container) { it.roundsCompleted == 1 }
+    }
+
+    @Test
+    fun feedbackTimerWaitsWhileInBackground() {
+        val container = testContainer(tmp)
+        val (_, vm) = start(container)
+        vm.setForeground(true)
+
+        vm.select(vm.state.value.question.place)
+        vm.setForeground(false)
+        ShadowLooper.idleMainLooper(5, TimeUnit.SECONDS)
+        assertEquals(0, vm.state.value.current)
+
+        vm.setForeground(true)
+        ShadowLooper.idleMainLooper(5, TimeUnit.SECONDS)
+        idleMainUntil { vm.state.value.current == 1 }
     }
 }

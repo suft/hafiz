@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import suft.android.hafiz.AppContainer
 import suft.android.hafiz.domain.Quran
@@ -60,12 +61,16 @@ import suft.android.hafiz.ui.quiz.TrophyBadge
 import suft.android.hafiz.ui.quiz.answer
 import suft.android.hafiz.ui.quiz.OptionState
 import suft.android.hafiz.ui.quiz.rememberTouchExplorationEnabled
-import suft.android.hafiz.ui.theme.NaskhFont
 
 /** The Makki-or-Madani game: five surahs, answer where each was revealed. */
 @Composable
 fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, onMainMenu: () -> Unit) {
     val vm: RevelationViewModel = viewModel { RevelationViewModel(container) }
+    // The feedback timer runs only while the screen is resumed.
+    LifecycleResumeEffect(vm) {
+        vm.setForeground(true)
+        onPauseOrDispose { vm.setForeground(false) }
+    }
     val state by vm.state.collectAsStateWithLifecycle()
     val strings = LocalStrings.current
     val haptics = LocalHapticFeedback.current
@@ -146,7 +151,7 @@ fun RevelationScreen(container: AppContainer, quran: Quran, onBack: () -> Unit, 
                                     strings.revelationSurah(
                                         quran.surahs[state.questions[index].surahIndex].displayName(strings.language),
                                     ),
-                                    style = MaterialTheme.typography.headlineMedium.copy(fontFamily = NaskhFont),
+                                    style = MaterialTheme.typography.headlineMedium,
                                     color = MaterialTheme.colorScheme.primary,
                                     textAlign = TextAlign.Center,
                                 )
