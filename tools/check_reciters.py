@@ -5,10 +5,11 @@ Reads the reciter folders from app/src/main/java/suft/android/hafiz/audio/Recite
 counts from the bundled Quran text, then lists each folder on everyayah.com and reports missing files and
 suspiciously small ones (truncated uploads).
 
-Exit status: 0 = complete, 1 = missing or tiny files, 2 = the site could not be reached.
+Exit status: 0 = complete, 1 = missing or tiny files or a missing reciter folder (HTTP 4xx), 2 = the site could not be reached.
 
 Usage: python3 tools/check_reciters.py      (or: mise run reciters)
 """
+import http.client
 import re
 import sys
 import time
@@ -26,17 +27,26 @@ TIMEOUT_S = 60
 BACKOFF_S = (5, 10)
 MIN_BYTES = 4096
 
+
+class FolderMissing(Exception):
+    pass
+
+
 # Known server-side defects we cannot fix: (folder, file stem) -> reported as a warning only.
 KNOWN_TRUNCATED = {("mahmoud_ali_al_banna_32kbps", "012067")}
 
-FOLDER = re.compile(r'Reciter\(\s*"[^"]*",\s*"[^"]*",\s*"([^"]+)"\s*\)')
+FOLDER = re.compile(r'Reciter\(\s*"[^"]*",\s*"[^"]*",\s*"([^"]+)"\s*,?\s*\)')
 FILE = re.compile(r'<span class="name">(\d{6})\.mp3</span>.*?<td data-order="(\d+)">', re.S)
 
 
 def reciter_folders():
-    folders = FOLDER.findall(RECITERS_KT.read_text(encoding="utf-8"))
+    text = RECITERS_KT.read_text(encoding="utf-8")
+    folders = FOLDER.findall(text)
     if not folders:
         sys.exit(f"no reciters found in {RECITERS_KT}")
+    entries = len(re.findall(r'Reciter\(\s*"', text))
+    if len(folders) != entries:
+        sys.exit(f"parsed {len(folders)} of {entries} Reciter(...) entries in Reciters.kt")
     return folders
 
 
@@ -59,10 +69,14 @@ def listing(folder):
             with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
                 html = response.read().decode("utf-8", "replace")
             return {stem: int(size) for stem, size in FILE.findall(html)}
-        except (urllib.error.URLError, TimeoutError) as e:
+        except urllib.error.HTTPError as e:
+            if e.code < 500:
+                raise FolderMissing(f"{folder}: HTTP {e.code}") from e
             last = e
-            if attempt < len(BACKOFF_S):
-                time.sleep(BACKOFF_S[attempt])
+        except (OSError, http.client.HTTPException) as e:
+            last = e
+        if attempt < len(BACKOFF_S):
+            time.sleep(BACKOFF_S[attempt])
     raise ConnectionError(f"{folder}: {last}")
 
 
@@ -72,6 +86,10 @@ def main():
     for folder in reciter_folders():
         try:
             found = listing(folder)
+        except FolderMissing as e:
+            failed = True
+            print(f"FAIL {e}")
+            continue
         except ConnectionError as e:
             print(f"network error: {e}", file=sys.stderr)
             return 2
