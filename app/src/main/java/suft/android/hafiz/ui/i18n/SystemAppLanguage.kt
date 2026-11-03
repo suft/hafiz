@@ -13,17 +13,13 @@ object SystemAppLanguage {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
         val locales = context.getSystemService(LocaleManager::class.java)?.applicationLocales ?: return null
         if (locales.isEmpty) return null
-        return when (locales[0].language) {
-            "ar" -> AppLanguage.Arabic
-            "en" -> AppLanguage.English
-            else -> null
-        }
+        return AppLanguage.entries.firstOrNull { it.tag == locales[0].language }
     }
 
     /** Records [language] as the system per-app language; no-op below Android 13. */
     fun set(context: Context, language: AppLanguage) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val manager = context.getSystemService(LocaleManager::class.java) ?: return
-        manager.applicationLocales = LocaleList.forLanguageTags(if (language == AppLanguage.English) "en" else "ar")
+        manager.applicationLocales = LocaleList.forLanguageTags(language.tag)
     }
 }

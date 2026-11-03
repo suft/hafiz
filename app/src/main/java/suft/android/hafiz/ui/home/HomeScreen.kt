@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -280,10 +281,31 @@ private fun HomeTile(icon: ImageVector, title: String, subtitle: String, onClick
             ) {
                 Icon(icon, contentDescription = null, tint = scheme.onPrimaryContainer)
             }
-            Text(title, style = MaterialTheme.typography.titleLarge)
+            WordSafeTitle(title)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant)
         }
     }
+}
+
+/**
+ * Tile title that wraps between words only: when a line would break inside a word (a long translation in a narrow
+ * tile), the text shrinks in 8% steps, down to 70%, until every break falls on a space.
+ */
+@Composable
+private fun WordSafeTitle(title: String) {
+    val style = MaterialTheme.typography.titleLarge
+    var scale by remember(title, style) { mutableFloatStateOf(1f) }
+    Text(
+        title,
+        style = style.copy(fontSize = style.fontSize * scale),
+        onTextLayout = { layout ->
+            val breaksWord = (0 until layout.lineCount - 1).any { line ->
+                val last = title[layout.getLineEnd(line) - 1]
+                !last.isWhitespace() && last != '-'
+            }
+            if (breaksWord && scale > 0.7f) scale *= 0.92f
+        },
+    )
 }
 
 /** Endonyms, shown on the language tiles and read by TalkBack: they do not change with the UI language. */
@@ -291,6 +313,11 @@ private val AppLanguage.endonym: String
     get() = when (this) {
         AppLanguage.Arabic -> "العربية"
         AppLanguage.English -> "English"
+        AppLanguage.German -> "Deutsch"
+        AppLanguage.Spanish -> "Español"
+        AppLanguage.French -> "Français"
+        AppLanguage.Italian -> "Italiano"
+        AppLanguage.Portuguese -> "Português"
     }
 
 /** 48 dp round button pinned to a top corner of the main menu. */
@@ -349,8 +376,8 @@ private fun FullScreenOverlay(
 }
 
 /**
- * Full-screen, opaque settings page: the app language (each language's own name, forced LTR so the tiles keep their
- * places when the language switches) and the mushaf edition that Where's the Ayah? uses. Choices apply
+ * Full-screen, opaque settings page: the app language (a full-width row per language, each in its own name) and the
+ * mushaf edition that Where's the Ayah? uses. Choices apply
  * immediately and the page stays open until × or Back.
  */
 @Composable
@@ -373,11 +400,9 @@ private fun SettingsOverlay(
         )
         Text(strings.settings, style = MaterialTheme.typography.headlineSmall)
         Text(strings.languageLabel, style = MaterialTheme.typography.labelLarge, color = labelColor)
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                AppLanguage.entries.forEach { lang ->
-                    LanguageOption(lang, lang == language) { if (lang != language) onLanguage(lang) }
-                }
+        Column(Modifier.fillMaxWidth().selectableGroup(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            AppLanguage.entries.forEach { lang ->
+                LanguageOption(lang, lang == language) { if (lang != language) onLanguage(lang) }
             }
         }
         Text(
@@ -397,11 +422,12 @@ private fun SettingsOverlay(
 @Composable
 private fun LanguageOption(language: AppLanguage, selected: Boolean, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    val shape = RoundedCornerShape(24.dp)
+    val shape = RoundedCornerShape(16.dp)
     val source = remember { MutableInteractionSource() }
     Surface(
         modifier = Modifier
-            .size(112.dp)
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
             .pressScale(source)
             .clip(shape)
             .selectable(
@@ -417,14 +443,14 @@ private fun LanguageOption(language: AppLanguage, selected: Boolean, onClick: ()
         border = if (selected) BorderStroke(2.dp, scheme.primary) else null,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            // Sized in dp so a large system font cannot push the name out of its tile.
             Text(
                 language.endonym,
-                fontSize = with(LocalDensity.current) { 22.dp.toSp() },
-                fontFamily = if (language == AppLanguage.Arabic) NaskhFont else InterFont,
-                fontWeight = FontWeight.Bold,
-                color = if (selected) scheme.onPrimaryContainer else scheme.onSurface,
-                modifier = Modifier.clearAndSetSemantics {},
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = if (language == AppLanguage.Arabic) NaskhFont else InterFont,
+                    fontWeight = FontWeight.Bold,
+                ),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp).clearAndSetSemantics {},
             )
         }
     }

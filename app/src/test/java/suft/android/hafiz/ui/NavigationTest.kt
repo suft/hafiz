@@ -36,6 +36,8 @@ import suft.android.hafiz.domain.MushafEdition
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.ui.i18n.ArabicStrings
 import suft.android.hafiz.ui.i18n.EnglishStrings
+import suft.android.hafiz.ui.i18n.GermanStrings
+import suft.android.hafiz.ui.i18n.PortugueseStrings
 
 @RunWith(RobolectricTestRunner::class)
 class NavigationTest {
@@ -151,16 +153,19 @@ class NavigationTest {
         waitForHome()
         rule.onNodeWithContentDescription(ArabicStrings.settings).performClick()
         val radio = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton)
-        rule.onAllNodes(radio).assertCountEquals(4)
-        rule.onNodeWithContentDescription("English").performClick()
+        rule.onAllNodes(radio).assertCountEquals(9)
+        rule.onNodeWithContentDescription("English").performScrollTo().performClick()
         // The page re-renders in English and stays open.
         waitForText(EnglishStrings.mushafEditionLabel)
         assertEquals("en", localeManager.applicationLocales.toLanguageTags())
-        rule.onNodeWithText(EnglishStrings.mushafEditionName(MushafEdition.V2)).performScrollTo().performClick()
+        rule.onNodeWithContentDescription("Deutsch").performScrollTo().performClick()
+        waitForText(GermanStrings.mushafEditionLabel)
+        assertEquals("de", localeManager.applicationLocales.toLanguageTags())
+        rule.onNodeWithText(GermanStrings.mushafEditionName(MushafEdition.V2)).performScrollTo().performClick()
         val container = (rule.activity.application as HafizApp).container
         rule.waitUntil(5_000) { runBlocking { container.progress.progress.first().mushafEdition } == MushafEdition.V2 }
-        rule.onNodeWithContentDescription(EnglishStrings.back).performClick()
-        waitForText(EnglishStrings.statistics)
+        rule.onNodeWithContentDescription(GermanStrings.back).performClick()
+        waitForText(GermanStrings.statistics)
     }
 
     @Test
@@ -169,6 +174,14 @@ class NavigationTest {
         rule.runOnUiThread { localeManager.applicationLocales = LocaleList.forLanguageTags("en") }
         rule.activityRule.scenario.recreate()
         waitForText(EnglishStrings.statistics)
+    }
+
+    @Test
+    fun regionalSystemLocaleSelectsItsLanguage() {
+        waitForHome()
+        rule.runOnUiThread { localeManager.applicationLocales = LocaleList.forLanguageTags("pt-BR") }
+        rule.activityRule.scenario.recreate()
+        waitForText(PortugueseStrings.statistics)
     }
 
     @Test

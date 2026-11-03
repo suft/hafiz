@@ -18,7 +18,7 @@ class Surah(
     val ayahRange: IntRange get() = firstAyah..lastAyah
 
     fun displayName(language: AppLanguage): String =
-        if (language == AppLanguage.English) SurahNames.english[index] else name
+        if (language == AppLanguage.Arabic) name else SurahNames.transliterated[index]
 
     override fun toString() = "Surah($number $name, $ayahCount ayahs)"
 }
@@ -50,6 +50,11 @@ class Quran private constructor(
         return when (language) {
             AppLanguage.Arabic -> "سورة $name · " + if (single) "الآية $first" else "الآيات $first–$last"
             AppLanguage.English -> "Surah $name · " + if (single) "Ayah $first" else "Ayahs $first–$last"
+            AppLanguage.German -> "Sure $name · " + if (single) "Vers $first" else "Verse $first–$last"
+            AppLanguage.Spanish -> "Sura $name · " + if (single) "Aleya $first" else "Aleyas $first–$last"
+            AppLanguage.French -> "Sourate $name · " + if (single) "Verset $first" else "Versets $first–$last"
+            AppLanguage.Italian -> "Sura $name · " + if (single) "Versetto $first" else "Versetti $first–$last"
+            AppLanguage.Portuguese -> "Surata $name · " + if (single) "Versículo $first" else "Versículos $first–$last"
         }
     }
 

@@ -2,7 +2,7 @@ package suft.android.hafiz.domain
 
 object SurahNames {
     /** quran.com transliterations; index = 0-based surah index. */
-    val english: List<String> = listOf(
+    val transliterated: List<String> = listOf(
         "Al-Fatihah", "Al-Baqarah", "Ali 'Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am", "Al-A'raf",
         "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl",
         "Al-Isra", "Al-Kahf", "Maryam", "Taha", "Al-Anbya", "Al-Hajj", "Al-Mu'minun", "An-Nur",

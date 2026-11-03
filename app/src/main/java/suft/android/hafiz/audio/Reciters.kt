@@ -4,8 +4,8 @@ import java.util.Locale
 import suft.android.hafiz.domain.AppLanguage
 
 /** A reciter whose per-ayah MP3s are hosted on everyayah.com. */
-data class Reciter(val arabicName: String, val englishName: String, val folder: String) {
-    fun name(language: AppLanguage): String = if (language == AppLanguage.English) englishName else arabicName
+data class Reciter(val arabicName: String, val latinName: String, val folder: String) {
+    fun name(language: AppLanguage): String = if (language == AppLanguage.Arabic) arabicName else latinName
 
     /** e.g. https://everyayah.com/data/Alafasy_64kbps/002255.mp3 (both numbers 1-based). */
     fun url(surahNumber: Int, ayahNumber: Int): String =

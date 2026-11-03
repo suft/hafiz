@@ -46,6 +46,20 @@ class QuizLogicTest {
         assertEquals("سورتا التكوير والإنفطار", ayahLevels[3].name(AppLanguage.Arabic))
         assertEquals("فواتح السور", ayahLevels[23].name(AppLanguage.Arabic))
         assertTrue(ayahLevels[23].openings)
+        assertEquals("جزء قد سمع (المجادلة حتى التحريم)", surahLevels[6].name(AppLanguage.Arabic))
+        assertEquals("Juz' Qad Sami' (Al-Mujadila to At-Tahrim)", surahLevels[6].name(AppLanguage.English))
+    }
+
+    @Test
+    fun levelNamesAreDistinctInEveryLanguage() {
+        for (style in GameStyle.entries) {
+            val levels = Levels.forStyle(style, quran)
+            for (language in AppLanguage.entries) {
+                val names = levels.map { it.name(language) }
+                assertTrue("$style $language: blank name", names.none { it.isBlank() })
+                assertEquals("$style $language: duplicate names", names.size, names.toSet().size)
+            }
+        }
     }
 
     @Test
@@ -72,7 +86,7 @@ class QuizLogicTest {
 
     @Test
     fun englishLabels() {
-        assertEquals(114, SurahNames.english.toSet().size)
+        assertEquals(114, SurahNames.transliterated.toSet().size)
         assertEquals("Al-Baqarah", quran.surahs[1].displayName(AppLanguage.English))
         assertEquals("An-Nas", quran.surahs[113].displayName(AppLanguage.English))
         assertEquals("الفاتحة", quran.surahs[0].displayName(AppLanguage.Arabic))
@@ -81,12 +95,15 @@ class QuizLogicTest {
         assertEquals("Surah Al-Baqarah · Ayah 255", quran.reference(b..b, AppLanguage.English))
         assertEquals("سورة البقرة · الآية ٢٥٥", quran.reference(b..b, AppLanguage.Arabic))
         assertEquals("Surah Al-Fatihah · Ayahs 1–2", quran.reference(0..1, AppLanguage.English))
+        assertEquals("Sure Al-Baqarah · Vers 255", quran.reference(b..b, AppLanguage.German))
 
         val ayahLevels = Levels.forStyle(GameStyle.NextAyah, quran)
         val surahLevels = Levels.forStyle(GameStyle.GuessSurah, quran)
         assertEquals("Surah Ya-Sin", ayahLevels[13].name(AppLanguage.English))
         assertEquals("Surahs At-Takwir and Al-Infitar", ayahLevels[3].name(AppLanguage.English))
+        assertEquals("Suren At-Takwir und Al-Infitar", ayahLevels[3].name(AppLanguage.German))
         assertEquals("Al-'Adiyat to An-Nas", surahLevels[0].name(AppLanguage.English))
+        assertEquals("Al-'Adiyat à An-Nas", surahLevels[0].name(AppLanguage.French))
         assertEquals("Second half of the Quran (Al-Kahf to An-Nas)", surahLevels[14].name(AppLanguage.English))
     }
 

@@ -28,7 +28,7 @@ Use Play App Signing with a Google-generated app-signing key. `release.jks` (ali
 
 Grow → Store presence → Main store listing.
 
-- Paste `en-US/*` into the default listing. Add the Arabic translation from `ar/*`.
+- Paste `en-US/*` into the default listing. Add the translations from `ar/*`, `de-DE/*`, `es-ES/*`, `fr-FR/*`, `it-IT/*` and `pt-BR/*`. Only `en-US` and `ar` have graphics and screenshots; Play shows the default (en-US) ones for the other translations.
 - Category: Game → **Educational**.
 - Contact email `sufientout@gmail.com`; website `https://github.com/suft/hafiz`.
 - Icon and feature graphic: upload each locale's `images/icon.png` and `featureGraphic.png` (`en-US` for the default listing, `ar` for the Arabic translation; the files are identical). Regenerate them with `mise run store-graphics`.

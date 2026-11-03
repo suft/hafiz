@@ -1,0 +1,30 @@
+Hafiz é um quiz que testa o quanto você memorizou o Sagrado Alcorão. Leia ou ouça um versículo e responda.
+
+TRÊS ESTILOS DE PERGUNTA
+• Adivinhe a surata: leia ou ouça um versículo e escolha a surata de onde ele vem (20 níveis).
+• Próximo versículo: escolha o versículo que vem depois do exibido (25 níveis).
+• Onde está o versículo?: escolha onde o versículo começa no mushaf aberto de Medina (edição de 1405 H ou 1421 H, à sua escolha nas Configurações): a página direita ou esquerda e o terço superior, central ou inferior (25 níveis).
+
+MODOS DE JOGO
+• Normal: rodadas de tamanho fixo. Alcance a pontuação de domínio para dominar cada nível.
+• Sobrevivência: perguntas sem fim; o primeiro erro encerra o jogo.
+• Mutashabihat: perguntas de todo o Alcorão cujas opções erradas são versículos e suratas parecidos; três erros encerram o jogo.
+• Mecana ou Medinense: diga onde cada uma de cinco suratas foi revelada.
+
+Os níveis vão das suratas curtas do Juz' 'Amma até o Alcorão inteiro. As opções erradas são escolhidas para se parecerem com a certa, então é preciso conhecer o texto, e não adivinhar pelo tamanho ou pelo estilo.
+
+OUÇA ENQUANTO JOGA
+• 26 recitadores, entre eles Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi e Maher Al-Muaiqly.
+• As recitações ficam em cache no seu celular, então os versículos que você já ouviu tocam de novo sem internet.
+
+ACOMPANHE SEU PROGRESSO
+• Precisão geral e por estilo, um mapa das 114 suratas e as suratas que precisam de revisão.
+• Pratique uma única surata fraca com um toque.
+• Sequências de dias, evolução da pontuação e suas rodadas recentes.
+
+TAMBÉM
+• Interface disponível em árabe, inglês, espanhol, português, francês, italiano e alemão; o texto do Alcorão é sempre em árabe, na fonte Amiri Quran.
+• Tema escuro.
+• Sem anúncios, sem conta, sem rastreamento.
+
+Texto do Alcorão: Tanzil Project (tanzil.net), sem modificações. Recitações: everyayah.com. Dados de Mutashabihat: Aswaatul Qurraa. Posições no mushaf: quran.com.

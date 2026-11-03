@@ -44,7 +44,7 @@ OUT = {
     "ar": "fastlane/metadata/android/ar/images/phoneScreenshots",
     "en": "fastlane/metadata/android/en-US/images/phoneScreenshots",
 }
-# Must follow ArabicStrings / EnglishStrings in app/src/main/java/suft/android/hafiz/ui/i18n/Strings.kt.
+# Must follow ArabicStrings / EnglishStrings in app/src/main/java/suft/android/hafiz/ui/i18n/ArabicStrings.kt / EnglishStrings.kt.
 LABELS = {
     "ar": {"play": "العب", "regular": "عادي", "guess": "آية وسورة", "position": "أين الآية؟",
            "stats": "إحصائيات", "surahs": "السور", "credits": "شكر وتقدير", "sources": "المصادر"},

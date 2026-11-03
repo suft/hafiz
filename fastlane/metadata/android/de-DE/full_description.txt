@@ -1,0 +1,30 @@
+Hafiz ist ein Quiz, das testet, wie gut du den Heiligen Koran auswendig kannst. Lies oder höre einen Vers und antworte dann.
+
+DREI FRAGENARTEN
+• Errate die Sure: Lies oder höre einen Vers und wähle die Sure, aus der er stammt (20 Stufen).
+• Nächster Vers: Wähle den Vers, der auf den angezeigten folgt (25 Stufen).
+• Wo steht der Vers?: Wähle, wo der Vers im aufgeschlagenen Medina-Mushaf beginnt (Druck von 1405 oder 1421 n. H., in den Einstellungen wählbar): auf der rechten oder linken Seite und im oberen, mittleren oder unteren Drittel (25 Stufen).
+
+SPIELMODI
+• Normal: Runden fester Länge. Erreiche die Meisterpunktzahl, um jede Stufe zu meistern.
+• Überleben: Endlose Fragen; der erste Fehler beendet das Spiel.
+• Mutashabihat: Fragen aus dem ganzen Koran, deren falsche Optionen ähnliche Verse und Suren sind; drei Fehler beenden das Spiel.
+• Mekkanisch oder Medinensisch: Sag, wo jede von fünf Suren offenbart wurde.
+
+Die Stufen reichen von den kurzen Suren des Juz' 'Amma bis zum ganzen Koran. Falsche Optionen werden so gewählt, dass sie der richtigen Antwort ähneln; du musst also den Text kennen und kannst nicht nach Länge oder Stil raten.
+
+HÖREN WÄHREND DES SPIELENS
+• 26 Rezitatoren, darunter Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi und Maher Al-Muaiqly.
+• Rezitationen werden auf deinem Handy zwischengespeichert, sodass bereits gehörte Verse ohne Internet wieder abspielbar sind.
+
+VERFOLGE DEINEN FORTSCHRITT
+• Trefferquote insgesamt und je Fragenart, eine Karte aller 114 Suren und die Suren, die Wiederholung brauchen.
+• Übe eine einzelne schwache Sure mit einem Tipp.
+• Tagesserien, Ergebnisverläufe und deine letzten Runden.
+
+AUSSERDEM
+• Oberfläche auf Arabisch, Englisch, Spanisch, Portugiesisch, Französisch, Italienisch und Deutsch; der Koran-Text ist immer Arabisch, gesetzt in der Schrift Amiri Quran.
+• Dunkles Design.
+• Keine Werbung, kein Konto, kein Tracking.
+
+Koran-Text: Tanzil Project (tanzil.net), unverändert. Rezitationen: everyayah.com. Mutashabihat-Daten: Aswaatul Qurraa. Mushaf-Positionen: quran.com.

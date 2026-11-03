@@ -1,0 +1,30 @@
+Hafiz è un quiz che verifica quanto bene hai memorizzato il Sacro Corano. Leggi o ascolta un versetto, poi rispondi.
+
+TRE TIPI DI DOMANDA
+• Indovina la sura: leggi o ascolta un versetto e scegli la sura da cui proviene (20 livelli).
+• Versetto successivo: scegli il versetto che segue quello mostrato (25 livelli).
+• Dov’è il versetto?: scegli dove inizia il versetto nel mushaf di Medina aperto (edizione del 1405 H o del 1421 H, a scelta nelle Impostazioni): pagina destra o sinistra, e terzo superiore, centrale o inferiore (25 livelli).
+
+MODALITÀ DI GIOCO
+• Normale: round di lunghezza fissa. Raggiungi il punteggio di padronanza per superare ogni livello.
+• Sopravvivenza: domande senza fine; il primo errore chiude la partita.
+• Mutashabihat: domande su tutto il Corano le cui risposte sbagliate sono versetti e sure simili; tre errori chiudono la partita.
+• Meccana o Medinese: indica dove è stata rivelata ciascuna di cinque sure.
+
+I livelli vanno dalle sure brevi del Juz' 'Amma a tutto il Corano. Le risposte sbagliate sono scelte per somigliare a quella giusta: devi conoscere il testo, non indovinare dalla lunghezza o dallo stile.
+
+ASCOLTA MENTRE GIOCHI
+• 26 recitatori, tra cui Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi e Maher Al-Muaiqly.
+• Le recitazioni vengono salvate nel telefono, così i versetti già ascoltati si riascoltano senza internet.
+
+SEGUI I TUOI PROGRESSI
+• Precisione complessiva e per tipo di domanda, una mappa di tutte le 114 sure e le sure da ripassare.
+• Esercitati su una singola sura debole con un tocco.
+• Serie di giorni, andamento dei punteggi e round recenti.
+
+INOLTRE
+• Interfaccia in arabo, inglese, spagnolo, portoghese, francese, italiano e tedesco; il testo del Corano è sempre in arabo, nel carattere Amiri Quran.
+• Tema scuro.
+• Nessuna pubblicità, nessun account, nessun tracciamento.
+
+Testo del Corano: Tanzil Project (tanzil.net), senza modifiche. Recitazioni: everyayah.com. Dati sui mutashabihat: Aswaatul Qurraa. Posizioni nel mushaf: quran.com.

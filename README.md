@@ -9,7 +9,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue" alt="MIT licence"></a>
   <img src="https://img.shields.io/badge/Android-7.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 7.0+ (minSdk 24)">
   <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin, Jetpack Compose">
-  <img src="https://img.shields.io/badge/languages-Arabic%20%C2%B7%20English-informational" alt="Languages: Arabic, English">
+  <img src="https://img.shields.io/badge/languages-Arabic%20%C2%B7%20English%20%C2%B7%20Deutsch%20%C2%B7%20Espa%C3%B1ol%20%C2%B7%20Fran%C3%A7ais%20%C2%B7%20Italiano%20%C2%B7%20Portugu%C3%AAs-informational" alt="Languages: Arabic, English, German, Spanish, French, Italian, Portuguese">
 </p>
 
 A Quran memorisation quiz for Android, written in **Kotlin + Jetpack Compose** with a **mise** toolchain.
@@ -51,7 +51,7 @@ Survival keeps a best score per level; Mutashabihat keeps one best score per sty
 
 Recitations stream from [everyayah.com](https://everyayah.com) (26 reciters). Quran text: [Tanzil](https://tanzil.net) (Simple, v1.0.2).
 
-The interface language (Arabic or English) and the mushaf print that Where's the Ayah? uses (1405H v1, the default, or 1421H v2) are chosen in Settings, the gear button on the main menu; scores and statistics are shared by both prints. On Android 13 and later the language is also the app's language in the system settings (Apps → Hafiz → Language), and changing either one changes both. The Quran text is always Arabic.
+The interface language (Arabic, English, German, Spanish, French, Italian or Brazilian Portuguese; Arabic is the default) and the mushaf print that Where's the Ayah? uses (1405H v1, the default, or 1421H v2) are chosen in Settings, the gear button on the main menu; scores and statistics are shared by both prints. On Android 13 and later the language is also the app's language in the system settings (Apps → Hafiz → Language), and changing either one changes both. The Quran text is always Arabic.
 
 ---
 
@@ -140,6 +140,6 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 - **Recitations:** streamed from everyayah.com. One clip is truncated on the server and cannot be fixed here: `mahmoud_ali_al_banna_32kbps/012067.mp3` (surah 12, ayah 67). `mise run reciters` (also a weekly GitHub workflow) checks that every reciter has all 6236 files and lists known defects as warnings.
 - **Mutashabihat mode:** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site; the developer has Team Aswaatul Qurraa's permission to use the data in Hafiz. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Mutashabihat mode has traps for them too. Review those pairs before a release.
 - **Where's the Ayah?:** the page and line where each ayah starts in the Madinah mushaf (the 1405H print, KFGQPC v1, and the 1421H print, KFGQPC v2: both 604 pages of 15 lines) come from the [quran.com API](https://api.quran.com/api/v4) (`v1_page` / `line_v1` and `v2_page` / `line_v2` of each ayah's first word); only those numbers are bundled (`assets/mushaf_layout_v1.txt`, `assets/mushaf_layout_v2.txt`) and the credits screen credits the source.
-- **Fonts:** Amiri / Amiri Quran, Rakkas, Marhey (the Bold instance of its variable font, English app title only), Inter and IBM Plex Sans Arabic are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`).
+- **Fonts:** Amiri / Amiri Quran, Rakkas, Marhey (the Bold instance of its variable font, Latin-script app title only), Inter and IBM Plex Sans Arabic are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`).
 - **Icons:** [Phosphor Icons](https://phosphoricons.com) (MIT, `assets/licenses/Phosphor-MIT.txt`) and [Hugeicons](https://hugeicons.com) free icons (MIT, `assets/licenses/Hugeicons-MIT.txt`: the Kaaba and the Prophet's Mosque), converted to vector drawables by `tools/icons.py`.
 - **Artwork:** `res/drawable-nodpi/hafiz.png` (launcher icon, loading screen and the Play icon and feature graphic) and the launcher icons are the developer's own work, all rights reserved; the MIT licence does not cover them.

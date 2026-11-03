@@ -62,7 +62,7 @@ class QuestionCorrectnessTest {
             for ((traps, gen) in everyTrapSetting(level)) {
                 for (p in gen.promptPool) {
                     val q = gen.questionFor(p)
-                    val where = "${level.arabicName} traps=$traps ${quran.reference(p, AppLanguage.English)}"
+                    val where = "${level.name(AppLanguage.Arabic)} traps=$traps ${quran.reference(p, AppLanguage.English)}"
                     assertEquals(where, 4, q.options.toSet().size)
                     val surah = quran.surahOf(p.first)
                     assertEquals(where, surah.name, q.options[q.correctOption])
@@ -86,7 +86,7 @@ class QuestionCorrectnessTest {
             for ((traps, gen) in everyTrapSetting(level)) {
                 for (p in gen.promptPool) {
                     val q = gen.questionFor(p)
-                    val where = "${level.arabicName} traps=$traps ${quran.reference(p, AppLanguage.English)}"
+                    val where = "${level.name(AppLanguage.Arabic)} traps=$traps ${quran.reference(p, AppLanguage.English)}"
                     val answer = p.last + 1
                     assertEquals(where, quran.surahOf(p.first), quran.surahOf(answer))
                     val labels = q.options.map(::norm)
@@ -123,7 +123,7 @@ class QuestionCorrectnessTest {
                         }
                     }
                     assertTrue(
-                        "${style.name} «${level.arabicName}» ${quran.reference(p, AppLanguage.English)}: no trap option",
+                        "${style.name} «${level.name(AppLanguage.Arabic)}» ${quran.reference(p, AppLanguage.English)}: no trap option",
                         hasTrap,
                     )
                 }
@@ -135,7 +135,7 @@ class QuestionCorrectnessTest {
     fun bismillahIsNeverAGuessSurahPrompt() {
         for (level in Levels.forStyle(GameStyle.GuessSurah, quran).filter { !it.openings }) {
             for (traps in listOf(false, true)) {
-                assertFalse("${level.arabicName} traps=$traps deals 1:1", (0..0) in generator(level, traps).promptPool)
+                assertFalse("${level.name(AppLanguage.Arabic)} traps=$traps deals 1:1", (0..0) in generator(level, traps).promptPool)
             }
         }
     }
@@ -231,7 +231,7 @@ class QuestionCorrectnessTest {
             }
             for ((name, total) in totals) {
                 val rate = total / rounds
-                assertTrue("${level.arabicName} light=$light: $name picks the answer in %.3f".format(rate), rate < 0.42)
+                assertTrue("${level.name(AppLanguage.Arabic)} light=$light: $name picks the answer in %.3f".format(rate), rate < 0.42)
             }
         }
     }
@@ -241,12 +241,12 @@ class QuestionCorrectnessTest {
         for (style in GameStyle.entries.filter { it.hasLookAlikes }) {
             for (level in Levels.forStyle(style, quran).filter { !it.openings }) {
                 val gen = lightGenerator(level)
-                assertEquals("${level.arabicName}: light traps must not shrink the pool", generator(level, false).promptPool, gen.promptPool)
+                assertEquals("${level.name(AppLanguage.Arabic)}: light traps must not shrink the pool", generator(level, false).promptPool, gen.promptPool)
                 val range = level.surahRange
                 for (p in gen.promptPool.shuffled(Random(level.index)).take(300)) {
                     val q = gen.questionFor(p)
                     val wrong = q.options.filterIndexed { i, _ -> i != q.correctOption }
-                    val where = "$style «${level.arabicName}» ${quran.reference(p, AppLanguage.English)}"
+                    val where = "$style «${level.name(AppLanguage.Arabic)}» ${quran.reference(p, AppLanguage.English)}"
                     when (style) {
                         GameStyle.GuessSurah -> {
                             val optionSurahs = q.options.map { name -> quran.surahs.first { it.name == name }.index }
@@ -292,7 +292,7 @@ class QuestionCorrectnessTest {
                 val gen = positionGenerator(level, edition)
                 for (p in gen.promptPool) {
                     val q = gen.questionFor(p)
-                    val where = "$edition ${level.arabicName} ${quran.reference(p, AppLanguage.English)}"
+                    val where = "$edition ${level.name(AppLanguage.Arabic)} ${quran.reference(p, AppLanguage.English)}"
                     assertEquals(where, labels, q.options)
                     assertEquals(where, layout.cell(p.first)!!.ordinal, q.correctOption)
                     assertTrue("$where: framed page", layout.page(p.first) > 2)

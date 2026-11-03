@@ -34,6 +34,46 @@ enum class MushafCell(val side: PageSide, val third: PageThird) {
             LeftMiddle -> "Middle left"
             LeftBottom -> "Bottom left"
         }
+        AppLanguage.German -> when (this) {
+            RightTop -> "Oben rechts"
+            RightMiddle -> "Mitte rechts"
+            RightBottom -> "Unten rechts"
+            LeftTop -> "Oben links"
+            LeftMiddle -> "Mitte links"
+            LeftBottom -> "Unten links"
+        }
+        AppLanguage.Spanish -> when (this) {
+            RightTop -> "Arriba a la derecha"
+            RightMiddle -> "En medio a la derecha"
+            RightBottom -> "Abajo a la derecha"
+            LeftTop -> "Arriba a la izquierda"
+            LeftMiddle -> "En medio a la izquierda"
+            LeftBottom -> "Abajo a la izquierda"
+        }
+        AppLanguage.French -> when (this) {
+            RightTop -> "En haut à droite"
+            RightMiddle -> "Au milieu à droite"
+            RightBottom -> "En bas à droite"
+            LeftTop -> "En haut à gauche"
+            LeftMiddle -> "Au milieu à gauche"
+            LeftBottom -> "En bas à gauche"
+        }
+        AppLanguage.Italian -> when (this) {
+            RightTop -> "In alto a destra"
+            RightMiddle -> "Al centro a destra"
+            RightBottom -> "In basso a destra"
+            LeftTop -> "In alto a sinistra"
+            LeftMiddle -> "Al centro a sinistra"
+            LeftBottom -> "In basso a sinistra"
+        }
+        AppLanguage.Portuguese -> when (this) {
+            RightTop -> "Em cima à direita"
+            RightMiddle -> "No meio à direita"
+            RightBottom -> "Embaixo à direita"
+            LeftTop -> "Em cima à esquerda"
+            LeftMiddle -> "No meio à esquerda"
+            LeftBottom -> "Embaixo à esquerda"
+        }
     }
 
     companion object {

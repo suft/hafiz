@@ -49,8 +49,7 @@ enum class GameStyle(
 data class Level(
     val style: GameStyle,
     val index: Int,
-    val arabicName: String,
-    val englishName: String,
+    val names: Map<AppLanguage, String>,
     val firstSurah: Int,
     val lastSurah: Int,
     val openings: Boolean = false,
@@ -60,7 +59,7 @@ data class Level(
     /** Score needed for this level to count as mastered. */
     val masteryScore: Int get() = style.masteryFor(questionsPerRound)
 
-    fun name(language: AppLanguage): String = if (language == AppLanguage.English) englishName else arabicName
+    fun name(language: AppLanguage): String = names.getValue(language)
 
     /** Stable key used to persist the best score (independent of list order). */
     val id: String
@@ -74,13 +73,141 @@ data class Level(
 /** Level tables, taken from the original app (surah numbers are 1-based here). */
 object Levels {
 
+    /** Guess-the-Surah levels named after a part of the Quran, followed by their surah range in brackets. */
+    private enum class Part { JuzQadSami, JuzAdhDhariyat, LastQuarterFromYaSin, SecondHalf }
+
     private data class Spec(
         val first: Int,
         val last: Int,
         val openings: Boolean = false,
         val arabicName: String? = null,
-        val englishName: String? = null,
+        val part: Part? = null,
     )
+
+    private class LevelWords(
+        val openings: String,
+        val wholeQuran: String,
+        val juzAmma: String,
+        val juzTabarak: String,
+        val juzTabarakAndAmma: String,
+        val part: (Part) -> String,
+        val surah: (String) -> String,
+        val twoSurahs: (String, String) -> String,
+        val range: (String, String) -> String,
+        val review: (String) -> String,
+    )
+
+    private fun wordsFor(language: AppLanguage): LevelWords = when (language) {
+        AppLanguage.Arabic -> LevelWords(
+            openings = "فواتح السور",
+            wholeQuran = "المصحف كاملاً",
+            juzAmma = "جزء عمَّ",
+            juzTabarak = "جزء تبارك",
+            juzTabarakAndAmma = "جزءا تبارك وعمَّ",
+            part = {
+                when (it) {
+                    Part.JuzQadSami -> "جزء قد سمع"
+                    Part.JuzAdhDhariyat -> "جزء الذاريات"
+                    Part.LastQuarterFromYaSin -> "ربع يس"
+                    Part.SecondHalf -> "نصف القرآن"
+                }
+            },
+            surah = { n -> "سورة $n" },
+            twoSurahs = { a, b -> "سورتا $a و$b" },
+            range = { a, b -> "$a حتى $b" },
+            review = { n -> "مراجعة سورة $n" },
+        )
+        AppLanguage.English -> LevelWords(
+            openings = "Surah Openings",
+            wholeQuran = "The Whole Quran",
+            juzAmma = "Juz' 'Amma",
+            juzTabarak = "Juz' Tabarak",
+            juzTabarakAndAmma = "Juz' Tabarak and Juz' 'Amma",
+            part = {
+                when (it) {
+                    Part.JuzQadSami -> "Juz' Qad Sami'"
+                    Part.JuzAdhDhariyat -> "Juz' Adh-Dhariyat"
+                    Part.LastQuarterFromYaSin -> "Last quarter from Ya-Sin"
+                    Part.SecondHalf -> "Second half of the Quran"
+                }
+            },
+            surah = { n -> "Surah $n" },
+            twoSurahs = { a, b -> "Surahs $a and $b" },
+            range = { a, b -> "$a to $b" },
+            review = { n -> "Review: Surah $n" },
+        )
+        AppLanguage.German -> LevelWords(
+            openings = "Anfänge der Suren",
+            wholeQuran = "Der ganze Koran",
+            juzAmma = JUZ_AMMA,
+            juzTabarak = JUZ_TABARAK,
+            juzTabarakAndAmma = "$JUZ_TABARAK und $JUZ_AMMA",
+            part = { latinPart(it, "Letztes Viertel ab Ya-Sin", "Zweite Hälfte des Korans") },
+            surah = { n -> "Sure $n" },
+            twoSurahs = { a, b -> "Suren $a und $b" },
+            range = { a, b -> "$a bis $b" },
+            review = { n -> "Wiederholung: Sure $n" },
+        )
+        AppLanguage.Spanish -> LevelWords(
+            openings = "Inicios de las suras",
+            wholeQuran = "El Corán completo",
+            juzAmma = JUZ_AMMA,
+            juzTabarak = JUZ_TABARAK,
+            juzTabarakAndAmma = "$JUZ_TABARAK y $JUZ_AMMA",
+            part = { latinPart(it, "Último cuarto desde Ya-Sin", "Segunda mitad del Corán") },
+            surah = { n -> "Sura $n" },
+            twoSurahs = { a, b -> "Suras $a y $b" },
+            range = { a, b -> "$a hasta $b" },
+            review = { n -> "Repaso: sura $n" },
+        )
+        AppLanguage.French -> LevelWords(
+            openings = "Débuts des sourates",
+            wholeQuran = "Le Coran entier",
+            juzAmma = JUZ_AMMA,
+            juzTabarak = JUZ_TABARAK,
+            juzTabarakAndAmma = "$JUZ_TABARAK et $JUZ_AMMA",
+            part = { latinPart(it, "Dernier quart depuis Ya-Sin", "Seconde moitié du Coran") },
+            surah = { n -> "Sourate $n" },
+            twoSurahs = { a, b -> "Sourates $a et $b" },
+            range = { a, b -> "$a à $b" },
+            review = { n -> "Révision\u00A0: sourate $n" },
+        )
+        AppLanguage.Italian -> LevelWords(
+            openings = "Inizi delle sure",
+            wholeQuran = "Il Corano intero",
+            juzAmma = JUZ_AMMA,
+            juzTabarak = JUZ_TABARAK,
+            juzTabarakAndAmma = "$JUZ_TABARAK e $JUZ_AMMA",
+            part = { latinPart(it, "Ultimo quarto da Ya-Sin", "Seconda metà del Corano") },
+            surah = { n -> "Sura $n" },
+            twoSurahs = { a, b -> "Sure $a e $b" },
+            range = { a, b -> "$a fino a $b" },
+            review = { n -> "Ripasso: sura $n" },
+        )
+        AppLanguage.Portuguese -> LevelWords(
+            openings = "Inícios das suratas",
+            wholeQuran = "O Alcorão completo",
+            juzAmma = JUZ_AMMA,
+            juzTabarak = JUZ_TABARAK,
+            juzTabarakAndAmma = "$JUZ_TABARAK e $JUZ_AMMA",
+            part = { latinPart(it, "Último quarto a partir de Ya-Sin", "Segunda metade do Alcorão") },
+            surah = { n -> "Surata $n" },
+            twoSurahs = { a, b -> "Suratas $a e $b" },
+            range = { a, b -> "$a até $b" },
+            review = { n -> "Revisão: surata $n" },
+        )
+    }
+
+    // The Latin-script languages other than English share the English spelling of the juz' names.
+    private const val JUZ_AMMA = "Juz' 'Amma"
+    private const val JUZ_TABARAK = "Juz' Tabarak"
+
+    private fun latinPart(part: Part, lastQuarter: String, secondHalf: String): String = when (part) {
+        Part.JuzQadSami -> "Juz' Qad Sami'"
+        Part.JuzAdhDhariyat -> "Juz' Adh-Dhariyat"
+        Part.LastQuarterFromYaSin -> lastQuarter
+        Part.SecondHalf -> secondHalf
+    }
 
     private val guessSurah = listOf(
         Spec(100, 114, arabicName = "العاديات حتى الناس"),
@@ -89,15 +216,15 @@ object Levels {
         Spec(78, 114, arabicName = "جزء عمَّ"),
         Spec(67, 77, arabicName = "جزء تبارك"),
         Spec(67, 114, arabicName = "جزءا تبارك وعمَّ معاً"),
-        Spec(58, 66, arabicName = "جزء قد سمع (المجادلة حتى التحريم)", englishName = "Juz' Qad Sami' (Al-Mujadila to At-Tahrim)"),
-        Spec(51, 57, arabicName = "جزء الذاريات (الذاريات حتى الحديد)", englishName = "Juz' Adh-Dhariyat (Adh-Dhariyat to Al-Hadid)"),
+        Spec(58, 66, part = Part.JuzQadSami),
+        Spec(51, 57, part = Part.JuzAdhDhariyat),
         Spec(43, 50, arabicName = "الزخرف حتى ق"),
         Spec(36, 42, arabicName = "يس حتى الشورى"),
-        Spec(36, 114, arabicName = "ربع يس (يس حتى الناس)", englishName = "Last quarter from Ya-Sin (Ya-Sin to An-Nas)"),
+        Spec(36, 114, part = Part.LastQuarterFromYaSin),
         Spec(30, 35, arabicName = "الروم حتى فاطر"),
         Spec(24, 29, arabicName = "النور حتى العنكبوت"),
         Spec(18, 23, arabicName = "الكهف حتى المؤمنون"),
-        Spec(18, 114, arabicName = "نصف القرآن (الكهف حتى الناس)", englishName = "Second half of the Quran (Al-Kahf to An-Nas)"),
+        Spec(18, 114, part = Part.SecondHalf),
         Spec(12, 17, arabicName = "يوسف حتى الإسراء"),
         Spec(7, 11, arabicName = "الأعراف حتى هود"),
         Spec(2, 6, arabicName = "البقرة حتى الأنعام"),
@@ -123,8 +250,7 @@ object Levels {
             Level(
                 style = style,
                 index = i,
-                arabicName = s.arabicName ?: autoName(s, quran, AppLanguage.Arabic),
-                englishName = s.englishName ?: autoName(s, quran, AppLanguage.English),
+                names = AppLanguage.entries.associateWith { name(s, quran, it) },
                 firstSurah = s.first - 1,
                 lastSurah = s.last - 1,
                 openings = s.openings,
@@ -146,8 +272,7 @@ object Levels {
         return Level(
             style = GameStyle.NextAyah,
             index = -1, // not part of a level table
-            arabicName = "مراجعة سورة ${surah.displayName(AppLanguage.Arabic)}",
-            englishName = "Review: Surah ${surah.displayName(AppLanguage.English)}",
+            names = AppLanguage.entries.associateWith { wordsFor(it).review(surah.displayName(it)) },
             firstSurah = surahIndex,
             lastSurah = surahIndex,
             practice = true,
@@ -164,30 +289,21 @@ object Levels {
         return GameStyle.entries.firstNotNullOfOrNull { style -> forStyle(style, quran).firstOrNull { it.id == id } }
     }
 
-    /** Same naming rules as the original "complete the ayah" levels. */
-    private fun autoName(s: Spec, quran: Quran, language: AppLanguage): String {
+    /** Same naming rules as the original "complete the ayah" levels, built from [wordsFor]. */
+    private fun name(s: Spec, quran: Quran, language: AppLanguage): String {
+        if (language == AppLanguage.Arabic && s.arabicName != null) return s.arabicName
+        val w = wordsFor(language)
         fun n(number: Int) = quran.surahs[number - 1].displayName(language)
-        if (language == AppLanguage.English) {
-            return when {
-                s.openings -> "Surah Openings"
-                s.first == 1 && s.last == 114 -> "The Whole Quran"
-                s.first == 78 && s.last == 114 -> "Juz' 'Amma"
-                s.first == 67 && s.last == 77 -> "Juz' Tabarak"
-                s.first == 67 && s.last == 114 -> "Juz' Tabarak and Juz' 'Amma"
-                s.first == s.last -> "Surah ${n(s.first)}"
-                s.first + 1 == s.last -> "Surahs ${n(s.first)} and ${n(s.last)}"
-                else -> "${n(s.first)} to ${n(s.last)}"
-            }
-        }
         return when {
-            s.openings -> "فواتح السور"
-            s.first == 1 && s.last == 114 -> "المصحف كاملاً"
-            s.first == 78 && s.last == 114 -> "جزء عمَّ"
-            s.first == 67 && s.last == 77 -> "جزء تبارك"
-            s.first == 67 && s.last == 114 -> "جزءا تبارك وعمَّ"
-            s.first == s.last -> "سورة ${n(s.first)}"
-            s.first + 1 == s.last -> "سورتا ${n(s.first)} و${n(s.last)}"
-            else -> "${n(s.first)} حتى ${n(s.last)}"
+            s.part != null -> "${w.part(s.part)} (${w.range(n(s.first), n(s.last))})"
+            s.openings -> w.openings
+            s.first == 1 && s.last == 114 -> w.wholeQuran
+            s.first == 78 && s.last == 114 -> w.juzAmma
+            s.first == 67 && s.last == 77 -> w.juzTabarak
+            s.first == 67 && s.last == 114 -> w.juzTabarakAndAmma
+            s.first == s.last -> w.surah(n(s.first))
+            s.first + 1 == s.last -> w.twoSurahs(n(s.first), n(s.last))
+            else -> w.range(n(s.first), n(s.last))
         }
     }
 }

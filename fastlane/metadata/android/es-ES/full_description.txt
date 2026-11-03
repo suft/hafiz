@@ -1,0 +1,30 @@
+Hafiz es un quiz que pone a prueba cuánto has memorizado del Sagrado Corán. Lee o escucha una aleya y responde.
+
+TRES TIPOS DE PREGUNTA
+• Adivina la sura: lee o escucha una aleya y elige la sura a la que pertenece (20 niveles).
+• Siguiente aleya: elige la aleya que sigue a la mostrada (25 niveles).
+• ¿Dónde está la aleya?: elige dónde empieza la aleya en el mushaf abierto de Medina (edición de 1405 H o de 1421 H, a tu elección en Ajustes): la página derecha o izquierda, y el tercio superior, medio o inferior (25 niveles).
+
+MODOS DE JUEGO
+• Normal: rondas de duración fija. Alcanza la puntuación de dominio para dominar cada nivel.
+• Supervivencia: preguntas sin fin; el primer error termina la partida.
+• Mutashabihat: preguntas de todo el Corán cuyas opciones incorrectas son aleyas y suras parecidas; tres errores terminan la partida.
+• Mequí o Mediní: indica dónde fue revelada cada una de cinco suras.
+
+Los niveles van desde las suras cortas del Juz' 'Amma hasta el Corán completo. Las opciones incorrectas se eligen para parecerse a la correcta, así que tienes que conocer el texto y no adivinar por la longitud o el estilo.
+
+ESCUCHA MIENTRAS JUEGAS
+• 26 recitadores, entre ellos Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi y Maher Al-Muaiqly.
+• Las recitaciones se guardan en tu teléfono, así que las aleyas que ya has escuchado se reproducen sin internet.
+
+SIGUE TU PROGRESO
+• Precisión global y por tipo de pregunta, un mapa de las 114 suras y las suras que necesitan repaso.
+• Practica una sola sura débil con un toque.
+• Rachas de días, evolución de la puntuación y tus últimas rondas.
+
+ADEMÁS
+• Interfaz en árabe, inglés, español, portugués, francés, italiano y alemán; el texto del Corán es siempre árabe, en la fuente Amiri Quran.
+• Tema oscuro.
+• Sin anuncios, sin cuenta, sin rastreo.
+
+Texto del Corán: Tanzil Project (tanzil.net), sin modificar. Recitaciones: everyayah.com. Datos de Mutashabihat: Aswaatul Qurraa. Posiciones en el mushaf: quran.com.

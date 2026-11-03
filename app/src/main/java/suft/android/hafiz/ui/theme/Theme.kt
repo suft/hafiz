@@ -47,11 +47,11 @@ val TitleFont = FontFamily(Font(R.font.rakkas_regular, FontWeight.Normal))
 
 /**
  * Heavy face with angular, flat-nib cuts (Marhey, SIL OFL; the Bold instance of its variable font, so API 24 and 25
- * do not fall back to the Light default) for the English app title: it echoes the strokes of [TitleFont].
+ * do not fall back to the Light default) for the Latin-script app title: it echoes the strokes of [TitleFont].
  */
 val LatinTitleFont = FontFamily(Font(R.font.marhey_bold, FontWeight.Normal))
 
-/** Latin UI face for the English language (Inter, SIL OFL). */
+/** Latin UI face for every non-Arabic language (Inter, SIL OFL). */
 val InterFont = FontFamily(
     Font(R.font.inter_regular, FontWeight.Normal),
     Font(R.font.inter_medium, FontWeight.Medium),
@@ -169,7 +169,7 @@ val LocalQuizColors = staticCompositionLocalOf { LightQuiz }
 private fun typography(language: AppLanguage): Typography {
     val base = Typography()
     val tightLines = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
-    if (language == AppLanguage.English) {
+    if (language != AppLanguage.Arabic) {
         fun TextStyle.inter(weight: FontWeight? = null) = copy(fontFamily = InterFont, fontWeight = weight ?: fontWeight)
         return base.copy(
             displayLarge = base.displayLarge.inter(),
@@ -230,7 +230,7 @@ fun HafizTheme(
     val scheme: ColorScheme = if (darkTheme) DarkScheme else LightScheme
     // The layout direction follows the UI language, regardless of the device language.
     CompositionLocalProvider(
-        LocalLayoutDirection provides if (language == AppLanguage.English) LayoutDirection.Ltr else LayoutDirection.Rtl,
+        LocalLayoutDirection provides if (language == AppLanguage.Arabic) LayoutDirection.Rtl else LayoutDirection.Ltr,
         LocalStrings provides stringsFor(language),
         LocalQuizColors provides if (darkTheme) DarkQuiz else LightQuiz,
     ) {

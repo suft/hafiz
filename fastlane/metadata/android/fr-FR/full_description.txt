@@ -1,0 +1,30 @@
+Hafiz est un quiz qui teste votre mémorisation du saint Coran. Lisez ou écoutez un verset, puis répondez.
+
+TROIS TYPES DE QUESTIONS
+• Devine la sourate : lisez ou écoutez un verset et choisissez la sourate dont il provient (20 niveaux).
+• Verset suivant : choisissez le verset qui suit celui affiché (25 niveaux).
+• Où est le verset ? : choisissez où commence le verset dans le mushaf de Médine ouvert (édition de 1405 H ou de 1421 H, au choix dans les paramètres) : page de droite ou de gauche, et tiers haut, milieu ou bas (25 niveaux).
+
+MODES DE JEU
+• Classique : manches de longueur fixe. Atteignez le score de maîtrise pour maîtriser chaque niveau.
+• Survie : questions sans fin ; la première erreur met fin à la partie.
+• Mutashabihat : questions sur tout le Coran dont les mauvaises options sont des versets et des sourates qui se ressemblent ; trois erreurs mettent fin à la partie.
+• Mecquoise ou médinoise : dites où chacune de cinq sourates a été révélée.
+
+Les niveaux vont des sourates courtes du Juz' 'Amma au Coran entier. Les mauvaises options sont choisies pour ressembler à la bonne réponse : il faut connaître le texte, pas deviner d’après la longueur ou le style.
+
+ÉCOUTEZ EN JOUANT
+• 26 récitateurs, dont Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi et Maher Al-Muaiqly.
+• Les récitations sont mises en cache sur votre téléphone : les versets déjà écoutés se rejouent sans internet.
+
+SUIVEZ VOS PROGRÈS
+• Précision globale et par type de question, carte des 114 sourates et sourates à réviser.
+• Travaillez une seule sourate faible d’un simple toucher.
+• Séries de jours, évolution des scores et manches récentes.
+
+ÉGALEMENT
+• Interface disponible en arabe, anglais, espagnol, portugais, français, italien et allemand ; le texte du Coran est toujours en arabe, dans la police Amiri Quran.
+• Thème sombre.
+• Sans publicité, sans compte, sans pistage.
+
+Texte du Coran : Tanzil Project (tanzil.net), sans modification. Récitations : everyayah.com. Données Mutashabihat : Aswaatul Qurraa. Positions dans le mushaf : quran.com.
