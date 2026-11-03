@@ -4,7 +4,7 @@ title: Hafiz privacy policy
 
 # Hafiz privacy policy
 
-Effective 1 November 2026
+Effective 3 November 2026
 
 Hafiz (`suft.android.hafiz`) is a Quran memorisation quiz for Android, developed by Sufien Tout.
 
@@ -35,7 +35,7 @@ sufientout@gmail.com
 
 # سياسة الخصوصية لتطبيق حافظ
 
-تاريخ السريان: ١ نوفمبر ٢٠٢٦
+تاريخ السريان: ٣ نوفمبر ٢٠٢٦
 
 حافظ (`suft.android.hafiz`) مسابقة لاختبار حفظ القرآن الكريم على أندرويد، من تطوير سفيان طوط.
 
