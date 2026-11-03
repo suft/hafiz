@@ -1,1 +1,1 @@
-Hafiz 1.0, the first release on Google Play: three question styles, Regular, Survival and Mutashabihat modes, a Makki or Madani quiz, 26 reciters with offline replay, statistics with a surah review map, and an interface in Arabic, English, Spanish, Portuguese, French, Italian and German.
+Hafiz 1.0, the first release on Google Play: three question styles, Regular, Survival and Mutashabihat modes, a Makki or Madani quiz, 26 reciters with cached replay, statistics with a surah review map, and an interface in Arabic, English, Spanish, Portuguese, French, Italian and German.

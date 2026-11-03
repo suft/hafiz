@@ -15,7 +15,7 @@ Levels run from the short surahs of Juz' 'Amma to the whole Quran. Wrong options
 
 LISTEN WHILE YOU PLAY
 • 26 reciters, including Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi and Maher Al-Muaiqly.
-• Recitations are cached on your phone, so ayahs you have heard replay without internet.
+• Recitations are cached on your phone, so ayahs you have heard replay without internet until the cache is cleared.
 
 TRACK YOUR PROGRESS
 • Accuracy overall and per style, a map of all 114 surahs, and the surahs that need review.
@@ -27,4 +27,4 @@ ALSO
 • Dark theme.
 • No ads, no account, no tracking.
 
-Quran text: Tanzil Project (tanzil.net), unmodified. Recitations: everyayah.com. Mutashabihat data: Aswaatul Qurraa. Mushaf positions: quran.com.
+Quran text: Tanzil Project (tanzil.net), unmodified; answer options hide the sajdah sign ۩. Recitations: everyayah.com. Mutashabihat data: Aswaatul Qurraa. Mushaf positions: quran.com.

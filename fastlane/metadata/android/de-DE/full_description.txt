@@ -15,7 +15,7 @@ Die Stufen reichen von den kurzen Suren des Juz' 'Amma bis zum ganzen Koran. Fal
 
 HÖREN WÄHREND DES SPIELENS
 • 26 Rezitatoren, darunter Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi und Maher Al-Muaiqly.
-• Rezitationen werden auf deinem Handy zwischengespeichert, sodass bereits gehörte Verse ohne Internet wieder abspielbar sind.
+• Rezitationen werden auf deinem Handy zwischengespeichert, sodass bereits gehörte Verse ohne Internet wieder abspielbar sind, bis der Cache geleert wird.
 
 VERFOLGE DEINEN FORTSCHRITT
 • Trefferquote insgesamt und je Fragenart, eine Karte aller 114 Suren und die Suren, die Wiederholung brauchen.
@@ -27,4 +27,4 @@ AUSSERDEM
 • Dunkles Design.
 • Keine Werbung, kein Konto, kein Tracking.
 
-Koran-Text: Tanzil Project (tanzil.net), unverändert. Rezitationen: everyayah.com. Mutashabihat-Daten: Aswaatul Qurraa. Mushaf-Positionen: quran.com.
+Koran-Text: Tanzil Project (tanzil.net), unverändert; Antwortoptionen blenden das Sajda-Zeichen ۩ aus. Rezitationen: everyayah.com. Mutashabihat-Daten: Aswaatul Qurraa. Mushaf-Positionen: quran.com.

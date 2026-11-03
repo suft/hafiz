@@ -1,6 +1,6 @@
 # Play Console guide
 
-Everything the Play Console asks for that fastlane metadata (`metadata/android/{ar,en-US}/`) cannot hold. Upload is manual.
+Everything the Play Console asks for that fastlane metadata (`metadata/android/*/`) cannot hold. Upload is manual.
 
 ## 1. Before the first upload
 
@@ -56,7 +56,7 @@ Policy → App content.
 - "Does your app collect or share any of the required user data types?" **No**. So no data types are declared.
 - Reasons:
   - Progress and settings never leave the device except through Android's own backup, which Play does not count as developer collection.
-  - Audio requests to everyayah.com fetch public files and carry no user data beyond the IP address inherent to any request.
+  - Audio requests to everyayah.com fetch public files; like any HTTPS request they carry the IP address and a fixed User-Agent ("Hafiz-Android"), and no user data. The developer runs no server and receives nothing.
 
 ## 6. Testing and release
 
@@ -67,6 +67,6 @@ Policy → App content.
 ## 7. Every later release
 
 - Bump `versionCode` (+1) and `versionName` in `app/build.gradle.kts`.
-- Add `changelogs/<versionCode>.txt` in both locales.
+- Add `changelogs/<versionCode>.txt` in every locale.
 - Run `mise run check && mise run bundle`, then upload. Play rejects a reused `versionCode`.
 - Tag and push `v<versionName>` (`git tag v1.1 && git push origin v1.1`): the release workflow attaches the signed APK and AAB to a GitHub Release. Upload the AAB to Play by hand.

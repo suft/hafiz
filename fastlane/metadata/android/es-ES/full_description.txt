@@ -15,7 +15,7 @@ Los niveles van desde las suras cortas del Juz' 'Amma hasta el Corán completo. 
 
 ESCUCHA MIENTRAS JUEGAS
 • 26 recitadores, entre ellos Mishary Alafasy, Abdul Basit, Al-Husary, Al-Minshawi, Saad Al-Ghamdi y Maher Al-Muaiqly.
-• Las recitaciones se guardan en tu teléfono, así que las aleyas que ya has escuchado se reproducen sin internet.
+• Las recitaciones se guardan en tu teléfono, así que las aleyas que ya has escuchado se reproducen sin internet mientras no se borre la caché.
 
 SIGUE TU PROGRESO
 • Precisión global y por tipo de pregunta, un mapa de las 114 suras y las suras que necesitan repaso.
@@ -27,4 +27,4 @@ ADEMÁS
 • Tema oscuro.
 • Sin anuncios, sin cuenta, sin rastreo.
 
-Texto del Corán: Tanzil Project (tanzil.net), sin modificar. Recitaciones: everyayah.com. Datos de Mutashabihat: Aswaatul Qurraa. Posiciones en el mushaf: quran.com.
+Texto del Corán: Tanzil Project (tanzil.net), sin modificar; las opciones de respuesta ocultan el signo de postración ۩. Recitaciones: everyayah.com. Datos de Mutashabihat: Aswaatul Qurraa. Posiciones en el mushaf: quran.com.
