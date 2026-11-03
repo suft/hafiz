@@ -112,7 +112,7 @@ app/src/main/
     data/ProgressRepository.kt   DataStore: best scores, per-surah stats, settings
     audio/                       reciters, ExoPlayer wrapper, disk cache
     ui/                          Compose: home, modes, guide, levels, quiz (+ViewModel), stats, theme, icons (HafizIcons)
-  res/font/                      Amiri, Rakkas, Inter, IBM Plex Sans Arabic (all OFL)
+  res/font/                      Amiri, Rakkas, Marhey, Inter, IBM Plex Sans Arabic (all OFL)
   res/drawable/                  Phosphor and Hugeicons vector icons (generated: mise run icons), the hand-drawn rub el hizb ornament
   res/drawable-nodpi/            Hafiz artwork, monochrome icon (own work)
 tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3; --offline only merges the supplement)
@@ -140,6 +140,6 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 - **Recitations:** streamed from everyayah.com. One clip is truncated on the server and cannot be fixed here: `mahmoud_ali_al_banna_32kbps/012067.mp3` (surah 12, ayah 67). `mise run reciters` (also a weekly GitHub workflow) checks that every reciter has all 6236 files and lists known defects as warnings.
 - **Mutashabihat mode:** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site; the developer has Team Aswaatul Qurraa's permission to use the data in Hafiz. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Mutashabihat mode has traps for them too. Review those pairs before a release.
 - **Where's the Ayah?:** the page and line where each ayah starts in the Madinah mushaf (the 1405H print, KFGQPC v1, and the 1421H print, KFGQPC v2: both 604 pages of 15 lines) come from the [quran.com API](https://api.quran.com/api/v4) (`v1_page` / `line_v1` and `v2_page` / `line_v2` of each ayah's first word); only those numbers are bundled (`assets/mushaf_layout_v1.txt`, `assets/mushaf_layout_v2.txt`) and the credits screen credits the source.
-- **Fonts:** Amiri / Amiri Quran, Rakkas, Inter and IBM Plex Sans Arabic are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`).
+- **Fonts:** Amiri / Amiri Quran, Rakkas, Marhey (the Bold instance of its variable font, English app title only), Inter and IBM Plex Sans Arabic are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`).
 - **Icons:** [Phosphor Icons](https://phosphoricons.com) (MIT, `assets/licenses/Phosphor-MIT.txt`) and [Hugeicons](https://hugeicons.com) free icons (MIT, `assets/licenses/Hugeicons-MIT.txt`: the Kaaba and the Prophet's Mosque), converted to vector drawables by `tools/icons.py`.
 - **Artwork:** `res/drawable-nodpi/hafiz.png` (launcher icon, loading screen and the Play icon and feature graphic) and the launcher icons are the developer's own work, all rights reserved; the MIT licence does not cover them.

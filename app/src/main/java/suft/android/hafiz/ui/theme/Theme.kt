@@ -42,8 +42,14 @@ val NaskhFont = FontFamily(
     Font(R.font.amiri_bold, FontWeight.Bold),
 )
 
-/** Bold brush-calligraphy face (Rakkas, SIL OFL) for the app title, in Arabic and Latin. */
+/** Bold brush-calligraphy face (Rakkas, SIL OFL) for the Arabic app title. */
 val TitleFont = FontFamily(Font(R.font.rakkas_regular, FontWeight.Normal))
+
+/**
+ * Heavy face with angular, flat-nib cuts (Marhey, SIL OFL; the Bold instance of its variable font, so API 24 and 25
+ * do not fall back to the Light default) for the English app title: it echoes the strokes of [TitleFont].
+ */
+val LatinTitleFont = FontFamily(Font(R.font.marhey_bold, FontWeight.Normal))
 
 /** Latin UI face for the English language (Inter, SIL OFL). */
 val InterFont = FontFamily(

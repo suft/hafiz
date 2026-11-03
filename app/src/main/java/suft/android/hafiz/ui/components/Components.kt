@@ -71,8 +71,10 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import kotlinx.coroutines.delay
 import suft.android.hafiz.data.localEpochDay
 import suft.android.hafiz.data.millisUntilNextLocalDay
+import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.icons.HafizIcons
+import suft.android.hafiz.ui.theme.LatinTitleFont
 import suft.android.hafiz.ui.theme.TitleFont
 import kotlin.math.roundToInt
 
@@ -171,13 +173,17 @@ fun MenuCard(
     }
 }
 
-/** The app name in the Rakkas title face, as on the main menu and the load screen. */
+/** The app name in the Rakkas (Arabic) or Marhey (English) title face, as on the main menu and the load screen. */
 @Composable
 fun AppTitle(modifier: Modifier = Modifier) {
+    val strings = LocalStrings.current
     Text(
-        text = LocalStrings.current.appName,
+        text = strings.appName,
         modifier = modifier,
-        style = MaterialTheme.typography.displayMedium.copy(fontFamily = TitleFont, fontSize = 52.sp),
+        style = MaterialTheme.typography.displayMedium.copy(
+            fontFamily = if (strings.language == AppLanguage.English) LatinTitleFont else TitleFont,
+            fontSize = 52.sp,
+        ),
         color = MaterialTheme.colorScheme.primary,
     )
 }
