@@ -254,7 +254,6 @@ private fun HeroStat(value: String, label: String, modifier: Modifier) {
             Text(
                 label,
                 style = MaterialTheme.typography.labelSmall,
-                color = onPrimary.copy(alpha = 0.85f),
                 textAlign = TextAlign.Center,
                 maxLines = 2,
             )
@@ -591,7 +590,13 @@ private fun CreditCard(label: String, source: String, note: String? = null, url:
                         indication = ripple(),
                         onClickLabel = strings.opensInBrowser,
                         role = Role.Button,
-                    ) { uriHandler.openUri(url) }
+                    ) {
+                        try {
+                            uriHandler.openUri(url)
+                        } catch (e: IllegalArgumentException) {
+                            // AndroidUriHandler throws this when no app can open https links.
+                        }
+                    }
                 },
             ),
         shape = shape,

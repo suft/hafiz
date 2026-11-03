@@ -32,6 +32,7 @@ import org.robolectric.RobolectricTestRunner
 import suft.android.hafiz.HafizApp
 import suft.android.hafiz.MainActivity
 import suft.android.hafiz.domain.GameMode
+import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.MushafEdition
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.ui.i18n.ArabicStrings
@@ -153,7 +154,7 @@ class NavigationTest {
         waitForHome()
         rule.onNodeWithContentDescription(ArabicStrings.settings).performClick()
         val radio = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton)
-        rule.onAllNodes(radio).assertCountEquals(9)
+        rule.onAllNodes(radio).assertCountEquals(AppLanguage.entries.size + MushafEdition.entries.size)
         rule.onNodeWithContentDescription("English").performScrollTo().performClick()
         // The page re-renders in English and stays open.
         waitForText(EnglishStrings.mushafEditionLabel)

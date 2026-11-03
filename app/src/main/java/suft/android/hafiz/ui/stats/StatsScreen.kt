@@ -35,7 +35,7 @@ import suft.android.hafiz.ui.icons.HafizIcons
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(container: AppContainer, progress: Progress, quran: Quran, onBack: () -> Unit, onPractice: (Int) -> Unit) {
-    var confirmReset by remember { mutableStateOf(false) }
+    var confirmReset by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
     val today = rememberToday()
