@@ -41,7 +41,6 @@ object Reciters {
         // The original app had these two folders swapped.
         Reciter("محمد صديق المنشاوي (ترتيل)", "Muhammad Siddiq Al-Minshawi (Murattal)", "Minshawy_Murattal_128kbps"),
         Reciter("محمد صديق المنشاوي (تجويد)", "Muhammad Siddiq Al-Minshawi (Mujawwad)", "Minshawy_Mujawwad_64kbps"),
-        // New in 3.0
         Reciter("ناصر القطامي", "Nasser Al-Qatami", "Nasser_Alqatami_128kbps"),
         Reciter("هاني الرفاعي", "Hani Ar-Rifai", "Hani_Rifai_64kbps"),
         Reciter("علي الحذيفي", "Ali Al-Hudhaify", "Hudhaify_64kbps"),

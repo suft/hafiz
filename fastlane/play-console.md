@@ -69,4 +69,4 @@ Policy → App content.
 - Bump `versionCode` (+1) and `versionName` in `app/build.gradle.kts`.
 - Add `changelogs/<versionCode>.txt` in both locales.
 - Run `mise run check && mise run bundle`, then upload. Play rejects a reused `versionCode`.
-- Tag and push `v<versionName>` (`git tag v3.0 && git push origin v3.0`): the release workflow attaches the signed APK and AAB to a GitHub Release. Upload the AAB to Play by hand.
+- Tag and push `v<versionName>` (`git tag v1.1 && git push origin v1.1`): the release workflow attaches the signed APK and AAB to a GitHub Release. Upload the AAB to Play by hand.

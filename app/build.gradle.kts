@@ -51,8 +51,8 @@ android {
         applicationId = "suft.android.hafiz"
         minSdk = 24
         targetSdk = 37
-        versionCode = 30
-        versionName = "3.0"
+        versionCode = 1
+        versionName = "1.0"
     }
 
     signingConfigs {
