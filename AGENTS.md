@@ -13,7 +13,7 @@ Run every command from the repo root.
 | `mise run test` | Tests only (`./gradlew :app:testDebugUnitTest`) |
 | `./gradlew :app:testDebugUnitTest --tests 'suft.android.hafiz.domain.QuizLogicTest'` | One test class |
 | `mise run build` | Debug APK → `dist/Hafiz-debug.apk` |
-| `mise run mutashabihat` / `mise run mushaf-layout` | Regenerate the generated assets (python3, network) |
+| `mise run mutashabihat` / `mise run mushaf-layout` / `mise run icons` | Regenerate the generated assets (python3, network) |
 | `mise run screenshots` | Regenerate the 8 Play/README screenshots on a headless emulator (KVM) |
 
 CI (`.github/workflows/build.yml`) runs test, lint, the debug build and the release bundle; `release.yml` publishes a signed GitHub Release for each `v*` tag.
@@ -34,7 +34,7 @@ CI (`.github/workflows/build.yml`) runs test, lint, the debug build and the rele
 ## Data and licences
 
 - `app/src/main/assets/quran_simple.xml` is the Tanzil text: never modify it, and keep its licence header.
-- `assets/mutashabihat.txt`, `assets/mushaf_layout_v1.txt` and `assets/mushaf_layout_v2.txt` are generated. Never hand-edit them; change `tools/` (hand-curated pairs go in `tools/mutashabihat_supplement.txt`) and rerun the mise task.
+- `assets/mutashabihat.txt`, `assets/mushaf_layout_v1.txt`, `assets/mushaf_layout_v2.txt` and `res/drawable/ph_*.xml` / `hi_*.xml` are generated. Never hand-edit them; change `tools/` (hand-curated pairs go in `tools/mutashabihat_supplement.txt`; icons are listed in `tools/icons.py` and used through `ui/icons/HafizIcons.kt`) and rerun the mise task (`mutashabihat`, `mushaf-layout`, `icons`).
 - Never commit signing material or local config: `keystore.properties`, `*.jks`, `local.properties`, `.env*` (see `.gitignore`).
 
 ## Keep docs in sync

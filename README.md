@@ -82,6 +82,7 @@ Install on a phone with USB debugging enabled: `mise run run` (installs and laun
 | `keystore` | Create `release.jks` + `keystore.properties` for release signing |
 | `mutashabihat` | Regenerate `assets/mutashabihat.txt` from Aswaatul Qurraa (python3) and merge the supplement |
 | `mushaf-layout` | Regenerate `assets/mushaf_layout_v1.txt` and `mushaf_layout_v2.txt` (the page and line of every ayah in the 1405H and 1421H Madinah mushaf prints) from quran.com (python3) |
+| `icons` | Regenerate the Phosphor and Hugeicons vector drawables in `res/drawable/` from pinned Iconify packages (python3) |
 | `reciters` | Check that every reciter has all 6236 ayah files on everyayah.com (python3) |
 | `test` (`t`) | JVM unit tests (quiz logic, progress, stats) and Robolectric UI tests |
 | `lint` / `check` | Android lint / tests + lint |
@@ -110,13 +111,15 @@ app/src/main/
     domain/                      pure Kotlin: Quran index, XML parser, levels, question generator, stats
     data/ProgressRepository.kt   DataStore: best scores, per-surah stats, settings
     audio/                       reciters, ExoPlayer wrapper, disk cache
-    ui/                          Compose: home, modes, guide, levels, quiz (+ViewModel), stats, theme
+    ui/                          Compose: home, modes, guide, levels, quiz (+ViewModel), stats, theme, icons (HafizIcons)
   res/font/                      Amiri, Rakkas, Inter, IBM Plex Sans Arabic (all OFL)
-  res/drawable-nodpi/            Hafiz artwork, divider ornament, monochrome icon (own work)
+  res/drawable/                  Phosphor and Hugeicons vector icons (generated: mise run icons)
+  res/drawable-nodpi/            Hafiz artwork, monochrome icon (own work)
 tools/mutashabihat.py            regenerates assets/mutashabihat.txt from Aswaatul Qurraa (python3; --offline only merges the supplement)
 tools/mutashabihat_supplement.txt  hand-curated pairs for the surahs the source does not cover
 tools/check_reciters.py          checks every reciter's files on everyayah.com (also .github/workflows/reciters.yml)
 tools/mushaf_layout.py           regenerates assets/mushaf_layout_v1.txt and mushaf_layout_v2.txt from the quran.com API (python3)
+tools/icons.py                   regenerates res/drawable/ph_*.xml and hi_*.xml from the pinned Iconify packages (python3)
 tools/screenshots.py             captures the Play/README screenshots on an emulator (mise run screenshots)
 docs/privacy-policy.md            privacy policy (GitHub Pages: https://suft.github.io/hafiz/privacy-policy.html)
 fastlane/                        Play listing text and graphics (metadata/android/{ar,en-US}) and play-console.md (console answers)
@@ -132,10 +135,11 @@ All versions are in `gradle/libs.versions.toml`. Android Studio's *Upgrade Assis
 ---
 
 ## Licences & credits
-- **This project's code** is under the [MIT licence](LICENSE). It does not cover the third-party and bundled material below: the Quran text and fonts keep their own licences, the mutashabihat data (`assets/mutashabihat.txt`) is used with its owners' permission and is not licensed for reuse, and `assets/mushaf_layout_v1.txt` and `assets/mushaf_layout_v2.txt` are derived from quran.com data.
+- **This project's code** is under the [MIT licence](LICENSE). It does not cover the third-party and bundled material below: the Quran text, fonts and icons keep their own licences, the mutashabihat data (`assets/mutashabihat.txt`) is used with its owners' permission and is not licensed for reuse, and `assets/mushaf_layout_v1.txt` and `assets/mushaf_layout_v2.txt` are derived from quran.com data.
 - **Quran text:** Tanzil Project, CC BY 3.0. The text must not be modified and the source must be credited with a link; the credits screen (the ⓘ button on the main menu) does this.
 - **Recitations:** streamed from everyayah.com. One clip is truncated on the server and cannot be fixed here: `mahmoud_ali_al_banna_32kbps/012067.mp3` (surah 12, ayah 67). `mise run reciters` (also a weekly GitHub workflow) checks that every reciter has all 6236 files and lists known defects as warnings.
 - **Mutashabihat mode:** ayah pairs derived from the data of [Aswaatul Qurraa](https://www.aswaatulqurraa.com/mutashabihat/), © Team Aswaatul Qurraa; only ayah references and a similarity score are bundled, and the credits screen credits the source. No licence is stated on the site; the developer has Team Aswaatul Qurraa's permission to use the data in Hafiz. The source covers 106 of the 114 surahs; `tools/mutashabihat_supplement.txt` adds hand-curated pairs for the other eight (99, 102, 106, 108, 109, 111, 113, 114) so Mutashabihat mode has traps for them too. Review those pairs before a release.
 - **Where's the Ayah?:** the page and line where each ayah starts in the Madinah mushaf (the 1405H print, KFGQPC v1, and the 1421H print, KFGQPC v2: both 604 pages of 15 lines) come from the [quran.com API](https://api.quran.com/api/v4) (`v1_page` / `line_v1` and `v2_page` / `line_v2` of each ayah's first word); only those numbers are bundled (`assets/mushaf_layout_v1.txt`, `assets/mushaf_layout_v2.txt`) and the credits screen credits the source.
 - **Fonts:** Amiri / Amiri Quran, Rakkas, Inter and IBM Plex Sans Arabic are SIL Open Font License 1.1 (`assets/licenses/*-OFL.txt`).
-- **Artwork:** `res/drawable-nodpi/hafiz.png` (launcher icon, loading screen and the Play icon and feature graphic), `divider_ornament.png` and the launcher icons are the developer's own work, all rights reserved; the MIT licence does not cover them.
+- **Icons:** [Phosphor Icons](https://phosphoricons.com) (MIT, `assets/licenses/Phosphor-MIT.txt`) and [Hugeicons](https://hugeicons.com) free icons (MIT, `assets/licenses/Hugeicons-MIT.txt`: the Kaaba and the Prophet's Mosque), converted to vector drawables by `tools/icons.py`.
+- **Artwork:** `res/drawable-nodpi/hafiz.png` (launcher icon, loading screen and the Play icon and feature graphic) and the launcher icons are the developer's own work, all rights reserved; the MIT licence does not cover them.

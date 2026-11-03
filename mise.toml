@@ -128,7 +128,7 @@ mkdir -p "$out"
 bg=$(sed -n 's:.*name="ic_launcher_background">\(#[0-9A-Fa-f]*\)<.*:\1:p' "$res/values/colors.xml")
 magick -size 512x512 "xc:$bg" \( "$res/mipmap-xxxhdpi/ic_launcher_foreground.png" -resize 512x512 \) \
   -composite -strip "PNG32:$out/icon.png"
-# Feature graphic: the app's paper colour (window_background) with the Hafiz artwork centred. Play rejects alpha here.
+# Feature graphic: the app's background colour (window_background) with the Hafiz artwork centred. Play rejects alpha here.
 paper=$(sed -n 's:.*name="window_background">\(#[0-9A-Fa-f]*\)<.*:\1:p' "$res/values/colors.xml")
 magick -size 1024x500 "xc:$paper" \
   \( "$res/drawable-nodpi/hafiz.png" -resize 440x440 \) -gravity center -composite \
@@ -156,6 +156,10 @@ run = "python3 tools/mutashabihat.py"
 [tasks.mushaf-layout]
 description = "Re-download the Madinah mushaf page/line of every ayah (1405H v1 and 1421H v2) from quran.com and regenerate app/src/main/assets/mushaf_layout_v1.txt and mushaf_layout_v2.txt (needs python3)"
 run = "python3 tools/mushaf_layout.py"
+
+[tasks.icons]
+description = "Regenerate the Phosphor and Hugeicons vector drawables in app/src/main/res/drawable/ from pinned Iconify packages (needs python3, network)"
+run = "python3 tools/icons.py"
 
 [tasks.reciters]
 description = "Check that every reciter has all 6236 ayah files on everyayah.com (needs python3)"
