@@ -512,6 +512,12 @@ private fun CreditsOverlay(visible: Boolean, onClose: () -> Unit) {
                 note = strings.creditsMushafEditions,
                 url = "https://quran.com",
             )
+            CreditCard(
+                strings.creditsIcons,
+                "Phosphor Icons · Hugeicons",
+                note = strings.creditsIconsLicence,
+                url = "https://phosphoricons.com",
+            )
         }
         CreditGroup(strings.creditsPeopleHeading) {
             CreditCard(strings.creditsInspiredBy, "AlrazyLabs")

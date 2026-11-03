@@ -178,6 +178,7 @@ class NavigationTest {
         rule.onNodeWithText(ArabicStrings.creditsTanzil).assertIsDisplayed().assertHasClickAction()
         rule.onNodeWithText(ArabicStrings.creditsTanzilLicence).assertIsDisplayed()
         rule.onNodeWithText(ArabicStrings.creditsMushafEditions).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Phosphor Icons · Hugeicons").performScrollTo().assertIsDisplayed().assertHasClickAction()
         rule.onNodeWithText("AlrazyLabs").performScrollTo().assertIsDisplayed().assertHasNoClickAction()
         rule.onNodeWithText(ArabicStrings.developerName).performScrollTo().assertIsDisplayed()
         rule.onNodeWithContentDescription(ArabicStrings.back).performClick()

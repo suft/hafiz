@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,14 +36,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -73,7 +72,6 @@ import suft.android.hafiz.ui.stats.StatsScreen
 import suft.android.hafiz.ui.styles.StylesScreen
 import suft.android.hafiz.ui.i18n.LocalStrings
 import suft.android.hafiz.ui.theme.HafizTheme
-import suft.android.hafiz.ui.theme.NaskhFont
 
 // ---------------------------------------------------------------- routes
 
@@ -330,12 +328,11 @@ private fun LoadingScreen() {
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(12.dp))
-        Text(
-            "۞",
-            fontFamily = NaskhFont,
-            fontSize = 28.sp,
-            color = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.clearAndSetSemantics {},
+        Icon(
+            painterResource(R.drawable.ornament_rub_el_hizb),
+            contentDescription = null,
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.tertiary,
         )
         Spacer(Modifier.height(24.dp))
         CircularProgressIndicator(

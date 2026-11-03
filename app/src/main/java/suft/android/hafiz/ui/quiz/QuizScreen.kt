@@ -761,8 +761,8 @@ internal fun OptionButton(
                         is OptionMarker.Glyph -> Icon(
                             marker.icon,
                             contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = scheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp),
+                            tint = scheme.onSurface,
                         )
                     }
                 }

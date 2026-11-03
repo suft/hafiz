@@ -71,6 +71,8 @@ interface Strings {
     val creditsLegalHeading: String
     val creditsTanzilLicence: String
     val creditsMushafEditions: String
+    val creditsIcons: String
+    val creditsIconsLicence: String
     val opensInBrowser: String
     fun versionLabel(version: String): String
     fun totalPoints(points: Int): String
@@ -252,6 +254,8 @@ object ArabicStrings : Strings {
     override val creditsLegalHeading = "قانوني"
     override val creditsTanzilLicence = "ترخيص CC BY 3.0، والنص مستخدم دون تعديل"
     override val creditsMushafEditions get() = "طبعتا ${number(MushafEdition.V1.hijriYear)}هـ و${number(MushafEdition.V2.hijriYear)}هـ"
+    override val creditsIcons = "الأيقونات"
+    override val creditsIconsLicence = "ترخيص MIT"
     override val opensInBrowser = "يفتح في المتصفح"
     override fun versionLabel(version: String) =
         "الإصدار ${version.map { if (it in '0'..'9') '٠' + (it - '0') else it }.joinToString("")}"
@@ -452,6 +456,8 @@ object EnglishStrings : Strings {
     override val creditsLegalHeading = "Legal"
     override val creditsTanzilLicence = "CC BY 3.0, used unmodified"
     override val creditsMushafEditions get() = "${number(MushafEdition.V1.hijriYear)}H and ${number(MushafEdition.V2.hijriYear)}H prints"
+    override val creditsIcons = "Icons"
+    override val creditsIconsLicence = "MIT licence"
     override val opensInBrowser = "Opens in your browser"
     override fun versionLabel(version: String) = "Version $version"
     override fun totalPoints(points: Int) = "Total points: $points"
