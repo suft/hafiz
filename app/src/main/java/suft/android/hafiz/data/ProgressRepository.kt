@@ -28,6 +28,7 @@ import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.domain.Level
+import suft.android.hafiz.domain.MushafEdition
 import suft.android.hafiz.domain.RevelationQuiz
 import suft.android.hafiz.domain.RunStats
 import suft.android.hafiz.domain.Score
@@ -91,6 +92,7 @@ data class Progress(
     val reciterFolder: String? = null,
     val autoPlay: Boolean = true,
     val language: AppLanguage = AppLanguage.Arabic,
+    val mushafEdition: MushafEdition = MushafEdition.V1,
 ) {
     val overall: Score get() = Score(totalCorrect, totalWrong)
 
@@ -175,6 +177,7 @@ data class Progress(
         reciterFolder = reciterFolder,
         autoPlay = autoPlay,
         language = language,
+        mushafEdition = mushafEdition,
     )
 
     /** Keeps the higher of the stored and the new value, for the level's best score and the mode's best streak. */
@@ -314,6 +317,10 @@ class ProgressRepository(private val store: DataStore<Progress>) {
 
     suspend fun setLanguage(language: AppLanguage) {
         store.updateData { it.copy(language = language) }
+    }
+
+    suspend fun setMushafEdition(edition: MushafEdition) {
+        store.updateData { it.copy(mushafEdition = edition) }
     }
 
     suspend fun resetStatistics() {

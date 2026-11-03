@@ -10,11 +10,11 @@ import suft.android.hafiz.testing.TestData
 class MushafLayoutTest {
 
     private val quran = TestData.quran
-    private val layout = TestData.mushafLayout
+    private val layout = TestData.mushafLayout()
 
     private fun ayah(surah: Int, number: Int) = quran.surahs[surah - 1].firstAyah + number - 1
 
-    private val bundledLines: List<String> by lazy { TestData.asset("mushaf_layout.txt").readLines() }
+    private val bundledLines: List<String> by lazy { TestData.asset(MushafEdition.V1.asset).readLines() }
 
     private fun parse(lines: List<String>) = MushafLayout.parse(lines.joinToString("\n").byteInputStream(), quran)
 
@@ -46,9 +46,19 @@ class MushafLayoutTest {
 
     @Test
     fun pagesNeverDecrease() {
-        for (a in 1 until quran.ayahCount) {
-            assertTrue("ayah $a starts before ayah ${a - 1}", layout.page(a) >= layout.page(a - 1))
+        for (edition in MushafEdition.entries) {
+            val layout = TestData.mushafLayout(edition)
+            for (a in 1 until quran.ayahCount) {
+                assertTrue("$edition: ayah $a starts before ayah ${a - 1}", layout.page(a) >= layout.page(a - 1))
+            }
         }
+    }
+
+    @Test
+    fun editionsDifferWhereThePrintsDo() {
+        // 2:35 is on page 6 (left) in both prints: line 11 in v1 (bottom third), line 10 in v2 (middle third).
+        assertEquals(MushafCell.LeftBottom, TestData.mushafLayout(MushafEdition.V1).cell(ayah(2, 35)))
+        assertEquals(MushafCell.LeftMiddle, TestData.mushafLayout(MushafEdition.V2).cell(ayah(2, 35)))
     }
 
     @Test

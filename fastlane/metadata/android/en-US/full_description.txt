@@ -3,7 +3,7 @@ Hafiz is a quiz that tests how well you have memorized the Holy Quran. Read or l
 THREE QUESTION STYLES
 • Guess the Surah: read or hear an ayah and pick the surah it comes from (20 levels).
 • Next Ayah: pick the ayah that follows the one shown (25 levels).
-• Where's the Ayah?: pick where the ayah starts in the open Madinah mushaf (1405H print): the right or left page, and the top, middle or bottom third (25 levels).
+• Where's the Ayah?: pick where the ayah starts in the open Madinah mushaf (1405H or 1421H print, your choice in Settings): the right or left page, and the top, middle or bottom third (25 levels).
 
 GAME MODES
 • Regular: fixed-length rounds. Reach the mastery score to master each level.

@@ -1,6 +1,7 @@
 package suft.android.hafiz.testing
 
 import java.io.File
+import suft.android.hafiz.domain.MushafEdition
 import suft.android.hafiz.domain.MushafLayout
 import suft.android.hafiz.domain.Mutashabihat
 import suft.android.hafiz.domain.Quran
@@ -16,5 +17,9 @@ object TestData {
 
     val mutashabihat: Mutashabihat by lazy { asset("mutashabihat.txt").inputStream().use { Mutashabihat.parse(it, quran) } }
 
-    val mushafLayout: MushafLayout by lazy { asset("mushaf_layout.txt").inputStream().use { MushafLayout.parse(it, quran) } }
+    private val mushafLayouts: Map<MushafEdition, MushafLayout> by lazy {
+        MushafEdition.entries.associateWith { e -> asset(e.asset).inputStream().use { MushafLayout.parse(it, quran) } }
+    }
+
+    fun mushafLayout(edition: MushafEdition = MushafEdition.V1): MushafLayout = mushafLayouts.getValue(edition)
 }

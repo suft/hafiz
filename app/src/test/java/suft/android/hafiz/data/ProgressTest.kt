@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
+import suft.android.hafiz.domain.MushafEdition
 import suft.android.hafiz.domain.Score
 
 class ProgressTest {
@@ -75,6 +76,14 @@ class ProgressTest {
         assertEquals(Progress.MAX_RECENT_ROUNDS, p.recentRounds.size)
         assertEquals(24, p.recentRounds.first().score)
         assertEquals(25, p.roundsCompleted)
+    }
+
+    @Test
+    fun statisticsResetKeepsMushafEdition() {
+        assertEquals(
+            MushafEdition.V2,
+            Progress(totalCorrect = 3, mushafEdition = MushafEdition.V2).afterStatisticsReset().mushafEdition,
+        )
     }
 
     @Test

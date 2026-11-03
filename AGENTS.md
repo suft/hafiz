@@ -22,7 +22,7 @@ CI (`.github/workflows/build.yml`) runs test, lint, the debug build and the rele
 
 - `app/src/main/java/suft/android/hafiz/domain/`: pure Kotlin with no Android imports. Quran index, levels, game modes, `QuestionGenerator`, `ThemeIndex`, `Mutashabihat`, `MushafLayout`, stats. Keep it Android-free so it stays unit-testable.
 - `data/ProgressRepository.kt`: DataStore (scores, stats, settings). `audio/`: reciters, ExoPlayer, disk cache. `ui/`: Compose screens and ViewModels.
-- `app/src/test/`: JVM tests on the real bundled Quran text, plus Robolectric UI tests. Load assets through `testing/TestData.kt` (`TestData.quran`, `.mutashabihat`, `.mushafLayout`).
+- `app/src/test/`: JVM tests on the real bundled Quran text, plus Robolectric UI tests. Load assets through `testing/TestData.kt` (`TestData.quran`, `.mutashabihat`, `.mushafLayout(edition)`).
 - `tools/`: python generators and checkers behind the mise tasks.
 
 ## Code style
@@ -34,7 +34,7 @@ CI (`.github/workflows/build.yml`) runs test, lint, the debug build and the rele
 ## Data and licences
 
 - `app/src/main/assets/quran_simple.xml` is the Tanzil text: never modify it, and keep its licence header.
-- `assets/mutashabihat.txt` and `assets/mushaf_layout.txt` are generated. Never hand-edit them; change `tools/` (hand-curated pairs go in `tools/mutashabihat_supplement.txt`) and rerun the mise task.
+- `assets/mutashabihat.txt`, `assets/mushaf_layout_v1.txt` and `assets/mushaf_layout_v2.txt` are generated. Never hand-edit them; change `tools/` (hand-curated pairs go in `tools/mutashabihat_supplement.txt`) and rerun the mise task.
 - Never commit signing material or local config: `keystore.properties`, `*.jks`, `local.properties`, `.env*` (see `.gitignore`).
 
 ## Keep docs in sync

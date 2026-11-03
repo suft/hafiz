@@ -21,6 +21,7 @@ import suft.android.hafiz.audio.AudioCache
 import suft.android.hafiz.data.Progress
 import suft.android.hafiz.data.ProgressRepository
 import suft.android.hafiz.data.createProgressStore
+import suft.android.hafiz.domain.MushafEdition
 import suft.android.hafiz.domain.MushafLayout
 import suft.android.hafiz.domain.Mutashabihat
 import suft.android.hafiz.domain.Quran
@@ -62,9 +63,11 @@ class AppContainer(
         .flowOn(Dispatchers.IO)
         .stateIn(appScope, SharingStarted.Eagerly, null)
 
-    /** Where each ayah starts in the Madinah mushaf (Where's the Ayah? questions), parsed once the Quran is loaded (`null` until then). */
-    val mushafLayout: StateFlow<MushafLayout?> = quran.filterNotNull()
-        .map<Quran, MushafLayout?> { q -> appContext.assets.open(MUSHAF_LAYOUT_ASSET).use { MushafLayout.parse(it, q) } }
+    /** Both editions' layouts (Where's the Ayah? questions), parsed once the Quran is loaded (`null` until then). */
+    val mushafLayouts: StateFlow<Map<MushafEdition, MushafLayout>?> = quran.filterNotNull()
+        .map<Quran, Map<MushafEdition, MushafLayout>?> { q ->
+            MushafEdition.entries.associateWith { e -> appContext.assets.open(e.asset).use { MushafLayout.parse(it, q) } }
+        }
         .flowOn(Dispatchers.IO)
         .stateIn(appScope, SharingStarted.Eagerly, null)
 
@@ -86,7 +89,6 @@ class AppContainer(
         const val PROGRESS_FILE = "progress.json"
         private const val QURAN_ASSET = "quran_simple.xml"
         private const val MUTASHABIHAT_ASSET = "mutashabihat.txt"
-        private const val MUSHAF_LAYOUT_ASSET = "mushaf_layout.txt"
     }
 }
 

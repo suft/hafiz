@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -41,7 +42,7 @@ import suft.android.hafiz.ui.modes.icon
 import suft.android.hafiz.ui.styles.icon
 import suft.android.hafiz.ui.theme.LocalQuizColors
 
-/** "How to play": the question styles, game modes, levels and statistics, in cards like the rest of the menu. */
+/** "How to play": the question styles, game modes, levels, statistics and settings, in cards like the rest of the menu. */
 @Composable
 fun GuideScreen(onBack: () -> Unit) {
     val strings = LocalStrings.current
@@ -117,6 +118,23 @@ fun GuideScreen(onBack: () -> Unit) {
                             IconBadge(Icons.Filled.Insights)
                             Text(
                                 strings.guideStats,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+
+                GuideSection(strings.settings) {
+                    GuideCard {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            IconBadge(Icons.Filled.Settings)
+                            Text(
+                                strings.guideSettings,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.weight(1f),
                             )

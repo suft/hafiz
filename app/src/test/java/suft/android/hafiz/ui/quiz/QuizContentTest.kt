@@ -64,7 +64,7 @@ class QuizContentTest {
     private fun state(style: GameStyle, selected: Int? = null, finished: Boolean = false): QuizUiState {
         val level = Levels.forStyle(style, quran).first { it.surahRange == 0..113 && !it.openings }
         val ayah = quran.surahs[1].firstAyah + 254
-        val question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1), layout = TestData.mushafLayout)
+        val question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1), layout = TestData.mushafLayout())
             .questionFor(ayah..ayah)
         return QuizUiState(
             level = level,
@@ -172,7 +172,7 @@ class QuizContentTest {
             fun stateFor(ayah: Int) = QuizUiState(
                 level = level,
                 number = 1,
-                question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1), layout = TestData.mushafLayout)
+                question = QuestionGenerator(quran, level, AppLanguage.Arabic, Random(1), layout = TestData.mushafLayout())
                     .questionFor(ayah..ayah),
                 mode = GameMode.Regular,
             )

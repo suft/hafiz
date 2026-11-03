@@ -4,6 +4,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import suft.android.hafiz.domain.AppLanguage
 import suft.android.hafiz.domain.GameMode
 import suft.android.hafiz.domain.GameStyle
+import suft.android.hafiz.domain.MushafEdition
 
 /** Every piece of UI text that is not Quran text. Numbers always go through [number]. */
 interface Strings {
@@ -46,10 +47,14 @@ interface Strings {
     fun guideMastery(styleTitle: String, questions: Int, mastery: Int): String
     val guideStatsHeading: String
     val guideStats: String
+    val guideSettings: String
     val statistics: String
     val statisticsHint: String
     fun statisticsSummary(percent: Int, total: Int): String
     val languageLabel: String
+    val settings: String
+    val mushafEditionLabel: String
+    fun mushafEditionName(edition: MushafEdition): String
     val credits: String
     val creditsQuranText: String
     val creditsRecitations: String
@@ -160,7 +165,7 @@ object ArabicStrings : Strings {
     override fun styleSubtitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "اقرأ الآية واختر السورة التي وردت فيها"
         GameStyle.NextAyah -> "أكمل التلاوة واختر الآية التالية"
-        GameStyle.AyahPosition -> "اقرأ الآية واختر موضع بدايتها في مصحف المدينة (طبعة ${number(1405)}هـ)"
+        GameStyle.AyahPosition -> "اقرأ الآية واختر موضع بدايتها في مصحف المدينة"
     }
 
     override fun gameModeTitle(mode: GameMode) = when (mode) {
@@ -197,7 +202,7 @@ object ArabicStrings : Strings {
     override val playHint = "اختر وضع اللعب، ثم نوع الأسئلة والمرحلة"
     override val gameModes = "أوضاع اللعب"
     override val howToPlay = "طريقة اللعب"
-    override val howToPlayHint = "تعرّف على أنواع الأسئلة وأوضاع اللعب والمراحل"
+    override val howToPlayHint = "تعرّف على أنواع الأسئلة وأوضاع اللعب والمراحل والإعدادات"
     override val guideStylesHeading = "أنواع الأسئلة"
     override val guideLevelsHeading = "المراحل والإتقان"
     override val guideLevels =
@@ -207,10 +212,21 @@ object ArabicStrings : Strings {
         "«$styleTitle»: تتكون الجولة العادية من ${questionsCount(questions)}، وتُتقَن المرحلة إذا بلغت نتيجتك ${number(mastery)} أو أكثر."
     override val guideStatsHeading = "الإحصائيات والمراجعة"
     override val guideStats = "تعرض «إحصائيات» دقة إجاباتك والسور التي تحتاج إلى مراجعة، ومنها تبدأ جولة مراجعة لسورة واحدة."
+    override val guideSettings
+        get() = "زر الإعدادات أعلى القائمة الرئيسية يغيّر لغة التطبيق والمصحف الذي تعتمده " +
+            "«${styleTitle(GameStyle.AyahPosition)}»: ${mushafEditionName(MushafEdition.V1)} وهي الافتراضية، أو " +
+            "${mushafEditionName(MushafEdition.V2)}. تبدأ بعض الآيات في موضع مختلف في كل طبعة، والنتائج مشتركة بين الطبعتين."
     override fun statisticsSummary(percent: Int, total: Int) =
         "دقة إجاباتك ${percent(percent)} في ${questionsCount(total)}"
 
     override val languageLabel = "اللغة"
+    override val settings = "الإعدادات"
+    override val mushafEditionLabel get() = "المصحف في «${styleTitle(GameStyle.AyahPosition)}»"
+
+    override fun mushafEditionName(edition: MushafEdition) = when (edition) {
+        MushafEdition.V1 -> "طبعة ${number(edition.hijriYear)}هـ (الإصدار الأول)"
+        MushafEdition.V2 -> "طبعة ${number(edition.hijriYear)}هـ (الإصدار الثاني)"
+    }
     override val credits = "شكر وتقدير"
     override val creditsQuranText = "نص القرآن الكريم"
     override val creditsRecitations = "التلاوات"
@@ -339,7 +355,7 @@ object EnglishStrings : Strings {
     override fun styleSubtitle(style: GameStyle) = when (style) {
         GameStyle.GuessSurah -> "Read the ayah and pick its surah"
         GameStyle.NextAyah -> "Pick the ayah that comes next"
-        GameStyle.AyahPosition -> "Read the ayah and pick where it starts in the Madinah mushaf (1405H print)"
+        GameStyle.AyahPosition -> "Read the ayah and pick where it starts in the Madinah mushaf"
     }
 
     override fun gameModeTitle(mode: GameMode) = when (mode) {
@@ -376,7 +392,7 @@ object EnglishStrings : Strings {
     override val playHint = "Pick a game mode, then a question style and a level"
     override val gameModes = "Game modes"
     override val howToPlay = "How to play"
-    override val howToPlayHint = "Learn the question styles, game modes and levels"
+    override val howToPlayHint = "Learn the question styles, game modes, levels and settings"
     override val guideStylesHeading = "Question styles"
     override val guideLevelsHeading = "Levels and mastery"
     override val guideLevels =
@@ -386,10 +402,22 @@ object EnglishStrings : Strings {
         "$styleTitle: a Regular round has ${questionsCount(questions)}; a score of ${number(mastery)} or more masters the level."
     override val guideStatsHeading = "Statistics and review"
     override val guideStats = "Statistics shows your accuracy and the surahs that need review; start a review round for a single surah from there."
+    override val guideSettings
+        get() = "The gear at the top of the main menu changes the app language and the mushaf used by " +
+            "${styleTitle(GameStyle.AyahPosition)}: the ${mushafEditionName(MushafEdition.V1)}, the default, or the " +
+            "${mushafEditionName(MushafEdition.V2)}. Some ayahs start in a different place in each print; " +
+            "scores are shared by both."
     override fun statisticsSummary(percent: Int, total: Int) =
         "Accuracy ${percent(percent)} across ${questionsCount(total)}"
 
     override val languageLabel = "Language"
+    override val settings = "Settings"
+    override val mushafEditionLabel get() = "Mushaf for ${styleTitle(GameStyle.AyahPosition)}"
+
+    override fun mushafEditionName(edition: MushafEdition) = when (edition) {
+        MushafEdition.V1 -> "${number(edition.hijriYear)}H print (v1)"
+        MushafEdition.V2 -> "${number(edition.hijriYear)}H print (v2)"
+    }
     override val credits = "Credits"
     override val creditsQuranText = "Quran text"
     override val creditsRecitations = "Recitations"

@@ -154,7 +154,7 @@ description = "Re-download Aswaatul Qurraa's mutashabihat and regenerate app/src
 run = "python3 tools/mutashabihat.py"
 
 [tasks.mushaf-layout]
-description = "Re-download the Madinah mushaf (1405H) page/line of every ayah from quran.com and regenerate app/src/main/assets/mushaf_layout.txt (needs python3)"
+description = "Re-download the Madinah mushaf page/line of every ayah (1405H v1 and 1421H v2) from quran.com and regenerate app/src/main/assets/mushaf_layout_v1.txt and mushaf_layout_v2.txt (needs python3)"
 run = "python3 tools/mushaf_layout.py"
 
 [tasks.reciters]

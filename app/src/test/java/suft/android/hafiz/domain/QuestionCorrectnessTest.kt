@@ -28,8 +28,8 @@ class QuestionCorrectnessTest {
     private fun lightGenerator(level: Level, seed: Int = level.index) =
         QuestionGenerator(quran, level, AppLanguage.Arabic, Random(seed), mutashabihat, trapMode = false)
 
-    private fun positionGenerator(level: Level) =
-        QuestionGenerator(quran, level, AppLanguage.Arabic, Random(level.index), layout = TestData.mushafLayout)
+    private fun positionGenerator(level: Level, edition: MushafEdition = MushafEdition.V1) =
+        QuestionGenerator(quran, level, AppLanguage.Arabic, Random(level.index), layout = TestData.mushafLayout(edition))
 
     /** The same level dealt without traps (Regular/Survival default), with light traps, and in Mutashabihat mode. */
     private fun everyTrapSetting(level: Level) = listOf(
@@ -285,19 +285,21 @@ class QuestionCorrectnessTest {
 
     @Test
     fun everyPositionPromptIsUnambiguous() {
-        val layout = TestData.mushafLayout
         val labels = MushafCell.entries.map { it.label(AppLanguage.Arabic) }
-        for (level in Levels.forStyle(GameStyle.AyahPosition, quran)) {
-            val gen = positionGenerator(level)
-            for (p in gen.promptPool) {
-                val q = gen.questionFor(p)
-                val where = "${level.arabicName} ${quran.reference(p, AppLanguage.English)}"
-                assertEquals(where, labels, q.options)
-                assertEquals(where, layout.cell(p.first)!!.ordinal, q.correctOption)
-                assertTrue("$where: framed page", layout.page(p.first) > 2)
-                if (p.first == p.last) {
-                    val copies = (0 until quran.ayahCount).filter { normalised[it] == normalised[p.first] }
-                    assertTrue("$where: a copy starts in another cell", copies.all { layout.cell(it) == layout.cell(p.first) })
+        for (edition in MushafEdition.entries) {
+            val layout = TestData.mushafLayout(edition)
+            for (level in Levels.forStyle(GameStyle.AyahPosition, quran)) {
+                val gen = positionGenerator(level, edition)
+                for (p in gen.promptPool) {
+                    val q = gen.questionFor(p)
+                    val where = "$edition ${level.arabicName} ${quran.reference(p, AppLanguage.English)}"
+                    assertEquals(where, labels, q.options)
+                    assertEquals(where, layout.cell(p.first)!!.ordinal, q.correctOption)
+                    assertTrue("$where: framed page", layout.page(p.first) > 2)
+                    if (p.first == p.last) {
+                        val copies = (0 until quran.ayahCount).filter { normalised[it] == normalised[p.first] }
+                        assertTrue("$where: a copy starts in another cell", copies.all { layout.cell(it) == layout.cell(p.first) })
+                    }
                 }
             }
         }

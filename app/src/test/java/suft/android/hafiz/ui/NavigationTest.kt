@@ -20,6 +20,7 @@ import android.app.LocaleManager
 import android.os.LocaleList
 import androidx.activity.ComponentActivity
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -29,6 +30,7 @@ import org.robolectric.RobolectricTestRunner
 import suft.android.hafiz.HafizApp
 import suft.android.hafiz.MainActivity
 import suft.android.hafiz.domain.GameMode
+import suft.android.hafiz.domain.MushafEdition
 import suft.android.hafiz.domain.GameStyle
 import suft.android.hafiz.ui.i18n.ArabicStrings
 import suft.android.hafiz.ui.i18n.EnglishStrings
@@ -114,6 +116,7 @@ class NavigationTest {
         waitForHome()
         rule.onNodeWithText(ArabicStrings.howToPlay).performClick()
         waitForText(ArabicStrings.guideStylesHeading)
+        rule.onNodeWithText(ArabicStrings.guideSettings).performScrollTo().assertIsDisplayed()
         rule.onNodeWithContentDescription(ArabicStrings.back).performClick()
         rule.waitForIdle()
         rule.onNodeWithText(ArabicStrings.statistics).assertExists()
@@ -142,16 +145,20 @@ class NavigationTest {
     }
 
     @Test
-    fun languagePickerIsRadioGroupAndClosesOnSelect() {
+    fun settingsOverlayChangesLanguageAndEditionAndStaysOpen() {
         waitForHome()
-        rule.onNodeWithContentDescription("${ArabicStrings.languageLabel}: العربية").performClick()
+        rule.onNodeWithContentDescription(ArabicStrings.settings).performClick()
         val radio = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.RadioButton)
-        rule.onAllNodes(radio).assertCountEquals(2)
+        rule.onAllNodes(radio).assertCountEquals(4)
         rule.onNodeWithContentDescription("English").performClick()
-        // Closes only after the language has been written and applied.
-        rule.waitUntil(5_000) { rule.onAllNodesWithContentDescription("English").fetchSemanticsNodes().isEmpty() }
-        rule.onNodeWithContentDescription("${EnglishStrings.languageLabel}: English").assertExists()
+        // The page re-renders in English and stays open.
+        waitForText(EnglishStrings.mushafEditionLabel)
         assertEquals("en", localeManager.applicationLocales.toLanguageTags())
+        rule.onNodeWithText(EnglishStrings.mushafEditionName(MushafEdition.V2)).performScrollTo().performClick()
+        val container = (rule.activity.application as HafizApp).container
+        rule.waitUntil(5_000) { runBlocking { container.progress.progress.first().mushafEdition } == MushafEdition.V2 }
+        rule.onNodeWithContentDescription(EnglishStrings.back).performClick()
+        waitForText(EnglishStrings.statistics)
     }
 
     @Test

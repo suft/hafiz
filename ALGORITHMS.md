@@ -129,10 +129,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    P["Prompt ayah(s), only those with one possible cell"] --> A["Cell where the first prompt ayah starts in the Madinah mushaf: right or left page x top, middle or bottom third (lines 1-5, 6-10, 11-15)"]
+    P["Prompt ayah(s), only those with one possible cell"] --> A["Cell where the first prompt ayah starts in the player's chosen Madinah mushaf edition (1405H v1 or 1421H v2): right or left page x top, middle or bottom third (lines 1-5, 6-10, 11-15)"]
     A --> B["Options = the six MushafCell labels in fixed order, not shuffled"]
     B --> C["Correct option = that cell's position in the order"]
 ```
+
+The edition is a setting (`Progress.mushafEdition`, default v1) read when a round starts. Each edition has its own layout file, so the same ayah can start on a different page or line, and in a different cell, in the other print; the prompt pool is built from that edition's layout.
 
 ## Summary
 
