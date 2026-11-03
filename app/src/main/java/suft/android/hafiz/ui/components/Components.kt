@@ -60,11 +60,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.LastBaseline
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -173,17 +177,30 @@ fun MenuCard(
     }
 }
 
+/** A title face with its size and how far its box reaches above and below the baseline (all in sp). */
+private class TitleFace(val family: FontFamily, val size: TextUnit, val above: TextUnit, val below: TextUnit)
+
+// Tuned by eye so both names look equally big and sit the same distance from the tagline: Rakkas draws the Arabic
+// tails below the baseline, while Marhey's empty descender would otherwise leave a big gap under "Hafiz".
+private val ArabicTitle = TitleFace(TitleFont, 56.sp, above = 40.sp, below = 17.sp)
+private val EnglishTitle = TitleFace(LatinTitleFont, 42.sp, above = 34.sp, below = 12.sp)
+
+/** Sizes the box from the last baseline, so a face's own ascent and descent add no space above or below the text. */
+private fun Modifier.boxFromBaseline(above: TextUnit, below: TextUnit) = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    val top = above.roundToPx()
+    layout(placeable.width, top + below.roundToPx()) { placeable.place(0, top - placeable[LastBaseline]) }
+}
+
 /** The app name in the Rakkas (Arabic) or Marhey (English) title face, as on the main menu and the load screen. */
 @Composable
 fun AppTitle(modifier: Modifier = Modifier) {
     val strings = LocalStrings.current
+    val face = if (strings.language == AppLanguage.English) EnglishTitle else ArabicTitle
     Text(
         text = strings.appName,
-        modifier = modifier,
-        style = MaterialTheme.typography.displayMedium.copy(
-            fontFamily = if (strings.language == AppLanguage.English) LatinTitleFont else TitleFont,
-            fontSize = 52.sp,
-        ),
+        modifier = modifier.boxFromBaseline(face.above, face.below),
+        style = MaterialTheme.typography.displayMedium.copy(fontFamily = face.family, fontSize = face.size),
         color = MaterialTheme.colorScheme.primary,
     )
 }
