@@ -119,7 +119,7 @@ private var loadScreenStartedAt = 0L
 fun HafizRoot(container: AppContainer) {
     val progress by container.progressState.collectAsStateWithLifecycle()
     val loaded = progress
-    HafizTheme(language = loaded?.language ?: AppLanguage.Arabic) {
+    HafizTheme(language = loaded?.language ?: AppLanguage.English) {
         // Exposes Compose test tags as uiautomator resource-ids, which tools/screenshots.py taps.
         AppBackground(Modifier.semantics { testTagsAsResourceId = true }) {
             val quran by container.quran.collectAsStateWithLifecycle()

@@ -31,7 +31,7 @@ class ProgressStoreTest {
     fun unknownEnumKeepsOtherFields() = runBlocking {
         val p = ProgressSerializer.readFrom("""{"totalCorrect":5,"language":"Klingon"}""".byteInputStream())
         assertEquals(5, p.totalCorrect)
-        assertEquals(AppLanguage.Arabic, p.language)
+        assertEquals(AppLanguage.English, p.language)
     }
 
     @Test

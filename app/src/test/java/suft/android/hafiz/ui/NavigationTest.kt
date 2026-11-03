@@ -25,6 +25,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,6 +45,12 @@ import suft.android.hafiz.ui.i18n.PortugueseStrings
 class NavigationTest {
 
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
+
+    // The app defaults to English; these tests drive the Arabic UI, so they store Arabic first.
+    @Before
+    fun useArabic() {
+        runBlocking { (rule.activity.application as HafizApp).container.progress.setLanguage(AppLanguage.Arabic) }
+    }
 
     private val localeManager get() = rule.activity.getSystemService(LocaleManager::class.java)
 

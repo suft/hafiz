@@ -101,7 +101,7 @@ data class Progress(
     /** [suft.android.hafiz.audio.Reciter.folder] of the chosen reciter; null = the default reciter. */
     val reciterFolder: String? = null,
     val autoPlay: Boolean = true,
-    val language: AppLanguage = AppLanguage.Arabic,
+    val language: AppLanguage = AppLanguage.English,
     val mushafEdition: MushafEdition = MushafEdition.V1,
 ) {
     val overall: Score get() = Score(totalCorrect, totalWrong)

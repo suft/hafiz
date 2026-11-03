@@ -51,7 +51,7 @@ Survival keeps a best score per level; Mutashabihat keeps one best score per sty
 
 Recitations stream from [everyayah.com](https://everyayah.com) (26 reciters). Quran text: [Tanzil](https://tanzil.net) (Simple, v1.0.2).
 
-The interface language (Arabic, English, German, Spanish, French, Italian or Brazilian Portuguese; Arabic is the default) and the mushaf print that Where's the Ayah? uses (1405H v1, the default, or 1421H v2) are chosen in Settings, the gear button on the main menu; scores and statistics are shared by both prints. On Android 13 and later the language is also the app's language in the system settings (Apps → Hafiz → Language), and changing either one changes both. The Quran text is always Arabic.
+The interface language (Arabic, English, German, Spanish, French, Italian or Brazilian Portuguese; English is the default) and the mushaf print that Where's the Ayah? uses (1405H v1, the default, or 1421H v2) are chosen in Settings, the gear button on the main menu; scores and statistics are shared by both prints. On Android 13 and later the language is also the app's language in the system settings (Apps → Hafiz → Language), and changing either one changes both. The Quran text is always Arabic.
 
 ---
 
